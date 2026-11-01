@@ -1,0 +1,92 @@
+"""Flexible round-trip discovery; never records observations or sends alerts."""
+import math
+from datetime import date, datetime, timedelta
+
+from . import locations
+from .domain import matches, today, validate as validate_watch
+from .provider import Kiwi
+
+
+def validate(data):
+    raw = data.get('destinations', [])
+    if not isinstance(raw, list) or len(raw) > 6:
+        raise ValueError('每次最多搜索 6 个目的地范围，也可以选择不限目的地。')
+    origin = locations.resolve(data.get('origin', 'airport:HKG'))
+    scopes = list({r['id']:r for r in map(locations.resolve, raw)}.values())
+    try:
+        start, end = date.fromisoformat(data['start']), date.fromisoformat(data['end'])
+        low, high = int(data.get('min_nights', 2)), int(data.get('max_nights', 5))
+        weekdays = data.get('weekdays', [])
+        if not isinstance(weekdays, list) or any(type(d) is not int or d not in range(7) for d in weekdays):
+            raise ValueError()
+        base = validate_watch(dict(data, origin=origin['id'], destinations=[r['id'] for r in scopes] or ['country:JP'],
+                                   mode='fixed', weeks=1))
+    except (KeyError, TypeError, ValueError):
+        raise ValueError('请检查地点、出发日期范围、人数、预算和筛选条件。') from None
+    if start < today() or end < start or (end-start).days > 180 or end > today()+timedelta(days=365):
+        raise ValueError('请选择未来一年内的出发时间，单次日期跨度不超过 180 天。')
+    if not 1 <= low <= high <= 30:
+        raise ValueError('目的地停留晚数须为 1–30，最少不能大于最多。')
+    return dict(base, destination_locations=scopes, destinations=[r['code'] for r in scopes],
+                min_nights=low, max_nights=high, weekdays=sorted(set(weekdays)))
+
+
+def accepts(offer, config, scope):
+    try:
+        out, back = offer['outbound'], offer['inbound']
+        dep = datetime.fromisoformat(out['departureTime']).date()
+        arrival = datetime.fromisoformat(out['arrivalTime']).date()
+        ret = datetime.fromisoformat(back['departureTime']).date()
+        if not config['start'] <= dep.isoformat() <= config['end']:
+            return False
+        if config['weekdays'] and dep.weekday() not in config['weekdays']:
+            return False
+        if not config['min_nights'] <= (ret-arrival).days <= config['max_nights']:
+            return False
+        if not math.isfinite(offer['price']) or (config['budget'] and offer['price'] > config['budget']):
+            return False
+        target = scope or locations.resolve('airport:' + out['to'])
+        job = dict(location_id=target['id'], destination=target['code'], departure=dep.isoformat(), arrival=ret.isoformat())
+        return matches(offer, config, job)
+    except (KeyError, ValueError, TypeError):
+        return False
+
+
+def search(config, progress=lambda *_: None):
+    scopes = config['destination_locations'] or [None]
+    results, errors = {}, 0
+    fmt = lambda value: date.fromisoformat(value).strftime('%d/%m/%Y')
+    for index, scope in enumerate(scopes):
+        args = dict(flyFrom=config['origin_location']['code'], flyTo=scope['code'] if scope else 'anywhere',
+                    departureDate=fmt(config['start']), departureDateTo=fmt(config['end']),
+                    nights_in_dst_from=config['min_nights'], nights_in_dst_to=config['max_nights'],
+                    adults=config['adults'], currency='HKD', cabinClass='M', sort='price',
+                    one_for_city=True, allow_self_transfer=False)
+        if config['max_stops'] >= 0:
+            args['max_sector_stopovers'] = config['max_stops']
+        if config['budget']:
+            args['price_to'] = math.floor(config['budget'])
+        if config['weekdays']:
+            args['fly_days'] = ','.join(str((day+1) % 7) for day in config['weekdays'])
+        try:
+            kiwi = Kiwi()
+            kiwi.call(1, 'initialize', {'protocolVersion':'2025-06-18', 'capabilities':{},
+                                      'clientInfo':{'name':'fare-scout', 'version':'0.1'}})
+            offers = kiwi.query(args)
+            for offer in offers:
+                if not accepts(offer, config, scope):
+                    continue
+                airport = locations.resolve('airport:' + offer['outbound']['to'])
+                offer = dict(offer, destination_name=locations.label(airport['code']),
+                             destination_country=airport['country_name'])
+                key = airport['city_code'] or airport['code']
+                if key not in results or offer['price'] < results[key]['price']:
+                    results[key] = offer
+        except Exception:
+            import logging
+            logging.exception('Deal source query failed for scope %s', scope['id'] if scope else 'anywhere')
+            errors += 1
+        progress(index+1, len(scopes))
+    return dict(offers=sorted(results.values(), key=lambda o:o['price']), failures=errors,
+                completed=len(scopes), total=len(scopes), source='Kiwi',
+                checked_at=datetime.now().astimezone().isoformat())

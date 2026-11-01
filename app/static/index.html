@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="把空闲时间交给 Fare Scout，发现下一次出发的好价格。">
+  <title>Fare Scout · 发现下一站好价格</title>
+  <meta name="robots" content="noindex"><link rel="icon" href="/assets/airplane-tilt.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/automation.css"><link rel="stylesheet" href="/auth.css"><link rel="stylesheet" href="/flights.css"><link rel="stylesheet" href="/locations.css"><link rel="stylesheet" href="/deals.css"><link rel="stylesheet" href="/holidays.css"><link rel="stylesheet" href="/nights.css"><link rel="stylesheet" href="/location_browser.css"><script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <header class="top"><a href="/" class="brand"><span class="brand-icon"><img src="/assets/airplane-tilt.svg" alt="" width="24" height="24"></span>fare scout<span class="brand-dot">.</span></a><div id="account-bar" class="account-bar" hidden><span id="account-name" class="account-name"></span><button id="logout" class="text-btn">退出登录</button><span id="account-error" class="error account-error" role="alert"></span></div></header>
+  <section id="auth-view" class="auth-view"><div class="auth-intro"><p class="eyebrow">你的出行雷达</p><h1>下一次出发，<br>从好价格开始。</h1><p>把出行计划留在自己的账号里。<br>下次回来，好价格和每一笔记录都还在。</p><ul class="auth-points"><li>独立保存监控与出行条件</li><li>持续采样，积累自己的价格记录</li><li>把合适的机票机会寄到你的邮箱</li></ul></div><div class="auth-card"><p class="eyebrow">欢迎回来</p><h2 id="auth-title">欢迎回来，下一程在等你</h2><p id="auth-hint" class="auth-hint">登录后，查看你的监控、价格记录与专属提醒。</p><form id="auth-form"><label id="auth-name-field" hidden>昵称<input id="auth-name" name="name" maxlength="40" autocomplete="nickname" placeholder="怎么称呼你"></label><label id="auth-email-field">登录邮箱<input id="auth-email" name="email" type="email" autocomplete="username" required placeholder="you@example.com"></label><label>密码<input id="auth-password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="输入你的密码"></label><p id="auth-error" class="error" role="alert"></p><button id="auth-submit" class="primary wide" type="submit">登录我的雷达 ↗</button></form><button id="auth-switch" class="text-btn auth-switch">第一次来？创建账号</button><p class="auth-footer">现有本地账号首次使用时，请通过本机初始化入口设置密码。新账号有独立配置，登录邮箱暂未进行邮件验证。</p></div></section>
+  <div id="workspace" hidden>
+  <main id="main-content">
+    <nav class="tabs" role="tablist" aria-label="工作台视图"><button role="tab" aria-selected="true" data-tab="deals">搜特价</button><button role="tab" aria-selected="false" data-tab="watches">出行监控 <span id="watch-count">0</span></button><button role="tab" aria-selected="false" data-tab="offers">机票机会 <span id="offer-count">0</span></button><button role="tab" aria-selected="false" data-tab="alerts">提醒中心 <span id="alert-count">0</span></button></nav>
+    <div class="workspace-head" id="workspace-heading" hidden><div><p class="eyebrow" id="workspace-caption">持续关注你的出行计划</p><h1 id="workspace-title">我的出行监控</h1><p id="summary" class="muted">正在加载…</p></div><button class="primary" id="new-watch">创建监控 ＋</button></div>
+    <div id="page-error" class="notice error" hidden></div>
+    <section id="watches-panel" role="tabpanel" aria-label="出行监控" hidden><div id="watches" class="cards"></div></section>
+    <section id="offers-panel" role="tabpanel" aria-label="机票机会" hidden><div class="notice">仅展示每条航线与日期组合的最近一次查询结果。有限结果无匹配不代表市场上没有航班；价格以预订时为准。</div><div id="offers" class="cards"></div></section>
+    <section id="alerts-panel" role="tabpanel" aria-label="提醒中心" hidden>
+      <div class="mail-settings"><div><p class="eyebrow">邮件通知</p><h3>好价格，寄给你</h3><p id="email-status" class="muted"></p></div><form id="email-form"><label>收件邮箱<input id="email-recipient" name="recipient" type="email" required placeholder="you@example.com"></label><button class="small-btn" type="submit">保存邮箱</button><p id="email-error" class="error" role="alert"></p></form></div>
+      <div class="alert-toolbar"><span class="muted">降价或首次进入预算时提醒，同一行程的重复价格不会反复发送。</span><button class="text-btn" id="read-alerts">全部标为已读</button></div><div id="alerts" class="cards"></div>
+    </section>
+    <section id="deals-panel" role="tabpanel" aria-label="搜特价">
+      <div class="deal-intro"><div><p class="eyebrow">留一点时间给远方</p><h1>下一站，哪里便宜？</h1><p>先选一段空闲，再让好价格带你出发。</p></div><span class="discovery-label">灵活日期，自由目的地</span></div>
+      <div class="deal-layout"><form id="deals-form" class="deal-search">
+        <div class="search-topline"><span class="search-mode">往返 <span>经济舱 · HKD</span></span><label class="toggle"><input name="anywhere" type="checkbox" checked>不限目的地</label></div>
+        <div class="search-main-grid">
+          <div id="deal-origin" class="place-picker"></div>
+          <div class="destination-field"><button type="button" id="deal-anywhere" class="anywhere-display"><span class="field-label">目的地</span><strong>任何地方</strong><span>按地区选择目的地 ↗</span></button><div id="deal-destination" class="place-picker" hidden></div></div>
+          <div class="search-dates"><span class="field-label">出发日期范围</span><div class="two-col"><label>最早出发<input name="start" type="date" required></label><label>最晚出发<input name="end" type="date" required></label></div></div>
+        </div>
+        <div class="search-bottom-grid">
+          <div class="search-nights"><div class="night-heading"><span class="field-label">目的地停留</span><output id="night-value">2 至 5 晚</output></div><div class="night-slider"><span class="night-track"></span><span class="night-fill"></span><input name="min_nights" aria-label="最少停留晚数" type="range" value="2" min="1" max="30" step="1"><input name="max_nights" aria-label="最多停留晚数" type="range" value="5" min="1" max="30" step="1"></div><div class="night-limits"><span>1 晚</span><span>30 晚</span></div></div>
+          <details class="search-advanced"><summary>人数与筛选 <span id="deal-filter-summary">1 位成人 · 不限中转</span></summary><div class="advanced-body">
+            <div class="two-col"><label>成人数<input name="adults" type="number" value="1" min="1" max="9" required></label><label>中转<select name="max_stops"><option value="-1">不限</option><option value="0">仅直飞</option><option value="1">最多 1 次</option></select></label></div>
+            <div class="two-col"><label>往返总预算 · HKD<input name="budget" type="number" min="0" max="1000000" placeholder="不限"></label><label>每程最长总时长 · 小时<input name="max_duration_hours" type="number" min="0" max="72" step="0.5" placeholder="不限，含中转"></label></div>
+            <fieldset><legend>周几出发 · 不选表示不限</legend><div class="deal-weekdays"><label><input name="weekday" type="checkbox" value="0">周一</label><label><input name="weekday" type="checkbox" value="1">周二</label><label><input name="weekday" type="checkbox" value="2">周三</label><label><input name="weekday" type="checkbox" value="3">周四</label><label><input name="weekday" type="checkbox" value="4">周五</label><label><input name="weekday" type="checkbox" value="5">周六</label><label><input name="weekday" type="checkbox" value="6">周日</label></div></fieldset>
+          </div></details>
+          <button type="submit" class="primary search-submit">搜索特价机票 <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="search-footer"><div class="deal-presets"><span>快捷时间</span><button type="button" data-deal-range="30">未来 30 天</button><button type="button" data-deal-range="90">未来 3 个月</button><button type="button" data-deal-range="180">未来半年</button></div><details class="holiday-popover"><summary><span data-holiday-label>国内假期</span><span aria-hidden="true">＋</span></summary><div id="deal-holidays" class="holiday-picker"></div></details></div>
+      </form><div class="discovery-results"><div class="deal-results-head"><div><h2>发现目的地</h2><p id="deal-status" role="status" aria-live="polite" class="muted">搜索后，这里会出现适合你的行程。</p></div><label id="deal-sort" hidden>排序<select name="result_sort" form="deals-form" aria-label="特价结果排序"><option value="price">价格从低到高</option><option value="date">出发日期优先</option><option value="duration">飞行时长优先</option></select></label></div>
+        <div id="deal-result-controls" hidden><p class="deal-date-note">已返回日期的较低价 · 未展示日期表示本次没有返回报价，并非无票。</p><div id="deal-days"></div></div>
+        <div id="deal-results" class="deal-results-grid"></div><p class="deal-date-note">来源：Kiwi。每个目的地城市展示本次返回的较低价行程，结果有限；“特价”不代表平台促销或历史最低价，最终价格与行李额度以预订页为准。</p>
+      </div></div>
+    </section>
+    <aside class="note"><span class="status-dot" aria-hidden="true"></span><div><strong>你的出行雷达，持续关注好价格</strong><p>电脑保持唤醒、本地服务运行时，监控会按计划查价。有限结果不代表完整市场；邮件需配置发信服务。</p></div></aside>
+  </main>
+  <footer><span>fare scout. / 留一点时间给远方</span><span>配置与记录保存在当前账号</span></footer>
+  <dialog id="create-dialog"><form id="watch-form"><div class="dialog-head"><div><p class="eyebrow">选择航线与时间</p><h2>创建出行监控</h2></div><button type="button" class="icon-btn" data-close="create-dialog" aria-label="关闭">×</button></div>
+    <label>出行方式<select name="mode"><option value="fixed">固定往返日期</option><option value="weekend">周末出行 · 周六凌晨出发，周一凌晨返回</option></select></label>
+    <div id="origin-picker" class="place-picker"></div><div id="destination-picker" class="place-picker"></div><p id="location-summary" class="location-summary"></p>
+    <div class="two-col"><label>成人数<input name="adults" type="number" min="1" max="9" value="1" required></label><label>最多中转次数<select name="max_stops"><option value="-1">不限</option><option value="0">仅直飞</option><option value="1">最多 1 次</option><option value="2">最多 2 次</option><option value="3">最多 3 次</option></select></label></div>
+    <label>每程最长总时长 · 小时 <span class="muted">留空表示不限，包含转机等待</span><input name="max_duration_hours" type="number" min="0" max="72" step="0.5" placeholder="不限，例如 16"></label>
+    <details class="watch-holiday-disclosure"><summary><span data-holiday-label>按国内假期选择日期</span><span aria-hidden="true">＋</span></summary><div id="watch-holidays" class="holiday-picker"></div></details>
+    <div class="two-col"><label><span id="start-label">出发日期</span><input type="date" name="start" required></label><label id="end-field">返程起飞日期<input type="date" name="end" required></label><label id="weeks-field" hidden>连续周末数<select name="weeks"><option value="1">1 个周末</option><option value="2">2 个周末</option><option value="3">3 个周末</option><option value="4">4 个周末</option></select></label></div>
+    <label>往返总预算 · HKD <span class="muted">可选，用于标记预算内报价</span><input name="budget" type="number" min="0" max="1000000" step="1" placeholder="例如 2000"></label>
+    <div class="automation-fields"><label class="toggle"><input type="checkbox" name="auto_enabled" checked>自动查价</label><div class="two-col"><label>查价间隔<select name="interval_hours"><option value="1">每 1 小时</option><option value="3">每 3 小时</option><option value="6" selected>每 6 小时</option><option value="12">每 12 小时</option><option value="24">每 24 小时</option></select></label><label>至少降价 · HKD<input name="min_drop" type="number" min="1" max="1000000" value="100" required></label></div><label class="toggle"><input type="checkbox" name="alerts_enabled" checked>开启降价及进入预算提醒</label></div>
+    <p class="form-hint">开启自动查价时，保存后会自动进行首次采样。提醒比较同一目的地与往返日期的上次有效报价；暂停自动查价时仍可手动查询。</p>
+    <p id="form-error" class="error" role="alert"></p><button type="submit" class="primary wide">保存监控</button>
+  </form></dialog>
+  <dialog id="history-dialog"><div class="dialog-head"><div><p class="eyebrow">价格采样</p><h2>每一次价格，都有记录</h2></div><button class="icon-btn" data-close="history-dialog" aria-label="关闭">×</button></div><div id="history"></div></dialog>
+  <dialog id="settings-dialog"><form id="settings-form"><div class="dialog-head"><div><p class="eyebrow">查价计划</p><h2>自动查价与提醒</h2></div><button type="button" class="icon-btn" data-close="settings-dialog" aria-label="关闭">×</button></div><input type="hidden" name="watch_id"><label class="toggle"><input type="checkbox" name="auto_enabled">自动查价</label><div class="two-col"><label>查价间隔<select name="interval_hours"><option value="1">每 1 小时</option><option value="3">每 3 小时</option><option value="6">每 6 小时</option><option value="12">每 12 小时</option><option value="24">每 24 小时</option></select></label><label>至少降价 · HKD<input name="min_drop" type="number" min="1" max="1000000" required></label></div><label class="toggle"><input type="checkbox" name="alerts_enabled">开启降价及进入预算提醒</label><p class="form-hint">较上次有效报价下降达到此金额，或首次进入总预算时提醒。已提醒过的价格回升后再出现，不重复提醒。暂停后已发出的查询会完成，剩余组合停止查询。</p><p id="settings-error" class="error" role="alert"></p><button class="primary wide" type="submit">保存设置</button></form></dialog>
+  <div id="toast" role="status" hidden></div>
+  </div>
+</body>
+</html>

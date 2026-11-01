@@ -1,0 +1,141 @@
+import {request} from './api.js';
+import {latest, watchCards, offerCards, historyView} from './views.js';
+import {renderAutomation, setupAutomation} from './automation.js';
+import {setupAuth, showSession} from './auth.js';
+import {setupLocations} from './locations.js';
+import {resetHistory} from './location_history.js';
+import {setupDeals} from './deals.js';
+import {setupHolidays} from './holidays.js';
+import {setupWorkspace} from './ui.js';
+const $ = selector => document.querySelector(selector);
+let state, historyId, refreshing = false, currentUser, generation = 0;
+let lastSnapshot;
+let formInitialized = false;
+let toastTimer;
+function toast(message) {
+  $('#toast').textContent = message;
+  $('#toast').hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $('#toast').hidden = true, 4500);
+}
+async function refresh() {
+  if (refreshing || !currentUser) return;
+  const requestGeneration = generation;
+  refreshing = true;
+  try {
+    const result = await request('/api/state');
+    if (requestGeneration !== generation) return;
+    if (result.user.id !== currentUser.id) {
+      showSession(await request('/api/auth/session'));
+      return;
+    }
+    state = result;
+    $('#page-error').hidden = true;
+    $('#summary').textContent = `${state.watches.length} 份出行计划 · ${state.watches.filter(w => w.running).length} 份查询中`;
+    const snapshot = JSON.stringify(state);
+    if (snapshot === lastSnapshot) return;
+    lastSnapshot = snapshot;
+    $('#watches').innerHTML = watchCards(state);
+    $('#offers').innerHTML = offerCards(state);
+    renderAutomation(state);
+    $('#watch-count').textContent = state.watches.length;
+    $('#offer-count').textContent = latest(state.observations).filter(o => o.status === 'ok').length;
+    if ($('#history-dialog').open) $('#history').innerHTML = historyView(state, historyId);
+    if (!formInitialized) {
+      formInitialized = true;
+      const start = new Date(`${state.today}T12:00:00`);
+      start.setDate(start.getDate() + ((6 - start.getDay() + 7) % 7));
+      const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      form.elements.start.value = fmt(start);
+      start.setDate(start.getDate() + 2);
+      form.elements.end.value = fmt(start);
+      form.elements.start.min = form.elements.end.min = state.today;
+    }
+  } catch (error) {
+    if (requestGeneration !== generation) return;
+    if (error.status === 401) { showSession(null); return; }
+    $('#page-error').textContent = '暂时连接不上本地服务，页面会自动重试。';
+    $('#page-error').hidden = false;
+    $('#summary').textContent = '连接中断';
+  } finally { refreshing = false; }
+}
+setupWorkspace();
+const form = $('#watch-form');
+const placeControls = setupLocations(form);
+const holidays = setupHolidays($('#watch-holidays'), form, 'watch');
+const discovery = setupDeals(async data => {
+  form.reset();
+  holidays.clear();
+  await placeControls.fill(data.origin, data.destinations);
+  for (const [key,value] of Object.entries(data)) if (form.elements[key] && !['origin','destinations'].includes(key)) form.elements[key].value = value;
+  form.elements.auto_enabled.checked = false;
+  form.elements.mode.dispatchEvent(new Event('change'));
+  $('#create-dialog').showModal();
+});
+$('#new-watch').addEventListener('click', () => $('#create-dialog').showModal());
+document.addEventListener('click', async event => {
+  const close = event.target.closest('[data-close]');
+  if (close) $(`#${close.dataset.close}`).close();
+  const history = event.target.closest('[data-history]');
+  if (history && state) {
+    historyId = Number(history.dataset.history);
+    $('#history').innerHTML = historyView(state, historyId);
+    $('#history-dialog').showModal();
+  }
+  const check = event.target.closest('[data-check]');
+  if (check) {
+    check.disabled = true;
+    try { await request(`/api/watches/${check.dataset.check}/check`, {}); toast('已加入查价队列，结果会自动更新。'); await refresh(); }
+    catch (error) { toast(error.message); check.disabled = false; }
+  }
+});
+form.elements.mode.addEventListener('change', () => {
+  const weekend = form.elements.mode.value === 'weekend';
+  $('#end-field').hidden = weekend;
+  form.elements.end.required = !weekend;
+  $('#weeks-field').hidden = !weekend;
+  $('#start-label').textContent = weekend ? '从哪天起寻找周末' : '出发日期';
+});
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = form.querySelector('[type=submit]');
+  button.disabled = true;
+  $('#form-error').textContent = '';
+  const data = Object.fromEntries(new FormData(form));
+  data.auto_enabled = form.elements.auto_enabled.checked;
+  data.alerts_enabled = form.elements.alerts_enabled.checked;
+  if (data.mode === 'weekend') data.end = data.start;
+  try {
+    Object.assign(data, placeControls.values());
+    await request('/api/watches', data);
+    $('#create-dialog').close();
+    toast(data.auto_enabled ? '监控已保存，将自动开始首次查价。' : '监控已保存，可随时手动查价。');
+    await refresh();
+  } catch (error) { $('#form-error').textContent = error.message; }
+  finally { button.disabled = false; }
+});
+setupAutomation(() => state, refresh, toast);
+await setupAuth(user => {
+  generation += 1;
+  currentUser = user;
+  resetHistory(user);
+  state = null;
+  lastSnapshot = undefined;
+  historyId = undefined;
+  ['watches','offers','alerts','history'].forEach(id => $(`#${id}`).replaceChildren());
+  ['watch-count','offer-count','alert-count'].forEach(id => $(`#${id}`).textContent = '0');
+  $('#summary').textContent = '正在加载…';
+  $('#email-status').textContent = '';
+  ['form-error','settings-error','email-error','account-error'].forEach(id => $(`#${id}`).textContent = '');
+  form.reset();
+  formInitialized = false;
+  placeControls.reset(Boolean(user));
+  discovery.reset(Boolean(user));
+  holidays.reset(Boolean(user));
+  form.elements.mode.dispatchEvent(new Event('change'));
+  $('#email-form').reset();
+  delete $('#email-recipient').dataset.dirty;
+  $('#page-error').hidden = true;
+  if (user) refresh();
+});
+setInterval(refresh, 4000);

@@ -1,0 +1,1 @@
+"""Fare Scout local application."""
