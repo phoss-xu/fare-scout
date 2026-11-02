@@ -1,0 +1,25 @@
+/* Scenic motion stays inside the top atlas; information areas retain their normal solid theme surfaces. */
+:root{--interface-opacity:65%}
+.world-backdrop{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:var(--paper);mask-image:linear-gradient(0deg,transparent,#000 12%,#000 95%,transparent)}
+.world-photo{width:100%;height:100%;object-fit:cover;opacity:1;mask-image:linear-gradient(90deg,transparent,#000 38%)}
+.world-veil{position:absolute;inset:0;background:color-mix(in srgb,var(--paper) var(--interface-opacity),transparent)}
+.city-composition{display:none;position:absolute;width:min(100%,1100px);aspect-ratio:3/2;right:-40px;bottom:-200px;background:radial-gradient(ellipse at 38% 28%,#b67d5e 0%,#5e4144 38%,#292633 75%);mask-image:linear-gradient(90deg,transparent,#000 22%)}
+[data-place=harbour]>.world-photo{visibility:hidden}[data-place=harbour]>.city-composition{display:block}
+.city-composition img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;opacity:1}
+.city-sky{position:absolute;inset:0;background:linear-gradient(#34293600 35%,#302938 66%)}
+.city-water{clip-path:polygon(0 61%,100% 61%,100% 100%,0 100%)}
+/* Keep the real distant roofline; remove two tower silhouettes from it and render each independently. */
+.city-far{clip-path:polygon(0 0,100% 0,100% 61.6%,0 61.6%);mask-image:linear-gradient(180deg,transparent 0%,#000 45%,#000 100%),url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201000%201000%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%221000%22%20height%3D%221000%22%20fill%3D%22white%22%2F%3E%3Cpath%20d%3D%22M835%20620L840%20300L845%20275L850%20265L857%20262L863%20266L868%20280L872%20300L891%20620Z%22%20fill%3D%22black%22%2F%3E%3Cpath%20d%3D%22M458%20620L460%20490L465%20485L467%20460L470%20485L475%20490L480%20620Z%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");mask-composite:intersect}
+.city-middle{clip-path:polygon(45.8% 61.5%,46% 49%,46.5% 48.5%,46.7% 46%,47% 48.5%,47.5% 49%,48% 61.5%)}
+.city-tower{clip-path:polygon(83.6% 61.5%,84.1% 30%,84.6% 27.5%,85% 26.5%,85.7% 26.2%,86.3% 26.6%,86.8% 28%,87.1% 30%,89% 61.5%)}
+
+.atlas-scene{min-height:410px}.atlas-stage{min-height:310px}.atlas-visual{display:none}
+.atlas-copy{width:75%;padding:36px 20px 24px 0;background:radial-gradient(ellipse at 20% 45%,color-mix(in srgb,var(--paper) 90%,transparent),transparent 72%)}
+.atlas-copy h1{font-size:clamp(60px,6.7vw,98px)}
+.motion-option{display:flex!important;align-items:center;gap:10px;color:var(--ink)!important;min-height:44px}.motion-option input{accent-color:var(--green);width:18px;height:18px}
+@media(max-width:760px){
+ .city-composition{width:900px;right:-70px;bottom:-130px}
+ .atlas-scene{min-height:350px}.atlas-stage{min-height:270px}.atlas-copy{width:100%;padding-top:30px;background:linear-gradient(90deg,color-mix(in srgb,var(--paper) 85%,transparent),color-mix(in srgb,var(--paper) 30%,transparent) 70%,transparent)}
+ .atlas-copy h1{font-size:clamp(48px,13.8vw,68px)}
+}
+@media(prefers-reduced-motion:reduce){.city-buildings{transform:none!important}}

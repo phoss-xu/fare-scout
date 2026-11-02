@@ -2,6 +2,25 @@
 
 面向出国游的低价机票发现与价格监控。用户可以选择具体日期、日期范围、节假日或周期性出行时段，也可以选择一个或多个目的地。这个目录记录了 2026-11-01 前的产品讨论和查价实验，是后续开发的起点。
 
+## Workers Free + D1（2026-11-02）
+
+已部署：https://fare-scout.phosssuki.workers.dev 。使用 Passkey（指纹/面容/设备 PIN）登录；运行于 Workers Free，采用空库，不迁移旧数据，邮件发送关闭。
+
+```bash
+npm ci
+cp .dev.vars.example .dev.vars  # 仅首次配置，已有文件勿覆盖
+npm run db:local
+npm run dev
+```
+
+本地打开 http://localhost:8787（Passkey 开发使用 localhost）。真实查价需在 `.dev.vars` 开启 `QUERY_ENABLED=true`；验收期间保持 `MAIL_ENABLED=false`。
+原 Python 版与 `fare_scout.db` 保留，继续使用原本地密码登录；云端由用户重新创建 Passkey 账号。
+运行方式、Passkey、验证边界及发布步骤见 [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md)。
+
+新增本地待验收「每日推荐」：香港/深圳出发，按周末、节假日和请假天数发现机票，
+可设北京时间推送、预算及凌晨往返优先；独立于降价提醒。仅 Workers 版提供，尚未部署，
+邮件仍关闭。日历口径、查询覆盖和本地 Cron 验收见 [docs/DAILY.md](docs/DAILY.md)。
+
 ## 用户问题与产品定位
 
 用户希望按自己的出行意愿持续发现便宜的出国机票，而不必反复手动搜索。出行意愿可以是固定往返日期、一段可出发日期、节假日、每周末，或其他自选期限；目的地也可以是固定城市、一个候选集合或某个区域。香港出发、周六凌晨起飞、周一凌晨抵港、去东南亚多个目的地，只是第一个试验场景。用户可自行配置出发地、目的地、时段、飞行时长和提醒条件。

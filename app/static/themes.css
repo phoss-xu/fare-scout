@@ -1,0 +1,32 @@
+/* Theme colors are shared by the page and miniature preview cards. */
+:root[data-theme=paper],.theme-choice[data-choice-theme=paper]{--theme-bg:#F4F2E9;--theme-surface:#FFFCF5;--theme-text:#293D31;--theme-muted:#66705F;--theme-accent:#254EDD;--theme-on-accent:#FFFFFF;--theme-soft:#E8EDDE;}
+:root[data-theme=moss],.theme-choice[data-choice-theme=moss]{--theme-bg:#EEF1E6;--theme-surface:#FAFBF5;--theme-text:#2D4635;--theme-muted:#5D705E;--theme-accent:#41664B;--theme-on-accent:#FFFFFF;--theme-soft:#DDE8D8;}
+:root[data-theme=sea],.theme-choice[data-choice-theme=sea]{--theme-bg:#EFF4F6;--theme-surface:#FAFDFE;--theme-text:#273D4B;--theme-muted:#5B6F7C;--theme-accent:#376A81;--theme-on-accent:#FFFFFF;--theme-soft:#DDEAF0;}
+:root[data-theme=rose],.theme-choice[data-choice-theme=rose]{--theme-bg:#F7EFED;--theme-surface:#FFFAF7;--theme-text:#573C43;--theme-muted:#7C6167;--theme-accent:#875460;--theme-on-accent:#FFFFFF;--theme-soft:#EEDDE1;}
+:root[data-theme=mocha],.theme-choice[data-choice-theme=mocha]{--theme-bg:#F3EDE5;--theme-surface:#FCF8F1;--theme-text:#4D3C32;--theme-muted:#77675C;--theme-accent:#785744;--theme-on-accent:#FFFFFF;--theme-soft:#E8DBCA;}
+:root[data-theme=night],.theme-choice[data-choice-theme=night]{--theme-bg:#1F2926;--theme-surface:#293530;--theme-text:#E5E8DC;--theme-muted:#B1C0B3;--theme-accent:#B7CFB3;--theme-on-accent:#1F2926;--theme-soft:#394D40;}
+
+:root{--theme-bg:#F4F2E9;--theme-surface:#FFFCF5;--theme-text:#293D31;--theme-muted:#66705F;--theme-accent:#254EDD;--theme-on-accent:#FFFFFF;--theme-soft:#E8EDDE}
+:root[data-theme]{--paper:var(--theme-bg);--white:var(--theme-surface);--ink:var(--theme-text);--muted:var(--theme-muted);--green:var(--theme-accent);--lime:var(--theme-soft);--surface-soft:var(--theme-soft);--on-accent:var(--theme-on-accent);--line:color-mix(in srgb,var(--ink) 20%,var(--paper));--hover:color-mix(in srgb,var(--green) 88%,var(--ink));--subtle:color-mix(in srgb,var(--surface-soft) 45%,var(--white));--date-bg:var(--surface-soft);--date-ink:var(--ink);--danger:#A13E27;--positive:#315F4C;--orange:#965021;color-scheme:light}
+:root[data-theme=paper]{--date-bg:#FFF0CF;--date-ink:#58451D}
+:root[data-theme=night]{--danger:#F1A08A;--positive:#B7CFB3;--orange:#E5BC81;color-scheme:dark}
+.primary,.search-submit{background:var(--green);border-color:var(--green);color:var(--on-accent)}
+.primary:hover:not(:disabled),.search-submit:hover:not(:disabled){background:var(--hover);color:var(--on-accent)}
+.error,.danger-btn{color:var(--danger)}.price,.badge,.success{color:var(--positive)}
+.notice{background:var(--surface-soft);color:var(--ink)}.notice.error{color:var(--danger)}
+.auth-intro{background:var(--green);color:var(--on-accent)}.auth-intro h1,.auth-intro>p,.auth-intro .eyebrow,.auth-points,.auth-arrow{color:var(--on-accent)}
+.auth-card .primary{background:var(--green);border-color:var(--green);color:var(--on-accent)}
+.card,.mail-settings,.skeleton-card,.holiday-picker,.location-dialog,dialog{background:var(--white);color:var(--ink);border-color:var(--line)}
+.badge{background:var(--surface-soft)}.badge.warn{color:var(--orange)}
+input:not([type=checkbox]),select{background:var(--white);color:var(--ink);border-color:var(--line)}input::placeholder{color:var(--muted)}
+.place-current,.place-card,.place-recent button{background:var(--white);color:var(--ink);border-color:var(--line)}
+.place-current:hover,.place-choice:hover,.location-choice-grid button:hover{background:var(--surface-soft)}
+.place-results,.location-browser-search,.location-choice-grid button{background:var(--white);color:var(--ink);border-color:var(--line)}
+.location-choice-grid button[aria-pressed=true],.location-categories button[aria-pressed=true]{background:var(--green);color:var(--on-accent);border-color:var(--green)}
+.location-choice-grid button[aria-pressed=true] small{color:var(--on-accent)}
+.holiday-options button{background:var(--paper);color:var(--ink)}.holiday-options button[aria-pressed=true]{background:var(--surface-soft);border-color:var(--green)}
+#toast{background:var(--ink);color:var(--paper)}
+
+.location-choice-grid button[aria-pressed=true] strong::after{color:var(--on-accent)}
+.journey-choices summary:hover,.search-submit:hover:not(:disabled),button:active:not(:disabled){transform:none}
+.search-submit{box-shadow:none}.search-submit:hover:not(:disabled){box-shadow:none}

@@ -7,6 +7,8 @@ import {resetHistory} from './location_history.js';
 import {setupDeals} from './deals.js';
 import {setupHolidays} from './holidays.js';
 import {setupWorkspace} from './ui.js';
+import {setupDaily} from './daily.js';
+import {setupAppearance} from './appearance.js';
 const $ = selector => document.querySelector(selector);
 let state, historyId, refreshing = false, currentUser, generation = 0;
 let lastSnapshot;
@@ -38,6 +40,7 @@ async function refresh() {
     $('#watches').innerHTML = watchCards(state)+removedItems(state,'watches');
     $('#offers').innerHTML = offerCards(state)+removedItems(state,'offers');
     renderAutomation(state);
+    daily.render(state);
     $('#watch-count').textContent = state.watches.length;
     $('#offer-count').textContent = latest(state.observations).filter(o => o.status === 'ok' && !o.dismissed_at).length;
     if ($('#history-dialog').open) $('#history').innerHTML = historyView(state, historyId);
@@ -54,16 +57,18 @@ async function refresh() {
   } catch (error) {
     if (requestGeneration !== generation) return;
     if (error.status === 401) { showSession(null); return; }
-    $('#page-error').textContent = '暂时连接不上本地服务，页面会自动重试。';
+    $('#page-error').textContent = '暂时连接不上服务，页面会自动重试。';
     $('#page-error').hidden = false;
     $('#summary').textContent = '连接中断';
   } finally { refreshing = false; }
 }
 setupWorkspace();
+setupAppearance();
+const daily=setupDaily(refresh,toast,openWatch,c=>discovery.applyPreferences(c));
 const form = $('#watch-form');
 const placeControls = setupLocations(form);
 const holidays = setupHolidays($('#watch-holidays'), form, 'watch');
-const discovery = setupDeals(async data => {
+async function openWatch(data) {
   form.reset();
   holidays.clear();
   await placeControls.fill(data.origin, data.destinations);
@@ -71,7 +76,8 @@ const discovery = setupDeals(async data => {
   form.elements.auto_enabled.checked = false;
   form.elements.mode.dispatchEvent(new Event('change'));
   $('#create-dialog').showModal();
-});
+}
+const discovery = setupDeals(openWatch);
 $('#new-watch').addEventListener('click', () => $('#create-dialog').showModal());
 document.addEventListener('click', async event => {
   const removal=event.target.closest('[data-remove-kind],[data-restore-kind]');
@@ -131,6 +137,7 @@ await setupAuth(user => {
   currentUser = user;
   resetHistory(user);
   state = null;
+  daily.reset();
   lastSnapshot = undefined;
   historyId = undefined;
   ['watches','offers','alerts','history'].forEach(id => $(`#${id}`).replaceChildren());

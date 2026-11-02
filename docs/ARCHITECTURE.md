@@ -1,6 +1,23 @@
 # Fare Scout 架构地图
 
-## 当前形态
+## Workers + D1（2026-11-02 新增）
+
+已部署到 Workers Free：https://fare-scout.phosssuki.workers.dev 。
+运行时为 Cloudflare Workers：原生前端静态资源 + JavaScript API + D1 + Cron。
+`cloudflare/src/index.js → auth / domain / store / runs → D1`；`tasks.js → provider.js → Kiwi`。
+`search_runs` / `search_tasks` 持久化队列与租约，Cron 接续中断工作；观察样本与提醒/邮件队列在同一事务写入。
+每日推荐：`daily.js → travel-time.js / search_runs → provider.js → daily-mail.js`；
+`daily_preferences` 与 `daily_editions` 保存按账号配置、北京时间计划、报价和投递快照。
+每日与手动搜特价共用持久化查询队列但独立运行；每日结果不进入监控价格历史。
+前端 `static/daily.js / daily.css` 在搜特价的发现结果区接入简报及偏好弹窗，复用 `deal_views.js` 卡片与监控草稿；Python 版隐藏每日入口。口径与验证见 [DAILY.md](DAILY.md)。
+邮件通过独立 HTTPS 适配器发送，当前关闭。云端使用 Passkey（WebAuthn），五分钟单次挑战绑定 Cookie、固定 Origin/RP、要求设备验证；D1 只保存公钥与计数器，登录后复用会话/CSRF。
+本地 Python 密码版保留，前端根据 auth_mode 切换入口；云端密码接口关闭。
+
+本地 `npm run db:local && npm run dev`，地址 http://localhost:8787；数据库位于 `.wrangler/`。
+SQLite 只读离线导出工具保留原库，副本的计划暂停、旧邮件取消，排除会话与凭据。
+用户选择云端空库，没有迁移旧数据；发布与验证详见 [CLOUDFLARE.md](CLOUDFLARE.md)。
+
+## 保留的 Python 本地版
 
 Python 3.9+ 标准库本地服务，SQLite 持久化，原生 HTML/CSS/JavaScript。
 仅绑定 127.0.0.1，支持本地账号注册、登录与用户隔离；尚未部署为公开服务。
@@ -30,6 +47,7 @@ Python 3.9+ 标准库本地服务，SQLite 持久化，原生 HTML/CSS/JavaScrip
 - `store.py`：SQLite 事务、监控配置、逐组合采样记录。
 - `deals.py` / `deal_jobs.py`：模糊日期往返探索、结果二次过滤、每城市较低价；独立双线程队列和账号隔离的短期内存任务，不写入监控样本或触发通知。
 - `static/holidays.json` / `holidays.js` / `holidays.css`：带年份、来源和正式/参考状态的中国内地假期快捷选择；只填写具体日期，不自动创建任务，维护规则见 `docs/HOLIDAYS.md`。
+- `static/landscape.js` / `landscape-data.js` / `landscape.css`：本地静态实拍风景图鉴、字体层级；`landscape-rotation.js` 在重新进入或整点自动换景，摄影来源保存在 `static/assets/places/CREDITS.md`，与查询条件独立。
 - `static/ui.js`：默认搜特价、工作区导航及键盘交互、展开筛选摘要；视觉规范和资产来源见 `docs/design-docs/UI_REDESIGN.md`。
 - `static/deals.js` / `deal_views.js` / `deals.css`：搜特价、已返回日期价格条、排序和转监控草稿；复用地点与航班详情组件。
 - `static/views.js`：监控、最新机会和采样记录；所有外部字符串转义。
@@ -95,3 +113,20 @@ HTTP 层只能使用会话返回的用户 ID，不接受请求体中的用户归
 状态接口分出 `deleted_watches`；机会先按最新批次取结果，再排除 dismissed 行，避免旧报价回流。
 删除监控同时暂停查价和提醒、取消待投递队列；调度、任务申领、Worker 和采样写入检查删除状态。
 列表“最近删除”可跨刷新恢复；恢复监控保持暂停。机会删除仅移除本条采样展示，新采样可再次成为机会。
+
+### 浏览器外观与风景偏好（2026-11-02）
+
+`theme-init.js` 在样式加载前读取主题，`appearance-store.js` 校验并持久化
+`fare-scout:appearance`，`appearance.js` 管理原生 dialog 与即时预览。
+`themes.css` 定义六套语义颜色，字体独立；`appearance.css` 负责侧栏响应式布局。
+偏好仅在当前浏览器保存，不调用账号接口，不改变航班查询或邮件配置。
+`landscape-rotation.js` 独立管理整点/北京时间日界线、进入页面和固定当前四种模式；
+隐藏页面恢复时只补一次更新，修改频率保留当前照片。摄影无持续动画；维港顶部支持可关闭的滚动分层。
+
+外观侧栏通过 `landscapeselect` 请求手选照片，图鉴用 `landscapechange` 同步选中缩略图。
+选图会设为固定当前；轮换器保存照片 ID 并可继续自动轮换。
+`surfaceOpacity` 控制顶部主题底色遮罩（0–100，默认 65），照片和下方信息区不随它变淡；
+上一轮照片 opacity 偏好不再沿用。`motion` 控制顶部维港的楼群滚动，并遵循系统减少动态设置。
+`world-backdrop.js/css` 的图层是 atlas-scene 的内部装饰，受其边界裁切；没有全页背景或全页透明面板。
+滚动通过单次 requestAnimationFrame 合并绘制，远景与两座塔楼分别有界平移，没有持续动画循环。
+图片包含同源的维港夜景与缩略图，作者/许可见 assets/places/CREDITS.md。

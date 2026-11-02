@@ -67,18 +67,36 @@ class Handler(BaseHTTPRequestHandler):
                  "/deals.js": ("deals.js", "text/javascript"), "/deal_views.js": ("deal_views.js", "text/javascript"),
                  "/deals.css": ("deals.css", "text/css"),
                  "/departure.css": ("departure.css", "text/css"),
+                 "/search-panels.css": ("search-panels.css", "text/css"),
                  "/holidays.js": ("holidays.js", "text/javascript"), "/holidays.css": ("holidays.css", "text/css"),
                  "/holidays.json": ("holidays.json", "application/json"),
                  "/ui.js": ("ui.js", "text/javascript"),
+                 "/journey.js": ("journey.js", "text/javascript"),
+                 "/landscape.js": ("landscape.js", "text/javascript"),
+                 "/world-backdrop.js": ("world-backdrop.js", "text/javascript"),
+                 "/world-backdrop.css": ("world-backdrop.css", "text/css"),
+                 "/landscape.css": ("landscape.css", "text/css"),
+                 "/landscape-data.js": ("landscape-data.js", "text/javascript"),
+                 "/landscape-rotation.js": ("landscape-rotation.js", "text/javascript"),
+                 "/appearance.js": ("appearance.js", "text/javascript"),
+                 "/appearance-store.js": ("appearance-store.js", "text/javascript"),
+                 "/theme-init.js": ("theme-init.js", "text/javascript"),
+                 "/themes.css": ("themes.css", "text/css"),
+                 "/appearance.css": ("appearance.css", "text/css"),
+                 "/assets/coast-dawn.jpg": ("assets/coast-dawn.jpg", "image/jpeg"),
                  "/nights.js": ("nights.js", "text/javascript"), "/nights.css": ("nights.css", "text/css"),
                  "/location_browser.js": ("location_browser.js", "text/javascript"),
                  "/location_browser.css": ("location_browser.css", "text/css"),
                  "/api.js": ("api.js", "text/javascript"), "/views.js": ("views.js", "text/javascript"),
                  "/automation.js": ("automation.js", "text/javascript"),
+                 "/daily.js": ("daily.js", "text/javascript"),
+                 "/daily.css": ("daily.css", "text/css"),
                  "/automation.css": ("automation.css", "text/css"),
                  "/style.css": ("style.css", "text/css")}
+        files.update({f"/assets/places/{name}.jpg": (f"assets/places/{name}.jpg", "image/jpeg") for name in ("beach", "forest", "rice", "city", "sculpture", "harbour", "harbour.thumb", "beach.thumb", "forest.thumb", "rice.thumb", "city.thumb", "sculpture.thumb")})
         files.update({f"/assets/manrope-{weight}.ttf": (f"assets/manrope-{weight}.ttf", "font/ttf") for weight in (400, 500, 600, 700)})
         files["/assets/airplane-tilt.svg"] = ("assets/airplane-tilt.svg", "image/svg+xml")
+        files["/assets/im-fell-english-400.ttf"] = ("assets/im-fell-english-400.ttf", "font/ttf")
         if path not in files:
             return self.send(404, {"error": "页面不存在。"})
         filename, kind = files[path]

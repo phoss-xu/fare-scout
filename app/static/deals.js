@@ -1,10 +1,11 @@
 import {request} from './api.js';
 import {picker} from './locations.js';
 import {money} from './format.js';
-import {dealCards, discoveryPlaceholder, resultSummary, sampledDays, sortedOffers} from './deal_views.js';
+import {dealCards, discoveryPlaceholder, resultSummary, sampledDays, sortedOffers,watchDraft} from './deal_views.js';
 import {setupHolidays} from './holidays.js';
 import {setupSearchLayout} from './ui.js';
 import {setupNights} from './nights.js';
+import {setupJourney} from './journey.js';
 
 export function setupDeals(openWatch) {
   const form = document.querySelector('#deals-form'), panel = document.querySelector('#deals-panel');
@@ -12,6 +13,7 @@ export function setupDeals(openWatch) {
   function summarizeScopes() {
     const count=origin.expandedCount()*(form.elements.anywhere.checked?1:destinations.expandedCount());
     scopeNote.textContent=`已选 ${origin.values().length} 个出发范围 · ${form.elements.anywhere.checked?'不限目的地':`${destinations.values().length} 个目的地范围`} · 展开后 ${count} 组查询（最多 120 组）`;
+    form.dispatchEvent(new Event('journey:locations'));
   }
   form.elements.anywhere.addEventListener('change',summarizeScopes);
   const origin = picker(panel.querySelector('#deal-origin'), true, summarizeScopes, {editableSelection:true,label:'出发地'});
@@ -28,9 +30,12 @@ export function setupDeals(openWatch) {
   const holidays = setupHolidays(panel.querySelector('#deal-holidays'), form, 'deals');
   const layout = setupSearchLayout(form, panel);
   const nights = setupNights(form);
+  const journey = setupJourney(form, panel);
   const status = panel.querySelector('#deal-status'), results = panel.querySelector('#deal-results');
   const controls = panel.querySelector('#deal-result-controls'), button = form.querySelector('[type=submit]');
-  let epoch=0, timer, result, day='';
+  let epoch=0, timer, result, day='',edited=false,preferenceKey;
+  form.addEventListener('input',()=>edited=true);
+  form.addEventListener('change',()=>edited=true);
   const fmt = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
   function render() {
     results.innerHTML = dealCards(sortedOffers(result.offers, form.elements.result_sort.value, day), result.offers, result.config.adults);
@@ -46,6 +51,7 @@ export function setupDeals(openWatch) {
     if (preset) {
       const start = new Date(), end = new Date(); end.setDate(end.getDate()+Number(preset.dataset.dealRange));
       form.elements.start.value=fmt(start); form.elements.end.value=fmt(end);
+      form.elements.end.dispatchEvent(new Event('change',{bubbles:true}));
     }
     const date = event.target.closest('[data-deal-day]');
     if (date && result) { day=date.dataset.dealDay; render(); }
@@ -56,9 +62,7 @@ export function setupDeals(openWatch) {
         status.textContent='这趟往返使用不同机场，请在创建监控时选择对应城市或国家范围。'; return;
       }
       watch.disabled=true;
-      try { await openWatch({origin:`airport:${offer.outbound.from}`, destinations:[`airport:${offer.outbound.to}`], mode:'fixed',
-        start:offer.outbound.departureTime.slice(0,10),end:offer.inbound.departureTime.slice(0,10), adults:result.config.adults,
-        budget:result.config.budget || '', max_stops:result.config.max_stops, max_duration_hours:result.config.max_duration_hours || ''}); }
+      try { await openWatch(watchDraft(offer,result.config)); }
       catch (error) { status.textContent=error.message; }
       finally { watch.disabled=false; }
     }
@@ -93,8 +97,15 @@ export function setupDeals(openWatch) {
       if (version === epoch) poll(task.id,version);
     } catch(error) { if (version === epoch) { status.textContent=error.message; button.disabled=false; results.setAttribute('aria-busy','false'); results.innerHTML=discoveryPlaceholder('error'); } }
   });
-  return {reset(active) {
-    epoch+=1;clearTimeout(timer);form.reset();origin.clear();destinations.clear();result=undefined;
+  return {applyPreferences(c) {
+    const key=JSON.stringify([c.origins,c.adults,c.budget]);
+    if(edited || key===preferenceKey) return;
+    preferenceKey=key;
+    form.elements.adults.value=c.adults;form.elements.budget.value=c.budget || '';
+    origin.setValues(c.origins).catch(error=>{status.textContent=error.message;});
+    form.dispatchEvent(new Event('journey:locations'));
+  },reset(active) {
+    epoch+=1;clearTimeout(timer);form.reset();origin.clear();destinations.clear();result=undefined;edited=false;preferenceKey=undefined;
     holidays.reset(active);
     layout.reset();
     nights.reset();
@@ -102,6 +113,7 @@ export function setupDeals(openWatch) {
     const start=new Date(),end=new Date();end.setDate(end.getDate()+30);
     form.elements.start.value=fmt(start);form.elements.end.value=fmt(end);
     form.elements.start.min=form.elements.end.min=fmt(start);
+    journey.reset();
     if(active) origin.setInitial('airport:HKG');
   }};
 }

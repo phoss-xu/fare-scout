@@ -1,0 +1,42 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fare-scout",
+  "main": "cloudflare/src/index.js",
+  "compatibility_date": "2026-11-02",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "app/static",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "fare-scout",
+      "database_id": "1486b8bd-cca8-4a19-9bf2-7cfcb71d3477",
+      "migrations_dir": "cloudflare/migrations"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "* * * * *"
+    ]
+  },
+  "vars": {
+    "MAIL_ENABLED": "false",
+    "QUERY_ENABLED": "true",
+    "AUTH_MODE": "passkey",
+    "PASSKEY_ORIGIN": "https://fare-scout.phosssuki.workers.dev"
+  },
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  "account_id": "7b33669e944449263a4dd3f911ea7dc6"
+}

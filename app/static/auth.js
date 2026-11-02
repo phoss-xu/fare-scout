@@ -1,6 +1,6 @@
 import {request, setCsrf} from './api.js';
 const $ = selector => document.querySelector(selector);
-let mode = 'login';
+let mode = 'login', authMode='password';
 let setupToken = new URLSearchParams(location.hash.slice(1)).get('token');
 if (setupToken) history.replaceState(null, '', '/setup');
 let callback;
@@ -22,9 +22,19 @@ function chooseMode(next) {
   $('#auth-switch').hidden = setup;
   $('#auth-switch').textContent = register ? '已有账号？去登录' : '第一次来？创建账号';
   $('#auth-error').textContent = '';
+  if(authMode==='passkey') {
+    $('#auth-password').closest('label').hidden=true;
+    $('#auth-password').required=false;
+    $('#auth-email-field').hidden=!register;
+    $('#auth-email').required=register;
+    $('#auth-submit').textContent=register?'创建通行密钥并进入 ↗':'用通行密钥登录 ↗';
+    $('#auth-hint').textContent=register?'使用指纹、面容或设备 PIN 创建通行密钥。邮箱用于机票提醒，暂未验证。':'使用创建账号时保存的通行密钥，可由设备或密码管理器提供。';
+    $('.auth-footer').textContent='请将通行密钥保存在可同步的密码管理器中，或妥善保存安全密钥。目前尚未提供账号找回。';
+  }
 }
 
 export function showSession(session) {
+  authMode=session?.auth_mode || authMode;
   const user = session?.user;
   setCsrf(session?.csrf_token);
   document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
@@ -39,6 +49,8 @@ export function showSession(session) {
 
 export async function setupAuth(onChange) {
   callback = onChange;
+  $('#auth-submit').disabled=true;
+  $('#auth-switch').disabled=true;
   $('#auth-switch').addEventListener('click', () => chooseMode(mode === 'login' ? 'register' : 'login'));
   $('#auth-form').addEventListener('submit', async event => {
     event.preventDefault();
@@ -48,7 +60,9 @@ export async function setupAuth(onChange) {
     try {
       const data = Object.fromEntries(new FormData(event.target));
       if (setupToken) data.token = setupToken;
-      const session = await request(`/api/auth/${mode}`, data);
+      const session = authMode==='passkey'
+        ? await (await import('./passkey_auth.js')).passkeySession(mode,event.target)
+        : await request(`/api/auth/${mode}`, data);
       setupToken = null;
       $('#auth-password').value = '';
       history.replaceState(null, '', '/');
@@ -65,8 +79,11 @@ export async function setupAuth(onChange) {
   });
   try {
     const session = await request('/api/auth/session');
+    if(session.auth_mode==='passkey') setupToken=null;
     if (setupToken && !session.user) chooseMode('activate');
     showSession(session);
+    $('#auth-submit').disabled=false;
+    $('#auth-switch').disabled=false;
   } catch {
     showSession(null);
     $('#auth-error').textContent = '暂时连接不上服务，请刷新页面重试。';

@@ -1,0 +1,114 @@
+{
+  "status": "implemented-in-app/static/themes.css",
+  "note": "原创网页配色草案；不是 Pantone 官方色板或经认证的色号转换。",
+  "themes": [
+    {
+      "id": "paper",
+      "name": "旧书纸",
+      "bg": "#F4F2E9",
+      "surface": "#FFFCF5",
+      "text": "#293D31",
+      "muted": "#66705F",
+      "accent": "#254EDD",
+      "onAccent": "#FFFFFF",
+      "soft": "#E8EDDE",
+      "contrast": {
+        "textOnBg": 10.37,
+        "mutedOnBg": 4.63,
+        "textOnSurface": 11.35,
+        "mutedOnSurface": 5.06,
+        "buttonLabel": 6.54
+      }
+    },
+    {
+      "id": "moss",
+      "name": "苔藓庭院",
+      "bg": "#EEF1E6",
+      "surface": "#FAFBF5",
+      "text": "#2D4635",
+      "muted": "#5D705E",
+      "accent": "#41664B",
+      "onAccent": "#FFFFFF",
+      "soft": "#DDE8D8",
+      "contrast": {
+        "textOnBg": 9.0,
+        "mutedOnBg": 4.65,
+        "textOnSurface": 9.9,
+        "mutedOnSurface": 5.12,
+        "buttonLabel": 6.51
+      }
+    },
+    {
+      "id": "sea",
+      "name": "海盐雾蓝",
+      "bg": "#EFF4F6",
+      "surface": "#FAFDFE",
+      "text": "#273D4B",
+      "muted": "#5B6F7C",
+      "accent": "#376A81",
+      "onAccent": "#FFFFFF",
+      "soft": "#DDEAF0",
+      "contrast": {
+        "textOnBg": 10.21,
+        "mutedOnBg": 4.72,
+        "textOnSurface": 11.07,
+        "mutedOnSurface": 5.12,
+        "buttonLabel": 5.93
+      }
+    },
+    {
+      "id": "rose",
+      "name": "玫瑰沙",
+      "bg": "#F7EFED",
+      "surface": "#FFFAF7",
+      "text": "#573C43",
+      "muted": "#7C6167",
+      "accent": "#875460",
+      "onAccent": "#FFFFFF",
+      "soft": "#EEDDE1",
+      "contrast": {
+        "textOnBg": 8.69,
+        "mutedOnBg": 4.92,
+        "textOnSurface": 9.5,
+        "mutedOnSurface": 5.39,
+        "buttonLabel": 6.06
+      }
+    },
+    {
+      "id": "mocha",
+      "name": "可可燕麦",
+      "bg": "#F3EDE5",
+      "surface": "#FCF8F1",
+      "text": "#4D3C32",
+      "muted": "#77675C",
+      "accent": "#785744",
+      "onAccent": "#FFFFFF",
+      "soft": "#E8DBCA",
+      "contrast": {
+        "textOnBg": 8.99,
+        "mutedOnBg": 4.65,
+        "textOnSurface": 9.88,
+        "mutedOnSurface": 5.11,
+        "buttonLabel": 6.47
+      }
+    },
+    {
+      "id": "night",
+      "name": "松林夜色",
+      "bg": "#1F2926",
+      "surface": "#293530",
+      "text": "#E5E8DC",
+      "muted": "#B1C0B3",
+      "accent": "#B7CFB3",
+      "onAccent": "#1F2926",
+      "soft": "#394D40",
+      "contrast": {
+        "textOnBg": 12.05,
+        "mutedOnBg": 7.88,
+        "textOnSurface": 10.27,
+        "mutedOnSurface": 6.72,
+        "buttonLabel": 8.97
+      }
+    }
+  ]
+}

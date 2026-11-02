@@ -1,0 +1,26 @@
+{
+  "name": "fare-scout",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --ip 127.0.0.1 --port 8787 --test-scheduled",
+    "db:local": "wrangler d1 migrations apply fare-scout --local",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "test:workers": "node --test cloudflare/tests/*.test.mjs",
+    "test:frontend": "node --test tests/*.mjs",
+    "predev": "python3 scripts/build_cloudflare_data.py && npm run assets:passkeys",
+    "prebuild": "python3 scripts/build_cloudflare_data.py && npm run assets:passkeys",
+    "test:source": "node cloudflare/tests/live-source.mjs",
+    "assets:passkeys": "node scripts/build_passkeys.mjs"
+  },
+  "dependencies": {
+    "@noble/hashes": "^2.4.0",
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.0.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "miniflare": "^5.20261101.0-beta",
+    "wrangler": "^4.156.1"
+  }
+}

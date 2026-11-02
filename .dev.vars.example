@@ -1,0 +1,11 @@
+# Copy to .dev.vars for local work. No remote resources are used by npm run dev.
+# Explicitly enable only when testing a real Kiwi lookup; local tests mock the source.
+QUERY_ENABLED="false"
+# Keep disabled during development acceptance. Production uses Resend HTTPS API.
+MAIL_ENABLED="false"
+RESEND_API_KEY=""
+MAIL_FROM=""
+
+# Passkey credentials are bound to this origin; use the same address in the browser.
+AUTH_MODE="passkey"
+PASSKEY_ORIGIN="http://localhost:8787"

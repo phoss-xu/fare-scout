@@ -13,18 +13,18 @@
 .flight-endpoint strong { font-size:12px; margin-top:4px; }
 .airport-name { font-size:12px; color:var(--muted); line-height:1.7; overflow-wrap:anywhere; }
 .flight-bridge { display:flex; flex-direction:column; text-align:center; font-size:12px; color:var(--muted); gap:6px; padding-top:8px; }
-.flight-route-line { color:#7c9660; line-height:1; border-bottom:1px solid #c7d3b8; padding:0 0 4px; }
+.flight-route-line { color:var(--muted); line-height:1; border-bottom:1px solid var(--line); padding:0 0 4px; }
 .flight-carrier { margin:12px 0 0; font-size:12px; color:var(--green); line-height:1.9; overflow-wrap:anywhere; }
 .baggage-summary { padding:15px 0 18px; border-top:1px solid var(--line); }
 .baggage-summary>strong { font-size:12px; font-weight:500; }
 .baggage-items { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-.baggage-items span { font-size:12px; padding:6px 8px; border-radius:4px; background:#eef1e5; }
+.baggage-items span { font-size:12px; padding:6px 8px; border-radius:4px; background:var(--surface-soft); }
 .baggage-note { font-size:12px; color:var(--muted); line-height:1.7; margin:10px 0 0; }
 .flight-expanded { border-top:1px solid var(--line); padding:0 0 15px; }
 .flight-expanded summary { display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; color:var(--green); font-size:12px; padding:15px 0; list-style:none; }
 .flight-expanded summary::-webkit-details-marker { display:none; }
 .flight-expanded[open] summary>span { transform:rotate(45deg); }
-.flight-expanded-body { padding:0 14px 2px; background:#f5f7ef; border-radius:7px; }
+.flight-expanded-body { padding:0 14px 2px; background:var(--subtle); border-radius:7px; }
 .segment-group { padding:17px 0 0; }
 .segment-group h4 { margin-bottom:13px; }
 .segment { padding:13px; background:var(--white); border:1px solid var(--line); border-radius:6px; }
@@ -34,8 +34,8 @@
 .segment-airport strong { font-weight:500; }
 .segment-airport>span { color:var(--muted); font-size:12px; }
 .segment-airport time { color:var(--green); font-size:12px; }
-.segment-duration { font-size:12px; color:var(--muted); padding:10px 0 10px 12px; margin:9px 0 9px 4px; border-left:2px solid #d8e2ca; }
-.layover { margin:10px 0; padding:10px; background:#e7eddb; border-radius:5px; color:var(--green); font-size:12px; line-height:1.8; }
+.segment-duration { font-size:12px; color:var(--muted); padding:10px 0 10px 12px; margin:9px 0 9px 4px; border-left:2px solid var(--line); }
+.layover { margin:10px 0; padding:10px; background:var(--surface-soft); border-radius:5px; color:var(--green); font-size:12px; line-height:1.8; }
 .baggage-detail { padding:19px 0 12px; }
 .baggage-detail p { font-size:12px; line-height:1.9; margin:10px 0; }
 @media(max-width:760px) {

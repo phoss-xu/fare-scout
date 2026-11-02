@@ -7,6 +7,7 @@ export function setupWorkspace() {
     const name=tab.dataset.tab;
     buttons.forEach(button=>{const active=button===tab;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;button.setAttribute('aria-controls',`${button.dataset.tab}-panel`);});
     ['deals','watches','offers','alerts'].forEach(key=>document.querySelector(`#${key}-panel`).hidden=key!==name);
+    document.querySelector('#new-watch').hidden=name!=='watches';
     heading.hidden=name==='deals';
     if(titles[name]) {document.querySelector('#workspace-title').textContent=titles[name][0];document.querySelector('#workspace-caption').textContent=titles[name][1];}
     if(focus) tab.focus();
@@ -16,8 +17,9 @@ export function setupWorkspace() {
     const current=buttons.indexOf(document.activeElement);
     if(current<0 || !['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
     event.preventDefault();
-    const index=event.key==='Home'?0:event.key==='End'?buttons.length-1:(current+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;
-    select(buttons[index],true);
+    const visible=buttons.filter(b=>!b.hidden),position=visible.indexOf(document.activeElement);
+    const index=event.key==='Home'?0:event.key==='End'?visible.length-1:(position+(event.key==='ArrowRight'?1:-1)+visible.length)%visible.length;
+    select(visible[index],true);
   });
   select(buttons.find(button=>button.getAttribute('aria-selected')==='true') || buttons[0]);
   document.addEventListener('invalid',event=>{let ancestor=event.target.parentElement;while(ancestor){if(ancestor.tagName==='DETAILS') ancestor.open=true;ancestor=ancestor.parentElement;}},true);

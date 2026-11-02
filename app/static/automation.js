@@ -2,7 +2,7 @@ import {request} from './api.js';
 import {escape, money, time} from './views.js';
 const $ = selector => document.querySelector(selector);
 const delivery = {pending:'邮件排队中', waiting_config:'等待发信配置', retry:'邮件发送失败，稍后重试',
-  failed:'邮件发送失败，已停止重试', sent:'邮件已发送', skipped:'邮件已跳过（已过期或提醒已关闭）'};
+  failed:'邮件发送失败，已停止重试', cancelled:'邮件已取消', sent:'邮件已发送', skipped:'邮件已跳过（已过期或提醒已关闭）'};
 
 function link(value) {
   try {
