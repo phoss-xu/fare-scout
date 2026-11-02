@@ -22,3 +22,23 @@
 .landscape-check{display:none;position:absolute;top:12px;right:12px;width:22px;height:22px;text-align:center;line-height:22px;border-radius:50%;background:var(--green);color:var(--on-accent)}.landscape-choice[aria-pressed=true] .landscape-check{display:block}
 .opacity-label{display:flex;align-items:center;justify-content:space-between;font-size:12px;margin:8px 0;color:var(--muted)}.opacity-label output{font-variant-numeric:tabular-nums;color:var(--ink)}
 #landscape-opacity{width:100%;min-height:36px;padding:0;accent-color:var(--green);cursor:pointer;background:transparent;border:0;box-shadow:none}
+
+/* Shared settings drawer: each section owns its existing controls. */
+.appearance-dialog{width:440px}
+.settings-section+.settings-section{margin-top:28px;padding-top:24px;border-top:1px solid var(--line)}
+.settings-section h3{font-size:16px;margin:0 0 12px}
+.settings-section>fieldset{padding:0;border:0}
+.settings-label{display:block;font-size:13px;margin:16px 0 6px}
+.settings-section select{width:100%;min-height:44px;border-radius:10px}
+.settings-section>.appearance-hint{margin-top:10px}
+.settings-motion{margin-top:20px;font-size:13px;align-items:center}
+.settings-link{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px;color:var(--ink);white-space:normal}
+.settings-link strong{font-size:13px}.settings-link span{font-size:12px;color:var(--muted);line-height:1.7}
+.settings-mail{display:block;margin:18px 0;padding:18px 0;border-block:1px solid var(--line);background:none;border-radius:0}
+.settings-mail form{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:12px;min-width:0}
+.settings-mail h3{font-size:14px}.settings-mail input{width:100%;min-width:0}.settings-mail label{font-size:13px}
+.source-price{display:block!important;font:400 10px/1.6 var(--family)!important;color:var(--muted);white-space:normal}
+.price:has(.source-price){flex-wrap:wrap}.price>.source-price{flex-basis:100%;order:2}
+.settings-section p,.settings-section span{overflow-wrap:anywhere}
+html[lang=en] .tabs button{letter-spacing:0}html[lang=en] .appearance-heading h2{font-size:23px}
+@media(max-width:760px){.appearance-dialog{width:100%}html[lang=en] .tabs{gap:4px}html[lang=en] .tabs button{font-size:11px;padding-inline:6px}html[lang=en] .getaway-kicker{font-size:12px}}

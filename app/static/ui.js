@@ -1,17 +1,20 @@
+import {tr} from './i18n.js';
 /** Navigation and disclosure behavior for the existing workspace. */
 export function setupWorkspace() {
   const nav=document.querySelector('.tabs'), heading=document.querySelector('#workspace-heading');
   const buttons=[...nav.querySelectorAll('[data-tab]')];
-  const titles={watches:['我的出行监控','持续关注你想去的地方'],offers:['机票机会','查看监控最近一次返回的报价'],alerts:['提醒中心','关注降价与预算内的行程']};
   function select(tab, focus=false) {
+    const titles={watches:[tr("我的出行监控","Your travel watches"),''],offers:[tr("机票机会","Flight opportunities"),''],alerts:[tr("提醒中心","Alerts"),'']};
     const name=tab.dataset.tab;
     buttons.forEach(button=>{const active=button===tab;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;button.setAttribute('aria-controls',`${button.dataset.tab}-panel`);});
     ['deals','watches','offers','alerts'].forEach(key=>document.querySelector(`#${key}-panel`).hidden=key!==name);
     document.querySelector('#new-watch').hidden=name!=='watches';
     heading.hidden=name==='deals';
-    if(titles[name]) {document.querySelector('#workspace-title').textContent=titles[name][0];document.querySelector('#workspace-caption').textContent=titles[name][1];}
+    document.querySelector('#summary').hidden=name!=='watches';
+    if(titles[name]) {document.querySelector('#workspace-title').textContent=titles[name][0];document.querySelector('#workspace-caption').textContent=titles[name][1];document.querySelector('#workspace-caption').hidden=!titles[name][1];}
     if(focus) tab.focus();
   }
+  document.addEventListener('languagechange',()=>select(buttons.find(button=>button.getAttribute('aria-selected')==='true')));
   nav.addEventListener('click',event=>{const tab=event.target.closest('[data-tab]');if(tab) select(tab);});
   nav.addEventListener('keydown',event=>{
     const current=buttons.indexOf(document.activeElement);
@@ -32,10 +35,11 @@ export function setupSearchLayout(form,panel) {
     panel.querySelector('#deal-destination').classList.remove('place-anywhere');
     panel.querySelector('#deal-anywhere').hidden=true;
     const count=form.elements.adults.value, stops=form.elements.max_stops;
-    const filters=[`${count} 位成人`,stops.value==='-1'?'不限中转':stops.options[stops.selectedIndex].text];
-    if(Number(form.elements.budget.value)) filters.push(`预算 HK$${form.elements.budget.value}`);
+    const filters=[`${count}${tr(" 位成人"," adults")}`,stops.value==='-1'?tr("不限中转","Any stops"):stops.options[stops.selectedIndex].text];
+    if(Number(form.elements.budget.value)) filters.push(`${tr("预算 HK$","Budget HK$")}${form.elements.budget.value}`);
     panel.querySelector('#deal-filter-summary').textContent=filters.join(' · ');
   }
+  document.addEventListener('languagechange',sync);
   form.addEventListener('input',sync);form.addEventListener('change',sync);
   form.addEventListener('click',event=>{
     const preset=event.target.closest('[data-deal-range]');

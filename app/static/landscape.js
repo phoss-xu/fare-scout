@@ -1,3 +1,4 @@
+import {tr} from './i18n.js';
 import {setupWorldBackdrop} from './world-backdrop.js';
 import {defaultLandscape, fetchLandscape, landscapeImage, REFRESH_MS} from './landscape-provider.js';
 import {setupLandscapeActions} from './landscape-actions.js';
@@ -6,13 +7,20 @@ export function setupLandscape(panel) {
   const scene = panel.querySelector('.atlas-scene'), photo = scene.querySelector('.atlas-photo');
   const error = scene.querySelector('#atlas-image-error'), note = scene.querySelector('.atlas-refresh-note');
   const backdrop = setupWorldBackdrop(), actions = setupLandscapeActions(scene);
-  let attemptedAt = 0, pending = false, timer;
+  let attemptedAt = 0, pending = false, timer, currentPlace=defaultLandscape;
   function render(place) {
+    currentPlace=place;
     scene.dataset.place = place.id; backdrop.setPlace(place);
     photo.src = landscapeImage(place); photo.style.objectPosition = place.position;
     for (const key of ['title','name','location','description','kind']) scene.querySelector(`#atlas-${key}`).textContent = place[key];
+    if(place.id==='forest') {
+      scene.querySelector('#atlas-kind').textContent=tr(place.kind,'FOREST');
+      scene.querySelector('#atlas-name').textContent=tr(place.name,'Arashiyama Bamboo Grove');
+      scene.querySelector('#atlas-location').textContent=tr(place.location,'Kyoto, Japan');
+      scene.querySelector('#atlas-description').textContent=tr(place.description,'Look up through the bamboo canopy, where green meets the sky.');
+    }
     const credit = scene.querySelector('#atlas-credit'), license = scene.querySelector('#atlas-license');
-    credit.href = place.source; credit.textContent = `摄影 ${place.author} · 来源 ↗`;
+    credit.href = place.source; credit.textContent = `${tr("摄影 ","Photo by ")}${place.author}${tr(" · 来源 ↗"," · Source ↗")}`;
     license.href = place.licenseUrl; license.textContent = place.license;
     actions.setPhoto(place);
   }
@@ -27,20 +35,25 @@ export function setupLandscape(panel) {
         let timeout;
         try { await Promise.race([preload.decode(), new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Image load timed out')), 12000); })]); }
         finally { clearTimeout(timeout); }
-        render(place); error.hidden = true; note.textContent = '每小时更新';
+        render(place); error.hidden = true; note.textContent = tr("每小时更新","Updated hourly");
       } catch (cause) {
         console.warn('Landscape refresh failed', {error:cause.name, message:cause.message});
         render(defaultLandscape); error.hidden = false;
-        error.textContent = '新风景加载失败，稍后重试。';
-        note.textContent = '默认风景 · 岚山竹林';
+        error.textContent = tr("新风景加载失败，稍后重试。","Could not load new scenery. Try again later.");
+        note.textContent = tr("默认风景 · 岚山竹林","Default scenery · Arashiyama Bamboo Grove");
       } finally { pending = false; }
     }
     timer = setTimeout(refresh, document.hidden ? REFRESH_MS : Math.max(1000, attemptedAt + REFRESH_MS - Date.now()));
   }
   photo.addEventListener('error', () => {
-    if (scene.dataset.place === defaultLandscape.id) { error.hidden = false; error.textContent = '图片未载入，可查看原图。'; return; }
-    render(defaultLandscape); error.hidden = false; error.textContent = '图片加载失败，已用默认风景。';
-    note.textContent = '默认风景 · 岚山竹林';
+    if (scene.dataset.place === defaultLandscape.id) { error.hidden = false; error.textContent = tr("图片未载入，可查看原图。","Image unavailable. View the original photo."); return; }
+    render(defaultLandscape); error.hidden = false; error.textContent = tr("图片加载失败，已用默认风景。","Image unavailable. Showing the default scenery.");
+    note.textContent = tr("默认风景 · 岚山竹林","Default scenery · Arashiyama Bamboo Grove");
+  });
+  document.addEventListener('languagechange',()=>{
+    render(currentPlace);
+    note.textContent=currentPlace.id==='forest'?tr('默认风景 · 岚山竹林','Default scenery · Arashiyama Bamboo Grove'):tr('每小时更新','Updated hourly');
+    if(!error.hidden) error.textContent=tr('新风景加载失败，稍后重试。','Could not load new scenery. Try again later.');
   });
   render(defaultLandscape); refresh();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });

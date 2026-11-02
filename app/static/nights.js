@@ -1,3 +1,4 @@
+import {tr} from './i18n.js';
 /** Two accessible native sliders sharing one track and the existing form fields. */
 export function constrainNights(lower, upper, moved) {
   const clamp=value=>Math.min(30,Math.max(1,Math.round(Number(value)||1)));
@@ -11,8 +12,8 @@ export function setupNights(form) {
   let dragging, overlapStart;
   function render(moved) {
     const [a,b]=constrainNights(low.value,high.value,moved);
-    low.value=a;high.value=b;output.textContent=a===b?`${a} 晚`:`${a} 至 ${b} 晚`;
-    low.setAttribute('aria-valuetext',`${a} 晚`);high.setAttribute('aria-valuetext',`${b} 晚`);
+    low.value=a;high.value=b;output.textContent=a===b?`${a}${tr(" 晚"," nights")}`:`${a}${tr(" 至 "," to ")}${b}${tr(" 晚"," nights")}`;
+    low.setAttribute('aria-valuetext',`${a}${tr(" 晚"," nights")}`);high.setAttribute('aria-valuetext',`${b}${tr(" 晚"," nights")}`);
     low.setAttribute('aria-valuemax',b);high.setAttribute('aria-valuemin',a);
     slider.style.setProperty('--range-start',`${(a-1)/29*100}%`);
     slider.style.setProperty('--range-end',`${(30-b)/29*100}%`);
@@ -36,5 +37,6 @@ export function setupNights(form) {
   slider.addEventListener('pointermove',move);
   const end=()=>{if(dragging) dragging.dispatchEvent(new Event('change',{bubbles:true}));dragging=undefined;overlapStart=undefined;};
   slider.addEventListener('pointerup',end);slider.addEventListener('pointercancel',end);
+  document.addEventListener('languagechange',()=>render());
   render();return {reset:()=>render()};
 }

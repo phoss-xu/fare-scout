@@ -1,3 +1,7 @@
+import {tr,setupLanguage} from './i18n.js';
+import {subscribePreferences} from './preferences.js';
+import {subscribeCurrency} from './currency.js';
+import {setupSettings,renderSettings} from './settings.js';
 import {request} from './api.js';
 import {latest, watchCards, offerCards, historyView, removedItems} from './views.js';
 import {renderAutomation, setupAutomation} from './automation.js';
@@ -32,8 +36,9 @@ async function refresh() {
       return;
     }
     state = result;
+    renderSettings(state);
     $('#page-error').hidden = true;
-    $('#summary').textContent = `${state.watches.length} 份出行计划 · ${state.watches.filter(w => w.running).length} 份查询中`;
+    $('#summary').textContent = `${state.watches.length}${tr(" 份出行计划 · "," travel watches · ")}${state.watches.filter(w => w.running).length}${tr(" 份查询中"," checking prices")}`;
     const snapshot = JSON.stringify(state);
     if (snapshot === lastSnapshot) return;
     lastSnapshot = snapshot;
@@ -57,13 +62,15 @@ async function refresh() {
   } catch (error) {
     if (requestGeneration !== generation) return;
     if (error.status === 401) { showSession(null); return; }
-    $('#page-error').textContent = '暂时连接不上服务，页面会自动重试。';
+    $('#page-error').textContent = tr("暂时连接不上服务，页面会自动重试。","Cannot reach the service. Retrying automatically.");
     $('#page-error').hidden = false;
-    $('#summary').textContent = '连接中断';
+    $('#summary').textContent = tr("连接中断","Connection lost");
   } finally { refreshing = false; }
 }
+setupLanguage();
 setupWorkspace();
 setupAppearance();
+setupSettings();
 const daily=setupDaily(refresh,toast,openWatch,c=>discovery.applyPreferences(c));
 const form = $('#watch-form');
 const placeControls = setupLocations(form);
@@ -86,7 +93,7 @@ document.addEventListener('click', async event => {
     try {
       const restoring=Boolean(removal.dataset.restoreKind),kind=removal.dataset.restoreKind || removal.dataset.removeKind;
       await request(`/api/${kind}/${removal.dataset.removeId}/${restoring?'restore':'delete'}`,{});
-      toast(restoring?(kind==='watches'?'监控已恢复，自动查价保持暂停。':'机票机会已恢复。'):'已删除，可在列表底部「最近删除」中恢复。');
+      toast(restoring?(kind==='watches'?tr("监控已恢复，自动查价保持暂停。","Watch restored. Automatic checks remain paused."):tr("机票机会已恢复。","Flight opportunity restored.")):tr("已删除，可在「最近删除」恢复","Removed. Restore from Recently removed."));
       await refresh();
     } catch(error) {toast(error.message);removal.disabled=false;}
     return;
@@ -102,7 +109,7 @@ document.addEventListener('click', async event => {
   const check = event.target.closest('[data-check]');
   if (check) {
     check.disabled = true;
-    try { await request(`/api/watches/${check.dataset.check}/check`, {}); toast('已加入查价队列，结果会自动更新。'); await refresh(); }
+    try { await request(`/api/watches/${check.dataset.check}/check`, {}); toast(tr("已加入查价队列","Added to price-check queue")); await refresh(); }
     catch (error) { toast(error.message); check.disabled = false; }
   }
 });
@@ -111,7 +118,7 @@ form.elements.mode.addEventListener('change', () => {
   $('#end-field').hidden = weekend;
   form.elements.end.required = !weekend;
   $('#weeks-field').hidden = !weekend;
-  $('#start-label').textContent = weekend ? '从哪天起寻找周末' : '出发日期';
+  $('#start-label').textContent = weekend ? tr("起始日期","Start date") : tr("出发日期","Departure date");
 });
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -126,7 +133,7 @@ form.addEventListener('submit', async event => {
     Object.assign(data, placeControls.values());
     await request('/api/watches', data);
     $('#create-dialog').close();
-    toast(data.auto_enabled ? '监控已保存，将自动开始首次查价。' : '监控已保存，可随时手动查价。');
+    toast(data.auto_enabled ? tr("监控已保存，开始查价","Watch saved; checking prices") : tr("监控已保存","Watch saved"));
     await refresh();
   } catch (error) { $('#form-error').textContent = error.message; }
   finally { button.disabled = false; }
@@ -137,12 +144,13 @@ await setupAuth(user => {
   currentUser = user;
   resetHistory(user);
   state = null;
+  renderSettings(null);
   daily.reset();
   lastSnapshot = undefined;
   historyId = undefined;
   ['watches','offers','alerts','history'].forEach(id => $(`#${id}`).replaceChildren());
   ['watch-count','offer-count','alert-count'].forEach(id => $(`#${id}`).textContent = '0');
-  $('#summary').textContent = '正在加载…';
+  $('#summary').textContent = tr("正在加载…","Loading…");
   $('#email-status').textContent = '';
   ['form-error','settings-error','email-error','account-error'].forEach(id => $(`#${id}`).textContent = '');
   form.reset();
@@ -157,3 +165,14 @@ await setupAuth(user => {
   if (user) refresh();
 });
 setInterval(refresh, 4000);
+
+function renderPreferences() {
+  if(!state) return;
+  $('#summary').textContent=tr(`${state.watches.length} 份出行计划 · ${state.watches.filter(w=>w.running).length} 份查询中`,`${state.watches.length} travel watches · ${state.watches.filter(w=>w.running).length} checking prices`);
+  form.elements.mode.dispatchEvent(new Event('change'));
+  $('#watches').innerHTML=watchCards(state)+removedItems(state,'watches');
+  $('#offers').innerHTML=offerCards(state)+removedItems(state,'offers');
+  renderAutomation(state);daily.render(state);
+  if($('#history-dialog').open) $('#history').innerHTML=historyView(state,historyId);
+}
+subscribePreferences(renderPreferences);subscribeCurrency(renderPreferences);

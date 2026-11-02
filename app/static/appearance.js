@@ -1,3 +1,5 @@
+import {tr} from './i18n.js';
+import {subscribePreferences,preferencesSaved} from './preferences.js';
 import {themes, getAppearance, setAppearance, subscribeAppearance, DEFAULT_APPEARANCE} from './appearance-store.js';
 
 export function setupAppearance() {
@@ -21,17 +23,28 @@ export function setupAppearance() {
     button.setAttribute('aria-label', theme.name); button.append(preview, name, description, check);
     return button;
   }));
-  function render(value, saved = true) {
+  let appearanceSaved=true;
+  const english={paper:['Old book paper','Warm paper, forest ink and a touch of blue'],moss:['Moss garden','Sage and forest green'],sea:['Sea mist','Mist blue and deep sea grey'],rose:['Rose sand','Dusty pink and deep rose'],mocha:['Cocoa & oats','Oat white and coffee brown'],night:['Pine at night','Dark forest grey and soft white']};
+  function render(value, saved = appearanceSaved) {
+    appearanceSaved=saved;
+    choices.querySelectorAll('button').forEach(button=>{
+      const theme=themes.find(t=>t.id===button.dataset.choiceTheme),copy=english[theme.id];
+      button.querySelector('strong').textContent=tr(theme.name,copy[0]);
+      button.querySelector('small').textContent=tr(theme.description,copy[1]);
+      button.setAttribute('aria-label',tr(theme.name,copy[0]));
+    });
     choices.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.choiceTheme === value.theme)));
     opacity.value = value.surfaceOpacity;
     dialog.querySelector('#landscape-opacity-value').value = `${value.surfaceOpacity}%`;
     opacity.setAttribute('aria-valuetext', `${value.surfaceOpacity}%`);
-    status.textContent = saved ? '保存在此浏览器' : '偏好未保存，仅本次生效';
+    status.textContent = saved && preferencesSaved() ? tr('语言、货币与外观保存在此浏览器。','Language, currency and appearance are saved in this browser.') : tr('偏好未能保存，当前页面仍可使用。','Preferences could not be saved. They still apply to this page.');
   }
+  subscribePreferences(()=>render(getAppearance()));
   subscribeAppearance(render); render(getAppearance());
   opener.addEventListener('click', () => {
     previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden'; dialog.showModal();
+    dialog.querySelector('.appearance-body').scrollTop=0;
   });
   dialog.querySelector('#appearance-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => {
@@ -43,7 +56,7 @@ export function setupAppearance() {
     }
   });
   dialog.querySelector('#appearance-reset').addEventListener('click', () => {
-    if (setAppearance(DEFAULT_APPEARANCE)) status.textContent = '已恢复默认外观';
+    if (setAppearance(DEFAULT_APPEARANCE)) status.textContent = tr('已恢复默认外观，语言与货币选择保留。','Appearance reset. Language and currency preferences kept.');
   });
   dialog.addEventListener('close', () => { document.body.style.overflow = previousOverflow || ''; opener.focus(); });
 }

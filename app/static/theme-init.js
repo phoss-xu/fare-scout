@@ -1,5 +1,7 @@
 // Apply the saved theme before styles paint, including native date controls.
 (() => {
+  try {document.documentElement.lang=JSON.parse(localStorage.getItem('fare-scout:preferences'))?.language==='en'?'en':'zh-CN';}
+  catch {document.documentElement.lang='zh-CN';}
   const ids = ['paper','moss','sea','rose','mocha','night'];
   try {
     const saved = JSON.parse(localStorage.getItem('fare-scout:appearance'));

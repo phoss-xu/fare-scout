@@ -1,30 +1,30 @@
+import {tr} from './i18n.js';
+import {price} from './format.js';
 import {request} from './api.js';
+import {renderEmail,setupEmail} from './email-settings.js';
 import {escape, money, time} from './views.js';
 const $ = selector => document.querySelector(selector);
-const delivery = {pending:'邮件排队中', waiting_config:'等待发信配置', retry:'邮件发送失败，稍后重试',
-  failed:'邮件发送失败，已停止重试', cancelled:'邮件已取消', sent:'邮件已发送', skipped:'邮件已跳过（已过期或提醒已关闭）'};
+const delivery = {get pending(){return tr("邮件排队中","Email queued");}, get waiting_config(){return tr("等待发信配置","Waiting for email configuration");}, get waiting_verification(){return tr("等待收件邮箱验证与确认","Awaiting email verification & consent");}, get retry(){return tr("邮件发送失败，稍后重试","Email failed; retrying later");},
+  get failed(){return tr("邮件发送失败，已停止重试","Email failed; retries exhausted");}, get cancelled(){return tr("邮件已取消","Email cancelled");}, get sent(){return tr("邮件已发送","Email sent");}, get skipped(){return tr("邮件已跳过（已过期或提醒已关闭）","Email skipped (expired or alerts off)");}};
 
 function link(value) {
   try {
     const url = new URL(value);
-    if (url.protocol === 'https:') return `<a class="small-btn" href="${escape(url.href)}" target="_blank" rel="noopener noreferrer">前往核价 ↗</a>`;
+    if (url.protocol === 'https:') return `<a class="small-btn" href="${escape(url.href)}${tr("\" target=\"_blank\" rel=\"noopener noreferrer\">前往核价 ↗</a>","\" target=\"_blank\" rel=\"noopener noreferrer\">Check price ↗</a>")}`;
   } catch { /* Missing links do not prevent showing the saved alert. */ }
-  return '<span class="muted">暂无核价链接</span>';
+  return tr("<span class=\"muted\">暂无核价链接</span>","<span class=\"muted\">No booking link available</span>");
 }
 
 export function renderAutomation(state) {
   $('#alert-count').textContent = state.alerts.filter(a => !a.read_at).length;
   $('#read-alerts').disabled = !state.alerts.some(a => !a.read_at);
-  $('#email-status').textContent = state.email.message;
-  $('#email-status').className = state.email.configured ? 'muted' : 'muted mail-pending';
-  const input = $('#email-recipient');
-  if (document.activeElement !== input && !input.dataset.dirty) input.value = state.email.recipient;
+  renderEmail(state.email);
   $('#alerts').innerHTML = state.alerts.map(a => {
     const w = state.watches.find(w => w.id === a.watch_id);
     const route = a.route_key ? JSON.parse(a.route_key) : [];
-    const drop = a.previous_price == null ? '' : `较上次有效报价下降 HK$${money(a.previous_price - a.price)}`;
-    return `<article class="card alert-card ${a.read_at ? '' : 'unread'}"><div class="card-top"><span class="badge">${a.reason === 'budget' ? '进入你的预算' : '发现降价'}${a.read_at ? ' · 已读' : ' · 未读'}</span><span class="muted">${time(a.created_at)}</span></div><h3>${escape(route[0] || w.origin)} <span class="arrow">↗</span> ${escape(state.destinations[a.destination])}</h3><p class="trip-dates">${a.departure} — ${a.arrival}${w.mode === 'weekend' ? ' 返程抵达' : ' 返程起飞'}</p><div class="price"><small>HK$</small> ${money(a.price)}<span> / ${w.adults} 人往返</span></div><p class="muted">${drop || '首次采样已在预算内'}</p><p class="muted">${delivery[a.email_status] || '邮件尚未排队'}</p><div class="card-bottom"><span class="muted">采样报价，预订前请核价</span>${link(a.booking_url)}</div></article>`;
-  }).join('') || '<div class="empty"><span class="empty-icon">↘</span><h3>有好价格时，这里会告诉你</h3><p>同一行程达到降价门槛，或首次进入预算时生成提醒。首次采样不会被当作降价。</p></div>';
+    const drop = a.previous_price == null ? '' : `${tr("降价 HK$","Price drop HK$")}${money(a.previous_price - a.price)}`;
+    return `<article class="card alert-card ${a.read_at ? '' : 'unread'}"><div class="card-top"><span class="badge">${a.reason === 'budget' ? tr("进入你的预算","Within your budget") : tr("发现降价","Price drop")}${a.read_at ? tr(" · 已读"," · Read") : tr(" · 未读"," · Unread")}</span><span class="muted">${time(a.created_at)}</span></div><h3>${escape(route[0] || w.origin)} <span class="arrow">↗</span> ${escape(state.destinations[a.destination])}</h3><p class="trip-dates">${a.departure} — ${a.arrival}${w.mode === 'weekend' ? tr(" 返程抵达"," return arrival") : tr(" 返程起飞"," return departure")}</p><div class="price">${price(a.price)}<span> / ${w.adults}${tr(" 人往返</span></div><p class=\"muted\">"," travellers, return</span></div><p class=\"muted\">")}${drop || tr("首次采样已在预算内","First observed fare is within budget")}</p><p class="muted">${delivery[a.email_status] || tr("邮件尚未排队","Email not queued yet")}${tr("</p><div class=\"card-bottom\"><span class=\"muted\">预订前核价</span>","</p><div class=\"card-bottom\"><span class=\"muted\">Confirm price before booking</span>")}${link(a.booking_url)}</div></article>`;
+  }).join('') || tr("<div class=\"empty\"><span class=\"empty-icon\">↘</span><h3>暂无提醒</h3></div>","<div class=\"empty\"><span class=\"empty-icon\">↘</span><h3>No alerts yet</h3></div>");
 }
 
 export function setupAutomation(getState, refresh, toast) {
@@ -52,7 +52,7 @@ export function setupAutomation(getState, refresh, toast) {
         interval_hours:form.elements.interval_hours.value, min_drop:form.elements.min_drop.value,
       });
       $('#settings-dialog').close();
-      toast('自动查价与提醒设置已保存。');
+      toast(tr("设置已保存","Settings saved"));
       await refresh();
     } catch (error) { $('#settings-error').textContent = error.message; }
     finally { button.disabled = false; }
@@ -63,18 +63,5 @@ export function setupAutomation(getState, refresh, toast) {
     try { await request('/api/alerts/read', {through_id:Math.max(...ids)}); await refresh(); }
     catch (error) { toast(error.message); }
   });
-  $('#email-recipient').addEventListener('input', event => event.target.dataset.dirty = 'true');
-  $('#email-form').addEventListener('submit', async event => {
-    event.preventDefault();
-    const button = event.target.querySelector('[type=submit]');
-    button.disabled = true;
-    $('#email-error').textContent = '';
-    try {
-      await request('/api/email', {recipient:$('#email-recipient').value});
-      delete $('#email-recipient').dataset.dirty;
-      toast('收件邮箱已保存。');
-      await refresh();
-    } catch (error) { $('#email-error').textContent = error.message; }
-    finally { button.disabled = false; }
-  });
+  setupEmail(getState,refresh,toast);
 }

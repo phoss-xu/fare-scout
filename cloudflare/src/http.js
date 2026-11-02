@@ -1,7 +1,7 @@
 import {ApiError,ensure} from './db.js';
 const SECURITY={
   'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff',
-  'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://upload.wikimedia.org; font-src 'self'; connect-src 'self' https://commons.wikimedia.org https://upload.wikimedia.org; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+  'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://upload.wikimedia.org; font-src 'self'; connect-src 'self' https://api.frankfurter.dev https://commons.wikimedia.org https://upload.wikimedia.org; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
 };
 export function json(body,status=200,cookie) {
   return new Response(JSON.stringify(body),{status,headers:{...SECURITY,'Content-Type':'application/json; charset=utf-8',...(cookie?{'Set-Cookie':cookie}:{})}});

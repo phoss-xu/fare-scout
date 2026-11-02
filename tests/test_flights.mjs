@@ -30,7 +30,7 @@ test('missing baggage and duration remain unknown rather than zero', () => {
   assert.equal(duration(null), '时长暂缺');
   assert.equal(duration(-1), '时长暂缺');
   assert.equal(duration(14400), '4 小时');
-  assert.match(flightDetails({}), /分段信息/);
+  assert.match(flightDetails({}), /航段信息暂缺/);
   assert.match(flightDetails({}), /重量、尺寸/);
 });
 

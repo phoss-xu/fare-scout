@@ -137,3 +137,20 @@ Python 与 Workers 的 CSP 仅新增 Commons API 与 upload.wikimedia.org 图片
 `world-backdrop.js/css` 的图层是 atlas-scene 的内部装饰，受其边界裁切；没有全页背景或全页透明面板。
 滚动通过单次 requestAnimationFrame 合并绘制，远景与两座塔楼分别有界平移，没有持续动画循环。
 图片包含同源的维港夜景与缩略图，作者/许可见 assets/places/CREDITS.md。
+
+### 统一设置、语言与参考货币（2026-11-02，本地待验收）
+
+右侧 `appearance-dialog` 为统一设置入口。`settings.js` 组合语言/货币、已有外观、当前账号邮箱和推荐/监控入口；
+邮箱表单只有一份，提醒中心和每日偏好均定位到统一设置，不复制保存和验证逻辑。
+账号未登录时隐藏账号偏好；Python 不支持每日推荐时隐藏该入口。单条监控的查价与提醒仍按监控分别保存。
+
+`preferences.js` 校验 `fare-scout:preferences`（zh-CN / en；HKD、CNY、USD、EUR、JPY、GBP、SGD、AUD、CAD；默认 CNY，保留已保存的有效币种），
+`i18n.js` 绑定 HTML 中明确声明的文本节点/属性，动态模块使用 `tr(中文, English)`；切换时不重置表单、不重新查价。
+地点目录、远程照片元数据与服务端返回的诊断文案仍保留源语言；不改写用户输入。
+外观沿用原存储键，恢复默认外观不会清除语言和货币。
+
+`exchange-rates.js` 集中访问 Frankfurter v2，仅传 HKD 和目标币种，不携带会话或行程；缓存有效期 24 小时，
+拒绝非正数、非 HKD 基准、异常日期及超过十天的参考日。`currency.js` 管理加载、失败与参考显示，`format.js` 共用卡片/历史价格格式。
+换算报价标注约值、原始 HKD 及汇率日期；缺少所选汇率时显示 HKD，并在设置中说明、允许重试。
+排序、预算、降价门槛、采样比较及邮件仍用原有 HKD，不重写任何报价或保存规则。
+Python 静态白名单和两个运行时的 CSP 新增相应模块与 `https://api.frankfurter.dev`。
