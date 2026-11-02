@@ -33,6 +33,9 @@ def resolve(value):
     if not isinstance(identity, str) or len(identity) > 80:
         raise ValueError("请从地点候选中选择国家/地区、城市或机场。")
     identity = identity.strip()
+    if identity.startswith("group:"):
+        from .location_scopes import group_record
+        return group_record(identity)
     records, _ = catalogue()
     if ":" not in identity:
         code = identity.upper()

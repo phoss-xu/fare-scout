@@ -65,7 +65,7 @@ WATCH_SELECT = "SELECT w.*, s.* FROM watches w JOIN schedules s ON w.id=s.watch_
 
 def watch(watch_id, user_id=None):
     with connect() as db:
-        scope = " AND w.owner_id=?" if user_id is not None else ""
+        scope = " AND w.owner_id=? AND w.deleted_at IS NULL" if user_id is not None else ""
         params = (watch_id, user_id) if user_id is not None else (watch_id,)
         row = db.execute(WATCH_SELECT + " WHERE w.id=?" + scope, params).fetchone()
         return decode_watch(row) if row else None
@@ -73,7 +73,7 @@ def watch(watch_id, user_id=None):
 
 def claim(watch_id):
     with connect() as db:
-        claimed = db.execute("UPDATE watches SET running=1 WHERE id=? AND running=0", (watch_id,)).rowcount == 1
+        claimed = db.execute("UPDATE watches SET running=1 WHERE id=? AND running=0 AND deleted_at IS NULL", (watch_id,)).rowcount == 1
         if claimed:
             db.execute("UPDATE schedules SET last_started=?,next_check=NULL WHERE watch_id=?", (now(), watch_id))
         return claimed
@@ -99,7 +99,8 @@ def observe(watch_id, job, status, offer=None):
 
 def observe_batch(watch_id, job, status, offers):
     with connect() as db:
-        observations.record(db, watch_id, job, status, offers, now())
+        if db.execute('SELECT deleted_at FROM watches WHERE id=?',(watch_id,)).fetchone()[0] is None:
+            observations.record(db, watch_id, job, status, offers, now())
 
 
 def update_settings(watch_id, data, user_id=None):
@@ -152,9 +153,13 @@ def set_recipient(address, user_id=None):
 def snapshot(user_id=None):
     with connect() as db:
         scope, params = (" WHERE w.owner_id=?", (user_id,)) if user_id is not None else ("", ())
-        watches = [decode_watch(row) for row in db.execute(WATCH_SELECT + scope + " ORDER BY w.id DESC", params)]
+        all_watches = [decode_watch(row) for row in db.execute(WATCH_SELECT + scope + " ORDER BY w.id DESC", params)]
         observations = [{**dict(row), "offer": json.loads(row["offer"]) if row["offer"] else None}
                         for row in db.execute("SELECT o.* FROM observations o JOIN watches w ON w.id=o.watch_id" + scope + " ORDER BY o.id DESC", params)]
-        notifications = alerts.list_alerts(db, user_id)
-    return {"watches": watches, "observations": observations, "alerts": notifications,
+        watches = [w for w in all_watches if not w['deleted_at']]
+        deleted_watches = [w for w in all_watches if w['deleted_at']]
+        active_ids = {w['id'] for w in watches}
+        observations = [o for o in observations if o['watch_id'] in active_ids]
+        notifications = [a for a in alerts.list_alerts(db, user_id) if a['watch_id'] in active_ids]
+    return {"deleted_watches": deleted_watches, "watches": watches, "observations": observations, "alerts": notifications,
             "email": public_status(email_recipient(user_id))}

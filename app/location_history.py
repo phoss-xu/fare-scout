@@ -26,8 +26,9 @@ def recent(user_id):
         append(row['role'], row['location_id'])
     for row in watches:
         config = json.loads(row['config'])
-        append('origin', config.get('origin_location') or config['origin'])
-        for value in config.get('destination_locations', config['destinations']):
+        for value in config.get('origin_selections') or config.get('origin_locations') or [config.get('origin_location') or config['origin']]:
+            append('origin', value)
+        for value in config.get('destination_selections') or config.get('destination_locations', config['destinations']):
             append('destination', value)
     return result
 

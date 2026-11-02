@@ -1,5 +1,5 @@
 import {request} from './api.js';
-import {latest, watchCards, offerCards, historyView} from './views.js';
+import {latest, watchCards, offerCards, historyView, removedItems} from './views.js';
 import {renderAutomation, setupAutomation} from './automation.js';
 import {setupAuth, showSession} from './auth.js';
 import {setupLocations} from './locations.js';
@@ -35,11 +35,11 @@ async function refresh() {
     const snapshot = JSON.stringify(state);
     if (snapshot === lastSnapshot) return;
     lastSnapshot = snapshot;
-    $('#watches').innerHTML = watchCards(state);
-    $('#offers').innerHTML = offerCards(state);
+    $('#watches').innerHTML = watchCards(state)+removedItems(state,'watches');
+    $('#offers').innerHTML = offerCards(state)+removedItems(state,'offers');
     renderAutomation(state);
     $('#watch-count').textContent = state.watches.length;
-    $('#offer-count').textContent = latest(state.observations).filter(o => o.status === 'ok').length;
+    $('#offer-count').textContent = latest(state.observations).filter(o => o.status === 'ok' && !o.dismissed_at).length;
     if ($('#history-dialog').open) $('#history').innerHTML = historyView(state, historyId);
     if (!formInitialized) {
       formInitialized = true;
@@ -74,6 +74,17 @@ const discovery = setupDeals(async data => {
 });
 $('#new-watch').addEventListener('click', () => $('#create-dialog').showModal());
 document.addEventListener('click', async event => {
+  const removal=event.target.closest('[data-remove-kind],[data-restore-kind]');
+  if(removal) {
+    removal.disabled=true;
+    try {
+      const restoring=Boolean(removal.dataset.restoreKind),kind=removal.dataset.restoreKind || removal.dataset.removeKind;
+      await request(`/api/${kind}/${removal.dataset.removeId}/${restoring?'restore':'delete'}`,{});
+      toast(restoring?(kind==='watches'?'监控已恢复，自动查价保持暂停。':'机票机会已恢复。'):'已删除，可在列表底部「最近删除」中恢复。');
+      await refresh();
+    } catch(error) {toast(error.message);removal.disabled=false;}
+    return;
+  }
   const close = event.target.closest('[data-close]');
   if (close) $(`#${close.dataset.close}`).close();
   const history = event.target.closest('[data-history]');

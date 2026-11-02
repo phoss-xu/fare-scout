@@ -42,7 +42,8 @@ def run(watch_id, automatic=False):
         cursor = watch.get("query_cursor", 0) % total if total else 0
         ordered = pending[cursor:] + pending[:cursor]
         for job in ordered[:BATCH_SIZE]:
-            if automatic and not store.watch(watch_id)["auto_enabled"]:
+            current = store.watch(watch_id)
+            if current["deleted_at"] or (automatic and not current["auto_enabled"]):
                 break
             try:
                 offers = search_with_retry(watch, job)

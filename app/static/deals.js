@@ -8,13 +8,23 @@ import {setupNights} from './nights.js';
 
 export function setupDeals(openWatch) {
   const form = document.querySelector('#deals-form'), panel = document.querySelector('#deals-panel');
-  const origin = picker(panel.querySelector('#deal-origin'), false, () => {}, {editableSelection:true});
+  const scopeNote=document.createElement('p');scopeNote.className='form-hint';scopeNote.setAttribute('role','status');form.append(scopeNote);
+  function summarizeScopes() {
+    const count=origin.expandedCount()*(form.elements.anywhere.checked?1:destinations.expandedCount());
+    scopeNote.textContent=`已选 ${origin.values().length} 个出发范围 · ${form.elements.anywhere.checked?'不限目的地':`${destinations.values().length} 个目的地范围`} · 展开后 ${count} 组查询（最多 120 组）`;
+  }
+  form.elements.anywhere.addEventListener('change',summarizeScopes);
+  const origin = picker(panel.querySelector('#deal-origin'), true, summarizeScopes, {editableSelection:true,label:'出发地'});
   const destinations = picker(panel.querySelector('#deal-destination'), true, () => {
     if(destinations.values().length && form.elements.anywhere.checked){
       form.elements.anywhere.checked=false;
       form.elements.anywhere.dispatchEvent(new Event('change',{bubbles:true}));
     }
-  }, {maxChoices:6});
+    summarizeScopes();
+  }, {editableSelection:true,maxChoices:100});
+  const rangeButton=document.createElement('button');rangeButton.type='button';rangeButton.className='scope-shortcut';rangeButton.textContent='＋ 免签精选';
+  panel.querySelector('#deal-destination').insertBefore(rangeButton,panel.querySelector('#deal-destination .place-recent'));
+  rangeButton.addEventListener('click',()=>destinations.browse('visa-free'));
   const holidays = setupHolidays(panel.querySelector('#deal-holidays'), form, 'deals');
   const layout = setupSearchLayout(form, panel);
   const nights = setupNights(form);
@@ -77,7 +87,7 @@ export function setupDeals(openWatch) {
       if (!origin.values().length) throw new Error('请从候选中选择出发地。');
       const to=form.elements.anywhere.checked ? [] : destinations.values();
       if (!form.elements.anywhere.checked && !to.length) throw new Error('请选择目的地，或勾选不限目的地。');
-      const data={...Object.fromEntries(new FormData(form)),origin:origin.values()[0],destinations:to,
+      const data={...Object.fromEntries(new FormData(form)),origins:origin.values(),destinations:to,
         weekdays:[...form.querySelectorAll('[name=weekday]:checked')].map(e => Number(e.value))};
       const task = await request('/api/deals',data);
       if (version === epoch) poll(task.id,version);

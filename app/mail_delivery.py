@@ -57,6 +57,10 @@ def tick():
             ORDER BY a.id LIMIT 3""", (timestamp,))]
     for alert in rows:
         watch = store.watch(alert["watch_id"])
+        if watch.get('deleted_at'):
+            with store.connect() as db:
+                db.execute("UPDATE email_outbox SET status='cancelled' WHERE alert_id=?", (alert['id'],))
+            continue
         config = configuration(store.email_recipient(watch["owner_id"]))
         age = datetime.now(timezone.utc) - datetime.fromisoformat(alert["created_at"])
         if age > timedelta(hours=24) or alert["departure"] < today().isoformat() or not watch["alerts_enabled"]:

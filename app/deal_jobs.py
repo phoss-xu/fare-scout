@@ -25,7 +25,7 @@ def start(user_id, data):
             raise ValueError('搜索服务正在忙，请稍后重试。')
         identity = uuid.uuid4().hex
         TASKS[identity] = dict(owner=user_id, created=time.monotonic(), status='running',
-                               completed=0, total=len(config['destinations']) or 1, config=config)
+                               completed=0, total=len(config['origin_locations']) * (len(config['destinations']) or 1), config=config)
     try:
         POOL.submit(run, identity, config)
     except RuntimeError:

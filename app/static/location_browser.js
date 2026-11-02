@@ -1,6 +1,6 @@
 import {request} from './api.js';
 import {escape} from './format.js';
-const kinds={country:'国家/地区',city:'城市',airport:'机场'};
+const kinds={country:'国家/地区',city:'城市',airport:'机场',group:'范围'};
 let count=0, menuRequest;
 
 export function locationBrowser({label,multiple,values,choose}) {
@@ -33,7 +33,9 @@ export function locationBrowser({label,multiple,values,choose}) {
         const strong=document.createElement('strong');strong.textContent=`适用：${data.passport} · 核查 ${data.checked_at}。 `;note.prepend(strong);
         const link=document.createElement('a');link.href=data.source;link.target='_blank';link.rel='noopener noreferrer';link.textContent=' 查看官方条件 ↗';note.append(link);
       }
-      show(data.sections);
+      const countries=data.sections.flatMap(section=>section.locations).filter(row=>row.kind==='country');
+      const range=countries.length ? {id:`group:${data.id}`,kind:'group',name:data.id==='visa-free'?'免签精选':data.label,code:`${countries.length} 国/地区`,members:countries.map(row=>row.id)} : null;
+      show(range ? [{label:'整个范围 · 可与其他地点混选',locations:[range]},...data.sections] : data.sections);
     } catch(error) {if(current===version && dialog.open){note.textContent=error.message;body.replaceChildren();}}
   }
   async function search() {
@@ -56,7 +58,8 @@ export function locationBrowser({label,multiple,values,choose}) {
     if(button){const error=choose(rows[Number(button.dataset.lbChoice)],multiple);if(error){note.textContent=error;return;}footer();if(!multiple) dialog.close();}
   });
   dialog.addEventListener('close',()=>{version+=1;clearTimeout(timer);});
-  return {async open() {
+  return {async open(group) {
+    if(group) active=group;
     if(dialog.open) return;dialog.showModal();note.textContent='正在加载分类…';input.value='';const current=++version;
     try {
       menuRequest ||= request('/api/locations?groups=1').catch(error=>{menuRequest=undefined;throw error;});

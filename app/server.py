@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from . import accounts, auth_http, deal_jobs, location_groups, location_history, locations, mail_config, mail_delivery, presenter, scheduler, store, worker
+from . import accounts, auth_http, deal_jobs, location_groups, location_history, locations, mail_config, mail_delivery, presenter, scheduler, store, worker, removals
 from .domain import jobs, today, validate
 
 STATIC = Path(__file__).with_name("static")
@@ -66,6 +66,7 @@ class Handler(BaseHTTPRequestHandler):
                  "/location_history.js": ("location_history.js", "text/javascript"),
                  "/deals.js": ("deals.js", "text/javascript"), "/deal_views.js": ("deal_views.js", "text/javascript"),
                  "/deals.css": ("deals.css", "text/css"),
+                 "/departure.css": ("departure.css", "text/css"),
                  "/holidays.js": ("holidays.js", "text/javascript"), "/holidays.css": ("holidays.css", "text/css"),
                  "/holidays.json": ("holidays.json", "application/json"),
                  "/ui.js": ("ui.js", "text/javascript"),
@@ -113,6 +114,10 @@ class Handler(BaseHTTPRequestHandler):
                 store.set_recipient(data.get("recipient"), user_id)
                 return self.send(200, {"message": "收件邮箱已保存。"})
             parts = self.path.strip("/").split("/")
+            if len(parts) == 4 and parts[0] == 'api' and parts[1] in ('watches','offers') and parts[3] in ('delete','restore'):
+                if not parts[2].isdigit() or not removals.change(parts[1],int(parts[2]),user_id,parts[3]=='restore'):
+                    return self.send(404, {'error':'这条记录不存在。'})
+                return self.send(200, {'message':'已恢复。' if parts[3]=='restore' else '已删除，可在最近删除中恢复。'})
             if len(parts) == 4 and parts[:2] == ["api", "watches"] and parts[3] == "settings":
                 if not parts[2].isdigit() or not store.update_settings(int(parts[2]), data, user_id):
                     return self.send(404, {"error": "这条监控不存在。"})

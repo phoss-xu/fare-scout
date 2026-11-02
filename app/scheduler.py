@@ -13,7 +13,7 @@ def tick():
     with store.connect() as db:
         ids = [r[0] for r in db.execute("""SELECT s.watch_id FROM schedules s JOIN watches w ON w.id=s.watch_id
             LEFT JOIN users u ON u.id=w.owner_id
-            WHERE s.auto_enabled=1 AND w.running=0 AND s.next_check<=?
+            WHERE w.deleted_at IS NULL AND s.auto_enabled=1 AND w.running=0 AND s.next_check<=?
             AND (w.owner_id IS NULL OR u.password_hash IS NOT NULL) ORDER BY s.next_check LIMIT 10""",
                                       (timestamp,))]
     for watch_id in ids:

@@ -35,7 +35,7 @@ class Kiwi:
         self.call(1, "initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
                                    "clientInfo": {"name": "fare-scout", "version": "0.1"}})
         fmt = lambda value: date.fromisoformat(value).strftime("%d/%m/%Y")
-        args = dict(flyFrom=locations.origin(watch)["code"], flyTo=locations.resolve(job.get("location_id") or job["destination"])["code"],
+        args = dict(flyFrom=(locations.resolve(job["origin_id"]) if job.get("origin_id") else locations.origin(watch))["code"], flyTo=locations.resolve(job.get("location_id") or job["destination"])["code"],
                     departureDate=fmt(job["departure"]), returnDate=fmt(job["arrival"]),
                     currency=watch["currency"], adults=watch["adults"], cabinClass="M",
                     sort="price", allow_self_transfer=False)

@@ -57,6 +57,20 @@ class HTTPAuthTests(unittest.TestCase):
         self.assertIn("SameSite=Lax", cookie)
         return cookie.split(";")[0], body["csrf_token"]
 
+    def test_recoverable_deletion_is_authenticated_and_owner_scoped(self):
+        cookie, csrf=self.login()
+        own=store.create(config(),self.alice['id'])
+        url=f'/api/watches/{own}/delete'
+        self.assertEqual(self.request(url,{})[0],401)
+        self.assertEqual(self.request(url,{},cookie=cookie)[0],403)
+        self.assertEqual(self.request(f'/api/watches/{self.bob_watch}/delete',{},cookie,csrf)[0],404)
+        self.assertEqual(self.request(url,{},cookie,csrf)[0],200)
+        state=self.request('/api/state',cookie=cookie)[1]
+        self.assertEqual(state['watches'],[])
+        self.assertEqual([w['id'] for w in state['deleted_watches']],[own])
+        self.assertEqual(self.request(f'/api/watches/{own}/restore',{},cookie,csrf)[0],200)
+        self.assertFalse(store.watch(own,self.alice['id'])['auto_enabled'])
+
     def test_guest_csrf_and_cross_user_requests_are_blocked(self):
         self.assertEqual(self.request('/api/state')[0], 401)
         self.assertEqual(self.request('/api/watches', config())[0], 401)

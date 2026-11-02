@@ -4,19 +4,19 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from .policy import validate_settings
-from . import locations
+from . import locations, location_scopes
 
 def today():
     return datetime.now(ZoneInfo("Asia/Shanghai")).date()
 
 
 def validate(data):
-    origin = locations.resolve(data.get("origin", "HKG"))
-    destinations = data.get("destinations", [])
-    if not isinstance(destinations, list) or not 1 <= len(destinations) <= 100:
-        raise ValueError("请选择目的地，单条监控最多可保存 100 个地点范围。")
-    destinations = list({row["id"]: row for row in map(locations.resolve, destinations)}.values())
-    if origin["kind"] == "airport" and any(d["id"] == origin["id"] for d in destinations):
+    origin_selections = location_scopes.selections(data.get("origins", [data.get("origin", "HKG")]))
+    destination_selections = location_scopes.selections(data.get("destinations", []))
+    origins = location_scopes.expand(origin_selections)
+    destinations = location_scopes.expand(destination_selections)
+    origin = origins[0]
+    if len(origins) == len(destinations) == 1 and origin['kind'] == 'airport' and origin['id'] == destinations[0]['id']:
         raise ValueError("出发机场和目的机场不能相同。")
     mode = data.get("mode", "fixed")
     if mode not in {"fixed", "weekend"}:
@@ -40,7 +40,8 @@ def validate(data):
     if not math.isfinite(max_duration) or not 0 <= max_duration <= 72 or max_stops not in (-1, 0, 1, 2, 3):
         raise ValueError("请检查每程最长时长或中转次数。")
     return dict(origin=origin["code"], destinations=[d["code"] for d in destinations], mode=mode,
-                origin_location=origin, destination_locations=destinations,
+                origin_location=origin, origin_locations=origins, destination_locations=destinations,
+                origin_selections=origin_selections, destination_selections=destination_selections,
                 max_duration_hours=max_duration, max_stops=max_stops,
                 start=start.isoformat(), end=end.isoformat(), adults=adults,
                 weeks=weeks, budget=budget, currency="HKD", cabin="M", **validate_settings(data))
@@ -54,8 +55,9 @@ def jobs(watch):
                  for i in range(watch["weeks"])]
     else:
         dates = [(start, date.fromisoformat(watch["end"]))]
-    return [dict(destination=d["code"], location_id=d["id"], departure=s.isoformat(), arrival=e.isoformat())
-            for s, e in dates for d in locations.destinations(watch)]
+    return [dict(destination=d["code"], location_id=d["id"], origin_id=o["id"], departure=s.isoformat(), arrival=e.isoformat())
+            for s, e in dates for o in location_scopes.origins(watch) for d in locations.destinations(watch)
+            if not (o["kind"] == d["kind"] == "airport" and o["id"] == d["id"])]
 
 
 def matches(offer, watch, job):
@@ -64,7 +66,7 @@ def matches(offer, watch, job):
         price = offer["price"]
         if isinstance(price, bool) or not isinstance(price, (int, float)) or not math.isfinite(price) or price <= 0:
             return False
-        departure_scope = locations.origin(watch)
+        departure_scope = locations.resolve(job["origin_id"]) if job.get("origin_id") else locations.origin(watch)
         arrival_scope = locations.resolve(job.get("location_id") or job["destination"])
         if not locations.contains(departure_scope, outbound.get("from")) or not locations.contains(arrival_scope, outbound.get("to")):
             return False

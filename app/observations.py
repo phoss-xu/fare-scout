@@ -15,6 +15,6 @@ def record(db, watch_id, job, status, offers, timestamp):
         observation_id = db.execute("""INSERT INTO observations(watch_id,destination,departure,arrival,checked_at,status,
             offer,route_key,search_id,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?)""",
             (watch_id, actual_job["destination"], job["departure"], job["arrival"], timestamp, status,
-             json.dumps(offer) if offer else None, route_key, job.get("location_id") or "airport:" + job["destination"], batch)).lastrowid
+             json.dumps(offer) if offer else None, route_key, (job["origin_id"] + "|" if job.get("origin_id") and len(config.get("origin_locations", [])) > 1 else "") + (job.get("location_id") or "airport:" + job["destination"]), batch)).lastrowid
         if status == "ok" and offer:
             alerts.record(db, observation_id, watch_id, actual_job, offer, timestamp, route_key)

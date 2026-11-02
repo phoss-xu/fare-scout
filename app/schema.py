@@ -45,7 +45,7 @@ def initialize(db):
     if "owner_id" not in columns:
         db.execute("ALTER TABLE watches ADD COLUMN owner_id INTEGER")
     db.execute("CREATE INDEX IF NOT EXISTS watch_owner ON watches(owner_id)")
-    upgrades = {"observations": {"route_key":"TEXT", "search_id":"TEXT", "batch_id":"TEXT"},
+    upgrades = {"watches": {"deleted_at":"TEXT"}, "observations": {"dismissed_at":"TEXT", "route_key":"TEXT", "search_id":"TEXT", "batch_id":"TEXT"},
                 "alerts": {"route_key":"TEXT"},
                 "schedules": {"query_cursor":"INTEGER NOT NULL DEFAULT 0",
                               "last_batch_count":"INTEGER NOT NULL DEFAULT 0", "job_count":"INTEGER NOT NULL DEFAULT 0"}}

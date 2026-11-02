@@ -27,8 +27,8 @@ export function setupSearchLayout(form,panel) {
   const anywhere=form.elements.anywhere;
   function sync() {
     panel.querySelector('#deal-destination').hidden=false;
-    panel.querySelector('#deal-destination').classList.toggle('place-anywhere',anywhere.checked);
-    panel.querySelector('#deal-anywhere').hidden=!anywhere.checked;
+    panel.querySelector('#deal-destination').classList.remove('place-anywhere');
+    panel.querySelector('#deal-anywhere').hidden=true;
     const count=form.elements.adults.value, stops=form.elements.max_stops;
     const filters=[`${count} 位成人`,stops.value==='-1'?'不限中转':stops.options[stops.selectedIndex].text];
     if(Number(form.elements.budget.value)) filters.push(`预算 HK$${form.elements.budget.value}`);
