@@ -20,10 +20,15 @@ export function picker(root,multiple,changed=()=>{},{editableSelection=false,max
     recent.innerHTML=`<span>最近</span>${rows.map(row=>`<button type="button" data-recent="${row.id}" title="${escape(row.name)} · ${names[row.kind]} ${row.code}" aria-label="选择最近${label}：${escape(row.name)}，${names[row.kind]} ${row.code}">${escape(row.kind==='airport'?(row.city_name||row.name):row.name)}<small>${row.code}</small></button>`).join('')}`;
   }
   subscribeHistory((data,status)=>{history=data[role];renderHistory();root.querySelector('.place-history-status').textContent=status;});
+  function card(row){
+    const details=`<span><strong>${escape(row.name)}</strong><small>${names[row.kind]} · ${row.code}</small></span>`;
+    if(!multiple) return `<button type="button" class="place-current" data-edit-place aria-label="更换出发地，当前${escape(row.name)}">${details}<span class="place-change">更换 ↗</span></button>`;
+    return `<div class="place-card"><button type="button" class="place-current" data-browse aria-label="调整目的地，当前${escape(row.name)}">${details}<span class="place-change">调整 ↗</span></button><button type="button" class="place-card-remove" data-remove="${row.id}" aria-label="移除${escape(row.name)}">×</button></div>`;
+  }
   function render() {
     const compact=editableSelection && selected.length && !editing;
     root.querySelector('.place-search').hidden=Boolean(compact);
-    chips.innerHTML=compact?selected.map(row=>`<button type="button" class="place-current" data-edit-place aria-label="更换出发地，当前${escape(row.name)}"><span><strong>${escape(row.name)}</strong><small>${names[row.kind]} · ${row.code}</small></span><span class="place-change">更换 ↗</span></button>`).join(''):selected.map(row=>`<span class="place-chip"><span>${escape(row.name)} <small>${names[row.kind]} · ${row.code}</small></span><button type="button" data-remove="${row.id}" aria-label="移除${escape(row.name)}">×</button></span>`).join('');
+    chips.innerHTML=compact?selected.map(card).join('')+(multiple?'<button type="button" class="place-add" data-browse>＋ 添加目的地</button>':''):selected.map(row=>`<span class="place-chip"><span>${escape(row.name)} <small>${names[row.kind]} · ${row.code}</small></span><button type="button" data-remove="${row.id}" aria-label="移除${escape(row.name)}">×</button></span>`).join('');
     renderHistory();changed();
   }
   function choose(row,toggle=false) {

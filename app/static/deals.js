@@ -14,7 +14,7 @@ export function setupDeals(openWatch) {
       form.elements.anywhere.checked=false;
       form.elements.anywhere.dispatchEvent(new Event('change',{bubbles:true}));
     }
-  }, {maxChoices:6});
+  }, {editableSelection:true,maxChoices:6});
   const holidays = setupHolidays(panel.querySelector('#deal-holidays'), form, 'deals');
   const layout = setupSearchLayout(form, panel);
   const nights = setupNights(form);
