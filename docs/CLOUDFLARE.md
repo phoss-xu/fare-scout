@@ -1,8 +1,8 @@
 # Cloudflare Workers Free + D1
 
-线上地址：**https://fare-scout.phosssuki.workers.dev**。最终发布版本 `153f0962-b12a-472b-a400-1d64b7fee2a7`。已按用户授权发布到 Workers Free，使用 Passkey 登录；未开通 Paid，未迁移旧数据，邮件发送关闭。
+线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `7f9d731b-ca1c-46c7-84a1-3a4b96c3326a`。已按用户授权发布到 Workers Free，使用 Passkey 登录；未开通 Paid，未迁移旧数据，邮件发送关闭。
 
-D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。五项迁移已应用。上线验收临时账号及搜索已清理，首次部署时业务表为空，供用户注册；这不是后续更新的目标状态。现有账号必须保留，原 SQLite 与旧本地 D1 均保留。
+D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。六项迁移已应用，现有正式账号持续保留。首次上线时仅清理过独立合成验收账号；后续更新不再初始化或清空业务数据，原 SQLite 与旧本地 D1 均保留。
 
 ## 本地运行
 
@@ -101,4 +101,14 @@ Cloudflare 官方 19 个 skills 已安装至 `~/.agents/skills/`；Codex 的 Clo
 不删除 users、passkeys 或现有用户配置。发布前后用只读聚合核对账号/凭据数量，不输出邮箱或密钥。
 
 2026-11-02 本次更新前：用户 3、Passkey 3、会话 3、监控 0。已记录 Time Travel 恢复书签；
-发布前 115 项检查和 dry-run 通过。正式更新结果会补充在下方发布记录。
+发布前 115 项检查和 dry-run 通过。正式更新结果见下方发布记录。
+
+## 2026-11-02 后续正式更新记录
+
+- 代码提交并推送：d10048c；正式版本 7f9d731b-ca1c-46c7-84a1-3a4b96c3326a。
+- 0006_daily.sql 应用成功，之后 migrations list 显示没有待应用迁移。
+- 更新前后均为 3 个用户、3 个 Passkey、3 个会话、0 个监控；每日偏好默认关闭，0 条偏好记录。
+- 同一 D1、Passkey Origin 和邮件关闭设置保持不变，不执行数据库导入或初始化。
+- 发布前 28 项 Workers/D1、26 项前端、61 项 Python 检查通过；发布后七项主要资源返回 200，
+  SHA-256 与本地代码/图片相同，未登录会话仍为 Passkey 模式、受保护 state 接口返回 401。
+- 浏览器正式登录页加载正常、控制台无错误；本轮没有代替用户执行设备验证、真实查价或邮件投递。
