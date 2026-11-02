@@ -1,5 +1,15 @@
 # 当前进展
 
+## 2026-11-02 · 新首页、思源宋体与设置正式上线
+
+- 用户授权正式部署，使用已推送的 ccc50db（含 d40c942 界面/宋体及 248d8ec 设置/货币），独立发布快照 /tmp/fare-release-ccc50db；未混入工作区未提交的邮件验证/原生发信或 0007 迁移。
+- 北京时间 2026-11-02 18:57，Wrangler 发布成功：fdbf9996-d72b-4a05-9b86-db6695499814；正式地址 https://fare-scout.phosssuki.workers.dev 。前一版本 7f9d731b-ca1c-46c7-84a1-3a4b96c3326a 保留在历史中。
+- 发布前 36 项前端、28 项 Workers 检查通过，共 64 项；npm run build dry-run 成功。继续使用 Workers Free、同一个 D1、正式 Passkey Origin、QUERY_ENABLED=true、MAIL_ENABLED=false；无数据库迁移、初始化或导入。
+- 用户明确授权只读核对四项汇总计数；发布前后均为用户 3、Passkey 3、会话 3、监控 0，查询均 rows_written=0。没有输出邮箱或凭据内容。
+- 发布后 14 项公开页面/样式/脚本/字体资源均返回 200，SHA-256 与发布快照相同；公开 auth/session 为 Passkey 且未登录，state 拒绝未登录请求（401）。Python urllib 的公开请求遇到 403，curl 和实际浏览器正常，资源核对使用 curl。
+- 实际浏览器使用已有会话进入正式工作区，思源宋体加载成功，风景成功显示远程布莱埃斯湖及正确作者/许可；设置显示简体中文、CNY 和邮件未启用，未修改用户偏好。没有重做设备 Passkey 验证、发起机票查询或发送通知。
+- 验收记录 /tmp/fare-release-ccc50db-verify.json；线上截图 /tmp/fare-release-ccc50db-online.png。记录本轮正式发布，其他任务的工作不在本次文档提交范围内。
+
 ## 2026-11-02 · 更换图库并完成实源验收（本地完成）
 
 - 将不可达的 Wikimedia Commons 接口替换为项目维护的 Unsplash 精选目录与 images.unsplash.com CDN；当前四张为布莱埃斯湖、维港、拉迪格岛、鱼尾狮。新增湖景已在原始照片页核对作者 Luca Bravo、地点 Lago di Braies 和 Unsplash License。目录有限，不宣称实时全库检索。

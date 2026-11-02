@@ -1,6 +1,6 @@
 # Cloudflare Workers Free + D1
 
-线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `7f9d731b-ca1c-46c7-84a1-3a4b96c3326a`。已按用户授权发布到 Workers Free，使用 Passkey 登录；未开通 Paid，未迁移旧数据，邮件发送关闭。
+线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `fdbf9996-d72b-4a05-9b86-db6695499814`（代码 `ccc50db`）。已按用户授权发布到 Workers Free，使用 Passkey 登录；未开通 Paid，未迁移旧数据，邮件发送关闭。
 
 D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。六项迁移已应用，现有正式账号持续保留。首次上线时仅清理过独立合成验收账号；后续更新不再初始化或清空业务数据，原 SQLite 与旧本地 D1 均保留。
 
@@ -112,3 +112,10 @@ Cloudflare 官方 19 个 skills 已安装至 `~/.agents/skills/`；Codex 的 Clo
 - 发布前 28 项 Workers/D1、26 项前端、61 项 Python 检查通过；发布后七项主要资源返回 200，
   SHA-256 与本地代码/图片相同，未登录会话仍为 Passkey 模式、受保护 state 接口返回 401。
 - 浏览器正式登录页加载正常、控制台无错误；本轮没有代替用户执行设备验证、真实查价或邮件投递。
+
+## 2026-11-02 新首页与设置发布
+
+- 已推送版本 ccc50db 在独立目录检查后发布，线上版本 fdbf9996-d72b-4a05-9b86-db6695499814；包含新首页、思源宋体、语言/显示货币设置和 Unsplash 精选图库。
+- 64 项前端/Workers 检查及 dry-run 通过；14 项公开资源 200 且与快照哈希相同。原 D1、Passkey 域名与邮件关闭状态保留，无数据库迁移。
+- 用户授权的四项只读计数发布前后相同：用户/Passkey/会话各 3，监控 0。实际浏览器验证已有登录会话、中文宋体、远程湖景和设置入口。
+- 工作区的 Cloudflare 邮件验证/原生发信接入及 0007 迁移仍未部署。详见 PROGRESS.md 本轮发布记录。
