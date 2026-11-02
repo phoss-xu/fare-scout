@@ -1,36 +1,11 @@
-import {landscapes, photoPath} from './landscape-data.js';
-import {themes, landscapeModes, getAppearance, setAppearance, subscribeAppearance, DEFAULT_APPEARANCE} from './appearance-store.js';
+import {themes, getAppearance, setAppearance, subscribeAppearance, DEFAULT_APPEARANCE} from './appearance-store.js';
 
 export function setupAppearance() {
   const dialog = document.querySelector('#appearance-dialog'), opener = document.querySelector('#appearance-open');
-  const choices = dialog.querySelector('#theme-choices'), frequency = dialog.querySelector('#landscape-frequency');
+  const choices = dialog.querySelector('#theme-choices');
   const status = dialog.querySelector('#appearance-status');
-  const gallery = dialog.querySelector('#landscape-choices'), opacity = dialog.querySelector('#landscape-opacity');
-  const motion = dialog.querySelector('#landscape-motion');
-  motion.addEventListener('change', () => setAppearance({motion:motion.checked}));
+  const opacity = dialog.querySelector('#landscape-opacity');
   let previousOverflow;
-  gallery.replaceChildren(...landscapes.map(place => {
-    const button = document.createElement('button');
-    button.type = 'button'; button.className = 'landscape-choice'; button.dataset.landscape = place.id;
-    button.setAttribute('aria-label', `选择背景：${place.name}`);
-    const image = document.createElement('img'); image.src = photoPath(place, true); image.alt = ''; image.loading = 'lazy';
-    const name = document.createElement('strong'); name.textContent = place.name;
-    const location = document.createElement('small'); location.textContent = place.location;
-    const check = document.createElement('span'); check.textContent = '✓'; check.className = 'landscape-check'; check.setAttribute('aria-hidden','true');
-    button.append(image, name, location, check);
-    return button;
-  }));
-  function markLandscape(id) {
-    gallery.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.landscape === id)));
-  }
-  document.addEventListener('landscapechange', event => markLandscape(event.detail.id));
-  markLandscape(document.querySelector('.atlas-scene')?.dataset.place);
-  gallery.addEventListener('click', event => {
-    const button = event.target.closest('[data-landscape]');
-    if (!button) return;
-    setAppearance({landscape:'fixed'});
-    document.dispatchEvent(new CustomEvent('landscapeselect', {detail:{id:button.dataset.landscape}}));
-  });
   opacity.addEventListener('input', () => setAppearance({surfaceOpacity:Number(opacity.value)}));
   choices.replaceChildren(...themes.map(theme => {
     const button = document.createElement('button');
@@ -48,11 +23,10 @@ export function setupAppearance() {
   }));
   function render(value, saved = true) {
     choices.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.choiceTheme === value.theme)));
-    frequency.value = value.landscape; opacity.value = value.surfaceOpacity; motion.checked = value.motion;
+    opacity.value = value.surfaceOpacity;
     dialog.querySelector('#landscape-opacity-value').value = `${value.surfaceOpacity}%`;
     opacity.setAttribute('aria-valuetext', `${value.surfaceOpacity}%`);
-    dialog.querySelector('#landscape-frequency-hint').textContent = landscapeModes[value.landscape];
-    status.textContent = saved ? '已保存到此浏览器，下次回来仍会保留。' : '当前浏览器暂时无法保存偏好，本次页面仍可预览。';
+    status.textContent = saved ? '保存在此浏览器' : '偏好未保存，仅本次生效';
   }
   subscribeAppearance(render); render(getAppearance());
   opener.addEventListener('click', () => {
@@ -68,9 +42,8 @@ export function setupAppearance() {
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
     }
   });
-  frequency.addEventListener('change', () => setAppearance({landscape:frequency.value}));
   dialog.querySelector('#appearance-reset').addEventListener('click', () => {
-    if (setAppearance(DEFAULT_APPEARANCE)) status.textContent = '已恢复旧书纸、通透底色与每小时换景。';
+    if (setAppearance(DEFAULT_APPEARANCE)) status.textContent = '已恢复默认外观';
   });
   dialog.addEventListener('close', () => { document.body.style.overflow = previousOverflow || ''; opener.focus(); });
 }

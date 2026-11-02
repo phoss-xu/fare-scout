@@ -17,3 +17,12 @@
 原始 CDN 图片标识分别为：photo-1540999758994-161f2ee6e1c8、photo-1725789644182-060da96d5049、photo-1783325049944-ec69d256d654、photo-1608875004752-2fdb6a39ba4c、photo-1542715539-63b5fd3d3b9f。
 
 维港原始 CDN 图片标识：photo-1621609582945-7769dbd34277。2026-11-02 核对原始照片页，按 Unsplash License 下载为同源 JPEG。
+
+## 动态风景（2026-11-02 本地改动）
+
+运行时通过 Wikimedia Commons Action API 的 imageinfo/extmetadata 读取精选风景及逐图作者、原始文件页、许可名称和许可 URL。
+仅接受 CC BY 2.0/2.5/3.0/4.0、CC BY-SA 同版本或 CC0 1.0；许可或署名缺失、来源不符合规则时不展示。
+显示尺寸为 API 返回的约 1600px 缩略图，下载相同尺寸；网页另作 CSS 裁切与渐隐。
+页面保留作者、来源及许可证链接，二次使用须遵循对应条款；不能将整个图库视为统一许可。
+本地默认图为上表 forest.jpg，继续遵循 Unsplash License。其余本地图片保留为已有资产，不再供侧栏选择或轮换。
+API 文档：https://www.mediawiki.org/wiki/API:Imageinfo 。

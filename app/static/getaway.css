@@ -1,0 +1,171 @@
+/* Scenic arrival, a single departure bar, and an editorial guide to returned trips. */
+#deals-panel{--scene-ink:#f7f4e9;--scene-muted:#d2d7cc;--scene-dark:#152a25;--scene-accent:#e3ecaa}
+#deals-panel .atlas-scene{width:calc(100% + 96px);margin:24px -48px 0;padding:20px 48px 78px;min-height:540px;background:var(--scene-dark);color:var(--scene-ink);overflow:hidden}
+#deals-panel .world-backdrop{background:var(--scene-dark);mask-image:none}
+#deals-panel .world-photo{position:absolute;right:0;width:76%;mask-image:linear-gradient(90deg,transparent,#000 40%);object-position:center;filter:brightness(.84)}
+#deals-panel .world-veil{background:linear-gradient(90deg,#152a25 0%,#152a25b0 35%,#152a2510 80%),color-mix(in srgb,var(--scene-dark) calc(var(--interface-opacity) * .48),transparent)}
+#deals-panel .city-composition{bottom:-140px}
+#deals-panel .atlas-topline{color:var(--scene-muted);font-size:9px;letter-spacing:2px;border-bottom:1px solid #f7f4e933;padding-bottom:14px}
+#deals-panel .atlas-refresh-note{color:var(--scene-muted);font-size:10px;letter-spacing:.5px}
+#deals-panel .atlas-stage{min-height:320px;display:grid;grid-template-columns:1.35fr .65fr;align-items:center;gap:60px}
+#deals-panel .atlas-copy{width:100%;padding:24px 0 20px;background:none;pointer-events:auto}
+.getaway-kicker{font-size:11px;letter-spacing:3px;color:var(--scene-muted);margin:0 0 22px}
+#deals-panel .atlas-copy h1{font:500 clamp(40px,4.3vw,60px)/1.25 var(--family);letter-spacing:-2px;color:var(--scene-ink);text-shadow:none;margin:0 0 18px;white-space:nowrap;text-wrap:initial}
+#deals-panel .atlas-copy h1>span{color:var(--scene-accent)}
+.getaway-lead{color:var(--scene-muted);font-size:13px;line-height:1.9;margin:0}
+.getaway-start{display:inline-flex;gap:30px;align-items:center;margin-top:18px;padding:8px 0;border-bottom:1px solid #f7f4e966;font-size:11px;color:var(--scene-ink)}
+.getaway-start>span{font-size:23px;line-height:1}
+.atlas-caption{align-self:end;justify-self:end;width:100%;max-width:295px;border-top:1px solid #f7f4e966;padding:20px 0 14px;margin-bottom:32px;text-shadow:0 1px 15px #152a25}
+.caption-index{font-size:8px;letter-spacing:1px;color:var(--scene-muted)}
+#deals-panel .atlas-location{color:var(--scene-ink);font-size:10px;letter-spacing:2px;margin:20px 0 8px}
+#deals-panel #atlas-title{font:400 clamp(29px,3.5vw,46px)/1.15 var(--display-family);letter-spacing:-1px;margin:0 0 8px;overflow-wrap:anywhere;color:var(--scene-ink)}
+#deals-panel #atlas-name{font:400 14px/1.6 var(--family);letter-spacing:2px;color:var(--scene-ink)}
+#deals-panel .atlas-description{font-size:11px;line-height:1.8;color:var(--scene-muted);max-width:25em;margin:10px 0;text-shadow:none}
+#deals-panel .atlas-bottom{border-top:1px solid #f7f4e933;padding-top:14px;gap:14px}
+#deals-panel .atlas-tools{max-width:65%;gap:14px}
+#deals-panel .atlas-tools a{color:var(--scene-muted);font-size:9px}
+#deals-panel .atlas-actions button{background:#152a2550;border-color:#f7f4e966;color:var(--scene-ink);border-radius:2px;min-height:40px;font-size:10px}
+#deals-panel .atlas-actions button[aria-pressed=true]{color:var(--scene-accent);border-color:var(--scene-accent)}
+#deals-panel .atlas-action-status,#deals-panel .atlas-saved,#deals-panel #atlas-image-error{color:var(--scene-muted);font-size:10px}
+#deals-panel .atlas-saved{position:absolute;right:48px;bottom:74px;margin:0}
+#deals-panel .atlas-saved[open]{position:relative;right:auto;bottom:auto}
+#deals-panel .atlas-saved a{color:var(--scene-ink)}
+#deals-panel .atlas-scene :is(a,button,summary):focus-visible{outline-color:var(--scene-accent)}
+#deals-panel .deal-layout{padding:0 0;gap:60px}
+#deals-panel .deal-search{margin-top:-60px;border-radius:3px;padding:22px 28px 16px;border:1px solid var(--line);box-shadow:0 18px 45px #152a2514;backdrop-filter:none;animation:none;z-index:3;scroll-margin-top:24px}
+#deals-panel .search-topline{margin-bottom:16px}
+#deals-panel .search-mode{font-size:11px;letter-spacing:1px}
+#deals-panel .search-mode>span{font-size:9px;letter-spacing:0}
+#deals-panel .search-invitation{font-size:10px}
+#deals-panel .journey-choices{grid-template-columns:1fr 1.2fr 1fr;gap:24px}
+#deals-panel .journey-origin>summary{padding:10px 0;border:0}
+#deals-panel .journey-place summary strong{font-size:19px;font-weight:500}
+#deals-panel .choice-label{font-size:10px}
+#deals-panel .choice-action{font-size:10px;margin-top:6px}
+#deals-panel .journey-destination>summary{border-radius:0;text-align:left;padding:10px 0 10px 24px;border-left:1px solid var(--line);background:none;display:block}
+#deals-panel .journey-destination .choice-label{margin-bottom:8px}
+#deals-panel .journey-destination .choice-action{margin-top:6px}
+#deals-panel .journey-date>summary{background:var(--subtle);border-radius:2px;padding:14px 18px}
+#deals-panel .date-stamp b{font-size:29px}
+#deals-panel .date-copy strong{font-size:13px}
+#deals-panel .journey-actions{margin-top:18px;padding-top:14px;align-items:center}
+#deals-panel .journey-extras>summary{flex-direction:row;gap:16px;align-items:center;font-size:11px;justify-content:flex-start}
+#deals-panel .journey-extras>summary>span:last-child{font-size:10px}
+#deals-panel .search-submit{border-radius:2px;min-height:48px;min-width:190px;font-size:13px;box-shadow:none}
+#deals-panel .search-submit span{font-size:23px}
+#deals-panel .journey-editor,#deals-panel .journey-extras-body{border-radius:4px}
+#deals-panel .discovery-results{padding:0}
+#deals-panel .discovery-heading{align-items:end;margin-bottom:24px}
+#deals-panel .discovery-heading .eyebrow{font-size:9px;letter-spacing:2px;margin-bottom:10px}
+#deals-panel .discovery-heading h2{font:500 30px/1.4 var(--family);letter-spacing:-1px}
+#deals-panel .deal-results-grid{display:grid;gap:20px}
+#deals-panel .deal-card{padding:28px;border-radius:3px;border:1px solid var(--line);box-shadow:none}
+#deals-panel .deal-card:first-child{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:0 44px;border-top:3px solid var(--green)}
+#deals-panel .deal-card:first-child>:is(.card-top,.deal-result-title,.trip-experience,.trip-dates,.deal-date-note,.card-bottom){grid-column:1/-1}
+#deals-panel .deal-card:first-child .deal-flight-more{grid-column:1/-1}
+#deals-panel .deal-card:first-child h3{font-size:36px;line-height:1.3}
+#deals-panel .deal-card .price{font-size:34px;line-height:1.2;color:var(--ink);font-weight:500}
+#deals-panel .deal-card:first-child .price{font-size:42px}
+#deals-panel .deal-card .price small{font-size:12px}
+#deals-panel .deal-card .price>span{font-size:10px}
+#deals-panel .deal-card .badge{background:none;padding:0;color:var(--green);font-size:10px;line-height:1.7}
+#deals-panel .deal-card .card-top>.muted{font-size:10px;flex-shrink:0}
+.trip-experience{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:16px 0;margin-bottom:20px;border-block:1px solid var(--line)}
+.trip-experience>div{display:flex;flex-direction:column;gap:7px;min-width:0}
+.trip-experience>div+div{border-left:1px solid var(--line);padding-left:20px}
+.trip-experience span{font-size:10px;color:var(--muted)}
+.trip-experience strong{font-size:16px;font-weight:500;line-height:1.5}
+#deals-panel .deal-card .small-btn{background:var(--green);color:var(--on-accent);border-color:var(--green);border-radius:2px;font-size:12px}
+#deals-panel .deal-card .card-bottom .text-btn{font-size:12px}
+.destination-rail{display:flex;gap:10px;overflow-x:auto;padding:4px 0 20px;margin-bottom:12px}
+.destination-rail button{display:flex;align-items:center;justify-content:space-between;gap:20px;white-space:nowrap;min-height:48px;flex-shrink:0;padding:12px 16px;border:1px solid var(--line);border-radius:2px;color:var(--ink);background:var(--white);font-size:12px}
+.destination-rail strong{font-size:11px;font-weight:500;color:var(--muted)}
+.destination-rail button[aria-pressed=true]{border-color:var(--green);background:var(--surface-soft)}
+#deals-panel .discovery-empty{padding:36px 0;min-height:210px;border-block:1px solid var(--line);border-radius:0;background:none;gap:24px}
+#deals-panel .discovery-empty h3{font:400 29px/1.5 var(--family);letter-spacing:-1px}
+#deals-panel .discovery-empty p{font-size:12px;line-height:1.9}
+#deals-panel .discovery-steps{font-size:10px}
+#deals-panel .empty-route{padding-right:20px}
+#deals-panel .empty-route>span{font-size:12px;border-radius:0;background:var(--surface-soft);border-color:var(--line)}
+#deals-panel .empty-route img{width:48px;height:48px;opacity:.6}
+@media(min-width:761px) and (max-width:1100px){
+ #deals-panel .atlas-scene{width:calc(100% + 48px);margin-inline:-24px;padding-inline:24px}
+ #deals-panel .atlas-stage{gap:30px;grid-template-columns:1.3fr .7fr}
+ #deals-panel .atlas-copy h1{font-size:clamp(35px,4.5vw,50px)}
+ #deals-panel .journey-choices{gap:16px;grid-template-columns:1fr 1.2fr 1fr}
+ #deals-panel .journey-destination{grid-column:auto}
+ #deals-panel .journey-place summary strong{font-size:16px}
+ #deals-panel .journey-date>summary{gap:10px;padding:12px}
+ #deals-panel .date-stamp{min-width:35px;padding-right:10px}
+ #deals-panel .date-expand{display:none}
+}
+@media(max-width:760px){
+ #deals-panel .atlas-scene{width:calc(100% + 32px);margin:16px -16px 0;padding:18px 20px 78px;min-height:0}
+ #deals-panel .world-photo{width:100%;mask-image:none;object-position:65% center}
+ #deals-panel .world-veil{background:linear-gradient(90deg,#152a25eb,#152a2570),color-mix(in srgb,var(--scene-dark) calc(var(--interface-opacity) * .35),transparent)}
+ #deals-panel .atlas-topline{font-size:7px;letter-spacing:1px;align-items:start;gap:15px;padding-bottom:14px}
+ #deals-panel .atlas-refresh-note{font-size:8px;letter-spacing:0;text-align:right;max-width:110px;line-height:1.6}
+ #deals-panel .atlas-stage{display:block;min-height:0}
+ #deals-panel .atlas-copy{padding:38px 0 28px}
+ .getaway-kicker{font-size:9px;letter-spacing:2px;margin-bottom:16px}
+ #deals-panel .atlas-copy h1{font-size:clamp(30px,8.3vw,46px);letter-spacing:-1px;line-height:1.3;margin-bottom:18px}
+ .getaway-lead{font-size:11px;line-height:1.9}
+ .getaway-start{margin-top:16px;font-size:10px;padding:6px 0}
+ .atlas-caption{max-width:none;width:100%;margin:0 0 18px;padding:14px 0 0;display:grid;grid-template-columns:1fr auto;gap:4px 16px}
+ .caption-index{font-size:7px;grid-column:1/-1}
+ #deals-panel .atlas-location{margin:10px 0 2px;font-size:9px;grid-column:1}
+ #deals-panel #atlas-title{font-size:28px;grid-column:1}
+ #deals-panel #atlas-name{font-size:11px;letter-spacing:1px;align-self:center;grid-column:2;grid-row:3}
+ #deals-panel .atlas-description{display:none}
+ #deals-panel .atlas-bottom{gap:10px;padding-top:12px}
+ #deals-panel .atlas-tools{max-width:100%;width:100%;gap:8px}
+ #deals-panel .atlas-tools a,#deals-panel .atlas-tools #atlas-license{font-size:8px}
+ #deals-panel .atlas-saved{position:relative;right:auto;bottom:auto;margin-top:8px}
+ #deals-panel .atlas-actions{gap:8px}
+ #deals-panel .atlas-actions button{padding:7px 12px;min-height:44px}
+ #deals-panel #atlas-image-error{font-size:9px;line-height:1.7;margin-top:8px}
+ #deals-panel .deal-layout{padding:0;gap:36px}
+ #deals-panel .deal-search{margin-top:-48px;padding:18px 16px 16px;scroll-margin-top:16px}
+ #deals-panel .search-topline{margin-bottom:10px}
+ #deals-panel .search-mode{font-size:10px;letter-spacing:.5px}
+ #deals-panel .search-mode>span{font-size:8px;margin-left:6px}
+ #deals-panel .journey-choices{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}
+ #deals-panel .journey-origin{grid-column:1}
+ #deals-panel .journey-destination{grid-column:2;grid-row:1}
+ #deals-panel .journey-date{grid-column:1/-1;margin-top:12px}
+ #deals-panel .journey-place summary strong{font-size:16px;line-height:1.5}
+ #deals-panel .journey-origin>summary,#deals-panel .journey-destination>summary{padding:6px 0 6px 0;border:0}
+ #deals-panel .journey-destination>summary{padding-left:14px;border-left:1px solid var(--line)}
+ #deals-panel .choice-label{font-size:9px}
+ #deals-panel .choice-action{font-size:8px}
+ #deals-panel .journey-date>summary{padding:12px 16px;gap:14px}
+ #deals-panel .date-copy strong{font-size:13px}
+ #deals-panel .date-stamp b{font-size:27px}
+ #deals-panel .journey-editor,#deals-panel .journey-extras-body{padding:12px;max-width:100%}
+ #deals-panel .journey-choices:has(>.journey-place[open]){display:flex;flex-direction:column;gap:12px;align-items:stretch}
+ #deals-panel .journey-choices:has(>.journey-place[open]) .journey-destination>summary{padding-left:0;border:0}
+ #deals-panel .journey-origin{order:1}
+ #deals-panel .journey-destination{order:2}
+ #deals-panel .journey-date{order:3}
+ #deals-panel .journey-actions{align-items:stretch;gap:12px;margin-top:12px;padding-top:10px}
+ #deals-panel .journey-extras>summary{justify-content:space-between;gap:10px;font-size:10px}
+ #deals-panel .journey-extras>summary>span:last-child{font-size:9px}
+ #deals-panel .search-submit{min-height:48px;min-width:0;font-size:13px}
+ #deals-panel .discovery-heading{align-items:start;gap:12px;margin-bottom:20px}
+ #deals-panel .discovery-heading h2{font-size:23px;white-space:normal}
+ #deals-panel .discovery-heading .eyebrow{font-size:8px;letter-spacing:1.5px}
+ #deals-panel .discovery-heading .text-btn{font-size:10px;max-width:115px;flex-shrink:0}
+ #deals-panel .deal-results-grid{grid-template-columns:1fr;gap:16px}
+ #deals-panel .deal-card,#deals-panel .deal-card:first-child{display:block;padding:20px;grid-column:auto}
+ #deals-panel .deal-card h3,#deals-panel .deal-card:first-child h3{font-size:25px}
+ #deals-panel .deal-card .price,#deals-panel .deal-card:first-child .price{font-size:28px}
+ #deals-panel .deal-result-title{align-items:start;gap:10px}
+ .trip-experience{gap:14px;padding:14px 0;margin-bottom:16px}
+ .trip-experience>div+div{padding-left:14px}
+ .trip-experience strong{font-size:14px}
+ .trip-experience span{font-size:9px}
+ #deals-panel .discovery-empty{min-height:190px;padding:24px 0}
+ #deals-panel .discovery-empty h3{font-size:23px}
+ #deals-panel .discovery-empty p{font-size:11px}
+ #deals-panel .discovery-steps{font-size:9px;gap:12px;flex-wrap:wrap}
+}

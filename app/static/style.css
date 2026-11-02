@@ -1,10 +1,11 @@
+@font-face{font-family:"Fare Scout Serif";font-style:normal;font-weight:250 900;font-display:swap;src:url('/assets/fare-scout-serif-vf.woff2') format('woff2');unicode-range:U+80-10FFFF}
 @font-face{font-family:Manrope;font-style:normal;font-weight:400;font-display:swap;src:url('/assets/manrope-400.ttf') format('truetype')}
 @font-face{font-family:Manrope;font-style:normal;font-weight:500;font-display:swap;src:url('/assets/manrope-500.ttf') format('truetype')}
 @font-face{font-family:Manrope;font-style:normal;font-weight:600;font-display:swap;src:url('/assets/manrope-600.ttf') format('truetype')}
 @font-face{font-family:Manrope;font-style:normal;font-weight:700;font-display:swap;src:url('/assets/manrope-700.ttf') format('truetype')}
 :root{
  --paper:#f6f7f4;--ink:#24362e;--muted:#69766f;--green:#396b51;--lime:#e3eddb;--line:#dfe5dd;--white:#fff;--orange:#9a4c33;
- --surface-soft:#edf2e9;--family:Manrope,"PingFang SC","Microsoft YaHei",sans-serif;
+ --surface-soft:#edf2e9;--family:Manrope,"Fare Scout Serif","Source Han Serif SC","Noto Serif CJK SC","Songti SC",SimSun,serif;
  --heading-1:600 48px/1 var(--family);--heading-3:600 36px/40px var(--family);--heading-4:600 30px/36px var(--family);--heading-5:600 24px/32px var(--family);--heading-6:600 20px/28px var(--family);
  --title-2:500 18px/28px var(--family);--title-3:500 16px/24px var(--family);--title-4:500 14px/20px var(--family);--body-3:400 16px/24px var(--family);--body-6:400 14px/20px var(--family);--caption-5:400 12px/16px var(--family);--button-md:600 16px/24px var(--family);--button-sm:600 14px/20px var(--family);
  --s-0:0;--s-25:2px;--s-50:4px;--s-75:8px;--s-100:12px;--s-200:16px;--s-300:24px;--s-400:32px;--s-500:40px;--s-600:48px;--s-700:64px;--s-800:80px;--s-900:96px;

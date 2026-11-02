@@ -47,9 +47,10 @@ Python 3.9+ 标准库本地服务，SQLite 持久化，原生 HTML/CSS/JavaScrip
 - `store.py`：SQLite 事务、监控配置、逐组合采样记录。
 - `deals.py` / `deal_jobs.py`：模糊日期往返探索、结果二次过滤、每城市较低价；独立双线程队列和账号隔离的短期内存任务，不写入监控样本或触发通知。
 - `static/holidays.json` / `holidays.js` / `holidays.css`：带年份、来源和正式/参考状态的中国内地假期快捷选择；只填写具体日期，不自动创建任务，维护规则见 `docs/HOLIDAYS.md`。
-- `static/landscape.js` / `landscape-data.js` / `landscape.css`：本地静态实拍风景图鉴、字体层级；`landscape-rotation.js` 在重新进入或整点自动换景，摄影来源保存在 `static/assets/places/CREDITS.md`，与查询条件独立。
+- `static/landscape.js` / `landscape-provider.js` / `landscape-actions.js`：每小时从 Wikimedia Commons 精选风景分类获取横向照片，按逐图许可过滤；失败显示同源默认竹林，支持本浏览器爱心列表与授权图片下载。摄影来源与许可见 `static/assets/places/CREDITS.md` 及页面逐图链接，与查询条件独立。
 - `static/ui.js`：默认搜特价、工作区导航及键盘交互、展开筛选摘要；视觉规范和资产来源见 `docs/design-docs/UI_REDESIGN.md`。
 - `static/deals.js` / `deal_views.js` / `deals.css`：搜特价、已返回日期价格条、排序和转监控草稿；复用地点与航班详情组件。
+- `static/getaway.css`：搜特价风景首屏、跨区搜索条与机会排版；`deal_views.js` 依据已返回报价生成目的地导航和停留展示，`deals.js` 联动日期/目的地筛选，不引入新的查询或通知路径。
 - `static/views.js`：监控、最新机会和采样记录；所有外部字符串转义。
 - `static/automation.js`：监控设置、提醒中心、已读状态和收件邮箱配置。
 - `static/auth.js`：登录、注册、初始化密码、退出，账号切换时清除旧视图。
@@ -118,13 +119,19 @@ HTTP 层只能使用会话返回的用户 ID，不接受请求体中的用户归
 
 `theme-init.js` 在样式加载前读取主题，`appearance-store.js` 校验并持久化
 `fare-scout:appearance`，`appearance.js` 管理原生 dialog 与即时预览。
-`themes.css` 定义六套语义颜色，字体独立；`appearance.css` 负责侧栏响应式布局。
+`themes.css` 定义六套语义颜色；中文使用本地思源宋体子集，拉丁正文沿用 Manrope、英文展示沿用 IM Fell English。
+`auth.css` 最后加载，与工作区共用颜色和排版；`appearance.css` 负责侧栏响应式布局。
+字体来源、OFL 许可及重建见 `static/assets/CHINESE-FONT.md`，Python 与 Workers 均提供同源 WOFF2。
 偏好仅在当前浏览器保存，不调用账号接口，不改变航班查询或邮件配置。
-`landscape-rotation.js` 独立管理整点/北京时间日界线、进入页面和固定当前四种模式；
-隐藏页面恢复时只补一次更新，修改频率保留当前照片。摄影无持续动画；维港顶部支持可关闭的滚动分层。
+`landscape-provider.js` 集中请求 Wikimedia Commons 公共 CORS API，无需 API key；浏览器直连不携带登录凭据。
+每小时按精选风景分类取最多 12 条元数据，筛选横向 JPEG/PNG、作者、可信图片/来源域名及明确的 CC BY、CC BY-SA 或 CC0 许可。
+成功结果缓存在本浏览器一小时；旧的固定照片及轮换频率偏好不再控制图片。页面打开期间按一小时间隔取图，隐藏页面恢复时补查一次，不在服务器后台下载。
+接口失败、无可用许可、图片解码超时/失败均回退本地岚山竹林，并记录诊断和显示提示；默认图不可用时保留摄影来源入口。
+爱心保存 ID、标题、作者、来源至本浏览器，不固定图片；“我的喜欢”可回到来源页或取消喜欢，不提供背景切换。
+下载当前展示尺寸的 JPEG/PNG，保留可见作者、来源与许可链接，失败提供友好提示；不提供许可未知图片下载。
+Python 与 Workers 的 CSP 仅新增 Commons API 与 upload.wikimedia.org 图片域名，脚本仍为同源。
+原 `landscape-rotation.js` 与 `appearance-store.js` 的旧频率字段仅保留兼容，当前入口不调用轮换器。
 
-外观侧栏通过 `landscapeselect` 请求手选照片，图鉴用 `landscapechange` 同步选中缩略图。
-选图会设为固定当前；轮换器保存照片 ID 并可继续自动轮换。
 `surfaceOpacity` 控制顶部主题底色遮罩（0–100，默认 65），照片和下方信息区不随它变淡；
 上一轮照片 opacity 偏好不再沿用。`motion` 控制顶部维港的楼群滚动，并遵循系统减少动态设置。
 `world-backdrop.js/css` 的图层是 atlas-scene 的内部装饰，受其边界裁切；没有全页背景或全页透明面板。

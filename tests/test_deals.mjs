@@ -16,3 +16,20 @@ test('flight cards escape source data and reject unsafe booking links',()=>{
  assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('href="javascript:'));
  assert.ok(html.includes('/ 2 人往返'));assert.ok(html.includes('data-deal-watch="0"'));
 });
+test('destination navigation uses each returned destination minimum within the selected date',async()=>{
+ const {destinationChoices}=await import('../app/static/deal_views.js');
+ const a=offer('25',1200),b=offer('23',900),c=offer('25',1500);
+ c.outbound.to='BKK';c.destination_name='曼谷';
+ assert.deepEqual(destinationChoices([a,b,c]).map(c=>[c.key,c.price]),[['SIN',900],['BKK',1500]]);
+ assert.deepEqual(destinationChoices([a,b,c],'2026-11-25').map(c=>[c.key,c.price]),[['SIN',1200],['BKK',1500]]);
+ assert.deepEqual(destinationChoices([a,b,c],'2026-11-26'),[]);
+});
+test('trip nights follow destination local dates and missing arrivals never invent a stay',()=>{
+ const o=offer('25',1200);
+ o.outbound.arrivalTime='2026-11-26T00:30:00+07:00';
+ o.inbound.departureTime='2026-11-28T23:00:00+07:00';
+ assert.ok(dealCards([o],[o],1).includes('<strong>2 晚</strong>'));
+ assert.ok(!dealCards([o],[o],1).includes('不用请假'));
+ delete o.outbound.arrivalTime;
+ assert.ok(!dealCards([o],[o],1).includes('目的地停留'));
+});

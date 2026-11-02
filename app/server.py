@@ -24,7 +24,7 @@ class Handler(BaseHTTPRequestHandler):
         if cookie:
             self.send_header("Set-Cookie", cookie)
         self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
+        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://upload.wikimedia.org; connect-src 'self' https://commons.wikimedia.org https://upload.wikimedia.org; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
         self.end_headers()
         self.wfile.write(content)
 
@@ -76,6 +76,7 @@ class Handler(BaseHTTPRequestHandler):
                  "/world-backdrop.js": ("world-backdrop.js", "text/javascript"),
                  "/world-backdrop.css": ("world-backdrop.css", "text/css"),
                  "/landscape.css": ("landscape.css", "text/css"),
+                 "/getaway.css": ("getaway.css", "text/css"),
                  "/landscape-data.js": ("landscape-data.js", "text/javascript"),
                  "/landscape-rotation.js": ("landscape-rotation.js", "text/javascript"),
                  "/appearance.js": ("appearance.js", "text/javascript"),
@@ -93,8 +94,11 @@ class Handler(BaseHTTPRequestHandler):
                  "/daily.css": ("daily.css", "text/css"),
                  "/automation.css": ("automation.css", "text/css"),
                  "/style.css": ("style.css", "text/css")}
+        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("landscape-provider", "landscape-actions")})
         files.update({f"/assets/places/{name}.jpg": (f"assets/places/{name}.jpg", "image/jpeg") for name in ("beach", "forest", "rice", "city", "sculpture", "harbour", "harbour.thumb", "beach.thumb", "forest.thumb", "rice.thumb", "city.thumb", "sculpture.thumb")})
         files.update({f"/assets/manrope-{weight}.ttf": (f"assets/manrope-{weight}.ttf", "font/ttf") for weight in (400, 500, 600, 700)})
+        files["/assets/fare-scout-serif-vf.woff2"] = ("assets/fare-scout-serif-vf.woff2", "font/woff2")
+        files["/assets/fare-scout-sans-vf.woff2"] = ("assets/fare-scout-sans-vf.woff2", "font/woff2")
         files["/assets/airplane-tilt.svg"] = ("assets/airplane-tilt.svg", "image/svg+xml")
         files["/assets/im-fell-english-400.ttf"] = ("assets/im-fell-english-400.ttf", "font/ttf")
         if path not in files:

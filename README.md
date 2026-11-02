@@ -17,6 +17,9 @@ npm run dev
 原 Python 版与 `fare_scout.db` 保留，继续使用原本地密码登录；云端由用户重新创建 Passkey 账号。
 运行方式、Passkey、验证边界及发布步骤见 [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md)。
 
+首页风景已在本地改为每小时通过 Wikimedia Commons API 获取精选风景，失败显示默认竹林；
+图片区支持本浏览器爱心收藏、来源与许可查看、授权图片下载。远程取图成功仍待可达网络验证。
+
 新增本地待验收「每日推荐」：香港/深圳出发，按周末、节假日和请假天数发现机票，
 可设北京时间推送、预算及凌晨往返优先；独立于降价提醒。仅 Workers 版提供，尚未部署，
 邮件仍关闭。日历口径、查询覆盖和本地 Cron 验收见 [docs/DAILY.md](docs/DAILY.md)。

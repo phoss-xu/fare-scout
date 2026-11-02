@@ -1,4 +1,4 @@
-import {photoPath} from './landscape-data.js';
+import {landscapeImage} from './landscape-provider.js';
 import {getAppearance, subscribeAppearance} from './appearance-store.js';
 
 // Small, bounded translations follow native scrolling; no mouse tracking or running loop.
@@ -38,7 +38,7 @@ export function setupWorldBackdrop() {
   subscribeAppearance(sync); sync(preferences);
   return {setPlace(value) {
     place = value.id; backdrop.dataset.place = place;
-    image.src = photoPath(value); image.style.objectPosition = value.position;
+    image.src = landscapeImage(value); image.style.objectPosition = value.position;
     schedule();
   }};
 }

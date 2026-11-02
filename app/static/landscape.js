@@ -1,44 +1,48 @@
 import {setupWorldBackdrop} from './world-backdrop.js';
-import {landscapes, photoPath} from './landscape-data.js';
-import {startLandscapeRotation} from './landscape-rotation.js';
-import {getAppearance, subscribeAppearance} from './appearance-store.js';
+import {defaultLandscape, fetchLandscape, landscapeImage, REFRESH_MS} from './landscape-provider.js';
+import {setupLandscapeActions} from './landscape-actions.js';
 
-/** Static photography with saved rotation, manual selection and a scenic header background. */
 export function setupLandscape(panel) {
   const scene = panel.querySelector('.atlas-scene'), photo = scene.querySelector('.atlas-photo');
-  const error = scene.querySelector('#atlas-image-error');
-  const text = (id, value) => { scene.querySelector(`#${id}`).textContent = value; };
-  const backdrop = setupWorldBackdrop();
-  let version = 0;
-  const items = ['forest','sculpture','beach','city','harbour','rice'].map(id => landscapes.find(place => place.id === id));
-  async function render(place) {
-    const current = ++version;
+  const error = scene.querySelector('#atlas-image-error'), note = scene.querySelector('.atlas-refresh-note');
+  const backdrop = setupWorldBackdrop(), actions = setupLandscapeActions(scene);
+  let attemptedAt = 0, pending = false, timer;
+  function render(place) {
     scene.dataset.place = place.id; backdrop.setPlace(place);
-    document.dispatchEvent(new CustomEvent('landscapechange', {detail:{id:place.id}}));
-    error.hidden = true;
-    photo.src = photoPath(place); photo.style.objectPosition = place.position;
-    text('atlas-title', place.title); text('atlas-name', place.name);
-    text('atlas-location', place.location); text('atlas-description', place.description);
-    text('atlas-kind', place.kind);
-    const credit = scene.querySelector('#atlas-credit'); credit.href = place.source; credit.textContent = `摄影 ${place.author} · 原图 ↗`;
-    try {
-      await photo.decode();
-      if (current !== version) return;
-      const next = items[(items.indexOf(place) + 1) % items.length];
-      const preload = new Image(); preload.src = photoPath(next);
-    } catch (cause) {
-      if (current !== version) return;
-      error.hidden = false;
-      console.warn('Landscape photo could not be loaded', {place:place.id, error:cause.name});
+    photo.src = landscapeImage(place); photo.style.objectPosition = place.position;
+    for (const key of ['title','name','location','description','kind']) scene.querySelector(`#atlas-${key}`).textContent = place[key];
+    const credit = scene.querySelector('#atlas-credit'), license = scene.querySelector('#atlas-license');
+    credit.href = place.source; credit.textContent = `摄影 ${place.author} · 来源 ↗`;
+    license.href = place.licenseUrl; license.textContent = place.license;
+    actions.setPhoto(place);
+  }
+  async function refresh() {
+    clearTimeout(timer);
+    if (pending) return;
+    if (!document.hidden && Date.now() - attemptedAt >= REFRESH_MS) {
+      pending = true; attemptedAt = Date.now();
+      try {
+        const place = await fetchLandscape();
+        const preload = new Image(); preload.src = place.imageUrl;
+        let timeout;
+        try { await Promise.race([preload.decode(), new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Image load timed out')), 12000); })]); }
+        finally { clearTimeout(timeout); }
+        render(place); error.hidden = true; note.textContent = '每小时更新';
+      } catch (cause) {
+        console.warn('Landscape refresh failed', {error:cause.name, message:cause.message});
+        render(defaultLandscape); error.hidden = false;
+        error.textContent = '新风景加载失败，稍后重试。';
+        note.textContent = '默认风景 · 岚山竹林';
+      } finally { pending = false; }
     }
+    timer = setTimeout(refresh, document.hidden ? REFRESH_MS : Math.max(1000, attemptedAt + REFRESH_MS - Date.now()));
   }
-  const rotation = startLandscapeRotation({items, render, mode:getAppearance().landscape});
-  document.addEventListener('landscapeselect', event => rotation.select(event.detail.id));
-  const note = scene.querySelector('.atlas-refresh-note');
-  function syncPreference(value) {
-    rotation.setMode(value.landscape);
-    photo.style.opacity = '1';
-    note.textContent = {hourly:'偶遇一处风景 · 每小时更新',daily:'一日一景 · 每天更新',visit:'偶遇一处风景 · 进入时更新',fixed:'把这处风景，留在眼前'}[value.landscape];
-  }
-  subscribeAppearance(syncPreference); syncPreference(getAppearance());
+  photo.addEventListener('error', () => {
+    if (scene.dataset.place === defaultLandscape.id) { error.hidden = false; error.textContent = '图片未载入，可查看原图。'; return; }
+    render(defaultLandscape); error.hidden = false; error.textContent = '图片加载失败，已用默认风景。';
+    note.textContent = '默认风景 · 岚山竹林';
+  });
+  render(defaultLandscape); refresh();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  window.addEventListener('pageshow', refresh);
 }

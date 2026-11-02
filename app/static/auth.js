@@ -16,20 +16,25 @@ function chooseMode(next) {
   $('#auth-password').minLength = mode === 'login' ? 1 : 6;
   $('#auth-password').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
   $('#auth-password').value = '';
-  $('#auth-title').textContent = setup ? '给你的出行雷达，一把钥匙' : register ? '开启自己的出行雷达' : '欢迎回来，下一程在等你';
-  $('#auth-submit').textContent = setup ? '设置密码并进入 ↗' : register ? '创建账号 ↗' : '登录我的雷达 ↗';
-  $('#auth-hint').textContent = setup ? '为已有账号设置至少 6 个字符的密码，原有监控与价格记录会保留。' : register ? '昵称、出行监控和提醒设置会保存在你的账号下。密码至少 6 个字符。' : '登录后，查看你的监控、价格记录与专属提醒。';
+  $('#auth-mode-label').textContent = setup ? 'YOUR ACCOUNT' : register ? 'YOUR NEXT CHAPTER' : 'WELCOME BACK';
+  $('#auth-title').textContent = setup ? '为账号设置密码' : register ? '创建账号' : '欢迎回来';
+  $('#auth-submit').textContent = setup ? '设置密码' : register ? '创建账号' : '登录';
+  $('#auth-hint').textContent = setup || register ? '密码至少 6 个字符' : '';
   $('#auth-switch').hidden = setup;
-  $('#auth-switch').textContent = register ? '已有账号？去登录' : '第一次来？创建账号';
+  $('#auth-switch').textContent = register ? '返回登录' : '创建账号';
   $('#auth-error').textContent = '';
+  $('.auth-footer').hidden = true;
+  $('#auth-hint').hidden = !$('#auth-hint').textContent;
   if(authMode==='passkey') {
     $('#auth-password').closest('label').hidden=true;
     $('#auth-password').required=false;
     $('#auth-email-field').hidden=!register;
     $('#auth-email').required=register;
-    $('#auth-submit').textContent=register?'创建通行密钥并进入 ↗':'用通行密钥登录 ↗';
-    $('#auth-hint').textContent=register?'使用指纹、面容或设备 PIN 创建通行密钥。邮箱用于机票提醒，暂未验证。':'使用创建账号时保存的通行密钥，可由设备或密码管理器提供。';
-    $('.auth-footer').textContent='请将通行密钥保存在可同步的密码管理器中，或妥善保存安全密钥。目前尚未提供账号找回。';
+    $('#auth-submit').textContent=register?'创建通行密钥':'通行密钥登录';
+    $('#auth-hint').textContent=register?'使用指纹、面容或设备 PIN':'';
+    $('#auth-hint').hidden = !register;
+    $('.auth-footer').hidden = !register;
+    $('.auth-footer').textContent='请妥善保存通行密钥，目前不支持账号找回。';
   }
 }
 
@@ -86,6 +91,6 @@ export async function setupAuth(onChange) {
     $('#auth-switch').disabled=false;
   } catch {
     showSession(null);
-    $('#auth-error').textContent = '暂时连接不上服务，请刷新页面重试。';
+    $('#auth-error').textContent = '服务连接失败，请刷新重试。';
   }
 }

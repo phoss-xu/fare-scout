@@ -4,23 +4,59 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="把空闲时间交给 Fare Scout，发现下一次出发的好价格。">
   <title>Fare Scout · 发现下一站好价格</title><script src="/theme-init.js"></script>
+  <link rel="preload" href="/assets/fare-scout-serif-vf.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/im-fell-english-400.ttf" as="font" type="font/ttf" crossorigin>
   <meta name="robots" content="noindex"><link rel="icon" href="/assets/airplane-tilt.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/automation.css"><link rel="stylesheet" href="/daily.css"><link rel="stylesheet" href="/auth.css"><link rel="stylesheet" href="/flights.css"><link rel="stylesheet" href="/locations.css"><link rel="stylesheet" href="/deals.css"><link rel="stylesheet" href="/holidays.css"><link rel="stylesheet" href="/nights.css"><link rel="stylesheet" href="/location_browser.css"><link rel="stylesheet" href="/departure.css"><link rel="stylesheet" href="/search-panels.css"><link rel="stylesheet" href="/landscape.css"><link rel="stylesheet" href="/themes.css"><link rel="stylesheet" href="/appearance.css"><link rel="stylesheet" href="/world-backdrop.css"><script type="module" src="/app.js"></script>
+  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/automation.css"><link rel="stylesheet" href="/daily.css"><link rel="stylesheet" href="/flights.css"><link rel="stylesheet" href="/locations.css"><link rel="stylesheet" href="/deals.css"><link rel="stylesheet" href="/holidays.css"><link rel="stylesheet" href="/nights.css"><link rel="stylesheet" href="/location_browser.css"><link rel="stylesheet" href="/departure.css"><link rel="stylesheet" href="/search-panels.css"><link rel="stylesheet" href="/landscape.css"><link rel="stylesheet" href="/themes.css"><link rel="stylesheet" href="/appearance.css"><link rel="stylesheet" href="/world-backdrop.css"><link rel="stylesheet" href="/auth.css"><link rel="stylesheet" href="/getaway.css"><script type="module" src="/app.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">跳到主要内容</a>
   <header class="top"><a href="/" class="brand"><span class="brand-icon"><img src="/assets/airplane-tilt.svg" alt="" width="24" height="24"></span>fare scout<span class="brand-dot">.</span></a><div class="header-actions"><div id="account-bar" class="account-bar" hidden><span id="account-name" class="account-name"></span><button id="logout" class="text-btn">退出登录</button><span id="account-error" class="error account-error" role="alert"></span></div><button type="button" id="appearance-open" class="appearance-open" aria-haspopup="dialog" aria-controls="appearance-dialog"><span aria-hidden="true">☷</span><span>外观设置</span></button></div></header>
   <dialog id="appearance-dialog" class="appearance-dialog" aria-labelledby="appearance-title">
-    <div class="appearance-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h2 id="appearance-title">让页面，合你的心意。</h2></div><button type="button" id="appearance-close" class="icon-btn" aria-label="关闭外观设置">×</button></div>
-    <div class="appearance-body"><fieldset><legend>颜色主题</legend><p class="appearance-hint">换一套颜色，保留你喜欢的古书字体。</p><div id="theme-choices" class="theme-choices"></div></fieldset>
-      <fieldset class="landscape-preference"><legend>挑一处风景</legend><p class="appearance-hint">选中后固定这张背景，也可以随时恢复自动换景。</p><div id="landscape-choices" class="landscape-choices"></div></fieldset>
-      <fieldset class="landscape-preference"><legend>让风景透出来</legend><div class="opacity-label"><label for="landscape-opacity">顶部底色不透明度</label><output id="landscape-opacity-value" for="landscape-opacity">65%</output></div><input id="landscape-opacity" type="range" min="0" max="100" step="1" value="65"><p class="appearance-hint">向左，顶部风景更通透；向右，顶部底色更实。下方填写和结果区域保持清晰实底。</p></fieldset>
-      <fieldset class="landscape-preference"><legend>滚动时的风景</legend><label class="motion-option"><input id="landscape-motion" type="checkbox" checked><span>顶部楼群随滚动</span></label><p class="appearance-hint">仅顶部维港楼群以不同速度轻轻移动。关闭后保持静态；也遵循系统的减少动态效果设置。</p></fieldset>
-      <fieldset class="landscape-preference"><legend>风景更新</legend><label for="landscape-frequency">多久遇见一处新风景</label><select id="landscape-frequency"><option value="hourly">每小时</option><option value="daily">每天</option><option value="visit">每次进入</option><option value="fixed">固定当前</option></select><p id="landscape-frequency-hint" class="appearance-hint"></p></fieldset>
+    <div class="appearance-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h2 id="appearance-title">设置与个人偏好</h2></div><button type="button" id="appearance-close" class="icon-btn" aria-label="关闭设置">×</button></div>
+    <div class="appearance-body">
+      <section class="settings-section"><h3>语言与货币</h3><p class="appearance-hint">分别选择界面语言和报价显示货币。</p>
+        <label class="settings-label" for="settings-language">界面语言</label><select id="settings-language"><option value="zh-CN">简体中文</option><option value="en">English</option></select>
+        <label class="settings-label" for="settings-currency">显示货币</label><select id="settings-currency"><option value="HKD">HKD · 港币</option><option value="CNY">CNY · 人民币</option><option value="USD">USD · 美元</option><option value="EUR">EUR · 欧元</option><option value="JPY">JPY · 日元</option><option value="GBP">GBP · 英镑</option><option value="SGD">SGD · 新加坡元</option><option value="AUD">AUD · 澳元</option><option value="CAD">CAD · 加元</option></select>
+        <p id="currency-status" class="appearance-hint" role="status" aria-live="polite"></p><button id="currency-retry" class="text-btn" type="button" hidden>重试获取汇率</button>
+        <p class="appearance-hint">换算仅供参考，结算以核价页为准。预算和降价门槛以表单标注的 HKD 保存。</p>
+        <p class="appearance-hint"><a href="https://frankfurter.dev" target="_blank" rel="noopener noreferrer">汇率来源 · Frankfurter ↗</a></p>
+      </section>
+      <section class="settings-section"><h3>外观</h3><fieldset><legend>颜色主题</legend><div id="theme-choices" class="theme-choices"></div></fieldset>
+      <fieldset class="landscape-preference"><legend>顶部风景</legend><div class="opacity-label"><label for="landscape-opacity">顶部底色不透明度</label><output id="landscape-opacity-value" for="landscape-opacity">65%</output></div><input id="landscape-opacity" type="range" min="0" max="100" step="1" value="65"></fieldset>
+      <label class="toggle settings-motion"><input id="settings-motion" type="checkbox">开启顶部风景滚动效果</label><p class="appearance-hint">同时遵循设备的减少动态效果设置。</p></section>
+      <section class="settings-section" id="settings-account" hidden><h3>出行与通知</h3><p class="appearance-hint">推荐偏好与收件邮箱保存在当前账号。</p>
+        <button type="button" id="settings-daily" class="settings-link" hidden><strong>每日推荐偏好 ↗</strong><span>出发机场、人数、预算、请假天数与推送时间</span></button>
+        <div class="mail-settings settings-mail"><div><p class="eyebrow">邮件通知</p><h3>好价格，寄给你</h3><p id="email-status" class="muted" role="status" aria-live="polite"></p></div><form id="email-form"><label>收件邮箱<input id="email-recipient" name="recipient" type="email" required placeholder="you@example.com"></label><button class="small-btn" type="submit">保存邮箱</button><button id="email-verify" class="small-btn" type="button" hidden>发送验证邮件</button><p id="email-error" class="error" role="alert"></p></form></div>
+        <button type="button" id="settings-watches" class="settings-link"><strong>自动查价与提醒 ↗</strong><span>在各条出行监控中修改频率、降价门槛或暂停</span></button>
+      </section>
     </div><div class="appearance-footer"><button type="button" id="appearance-reset" class="small-btn">恢复默认外观</button><p id="appearance-status" class="appearance-hint" role="status" aria-live="polite"></p></div>
   </dialog>
-  <section id="auth-view" class="auth-view"><div class="auth-intro"><p class="eyebrow">FARE SCOUT / THE DEPARTURE CLUB</p><h1>生活不止<br>眼前这一站<span class="auth-arrow">↗</span></h1><p>把出行计划留在自己的账号里。<br>下次回来，好价格和每一笔记录都还在。</p><ul class="auth-points"><li>独立保存监控与出行条件</li><li>持续采样，积累自己的价格记录</li><li>把合适的机票机会寄到你的邮箱</li></ul></div><div class="auth-card"><p class="eyebrow">欢迎回来</p><h2 id="auth-title">欢迎回来，下一程在等你</h2><p id="auth-hint" class="auth-hint">登录后，查看你的监控、价格记录与专属提醒。</p><form id="auth-form" method="post" action="/api/auth/login"><label id="auth-name-field" hidden>昵称<input id="auth-name" name="name" maxlength="40" autocomplete="nickname" placeholder="怎么称呼你"></label><label id="auth-email-field">登录邮箱<input id="auth-email" name="email" type="email" autocomplete="username" required placeholder="you@example.com"></label><label>密码<input id="auth-password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="输入你的密码"></label><p id="auth-error" class="error" role="alert"></p><button id="auth-submit" class="primary wide" type="submit">登录我的雷达 ↗</button></form><button id="auth-switch" class="text-btn auth-switch">第一次来？创建账号</button><p class="auth-footer">已有账号首次使用时，请通过管理员提供的初始化入口设置密码。新账号有独立配置，登录邮箱暂未进行邮件验证。</p></div></section>
+  <section id="auth-view" class="auth-view" aria-labelledby="auth-intro-title">
+    <div class="auth-intro">
+      <img class="auth-scenery" src="/assets/places/forest.jpg" alt="" fetchpriority="high">
+      <div class="auth-intro-copy"><p class="eyebrow">FARE SCOUT / A FIELD GUIDE TO GETTING AWAY</p>
+        <p class="auth-display" aria-hidden="true">A little<br>further.</p>
+        <h1 id="auth-intro-title">下一程，从这里开始。</h1>
+        <p class="auth-lead">留一点时间给远方。<br>让好价格，带你遇见下一处风景。</p>
+      </div>
+      <div class="auth-scene-caption"><span>01 / 日本 · 京都 · 岚山竹林</span><a href="https://unsplash.com/photos/fSAyrw46Tx4" target="_blank" rel="noopener noreferrer">摄影 Eleonora Albasi ↗</a><a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash License</a></div>
+    </div>
+    <div class="auth-card">
+      <p class="eyebrow" id="auth-mode-label">WELCOME BACK</p>
+      <h2 id="auth-title">欢迎回来</h2>
+      <p id="auth-hint" class="auth-hint"></p>
+      <form id="auth-form" method="post" action="/api/auth/login">
+        <label id="auth-name-field" hidden>怎么称呼你<input id="auth-name" name="name" maxlength="40" autocomplete="nickname" placeholder="你的昵称"></label>
+        <label id="auth-email-field">邮箱<input id="auth-email" name="email" type="email" autocomplete="username" required placeholder="you@example.com"></label>
+        <label>密码<input id="auth-password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="输入你的密码"></label>
+        <p id="auth-error" class="error" role="alert"></p>
+        <button id="auth-submit" class="primary wide" type="submit">登录</button>
+      </form>
+      <button id="auth-switch" class="text-btn auth-switch" type="button">创建账号</button>
+      <p class="auth-footer" hidden></p>
+    </div>
+  </section>
   <div id="workspace" hidden>
   <main id="main-content">
     <nav class="tabs" role="tablist" aria-label="工作台视图"><button role="tab" aria-selected="true" data-tab="deals">搜特价</button><button role="tab" aria-selected="false" data-tab="watches">出行监控 <span id="watch-count">0</span></button><button role="tab" aria-selected="false" data-tab="offers">机票机会 <span id="offer-count">0</span></button><button role="tab" aria-selected="false" data-tab="alerts">提醒中心 <span id="alert-count">0</span></button></nav>
@@ -35,13 +71,15 @@
     <section id="deals-panel" role="tabpanel" aria-label="搜特价">
       <section class="living-scene atlas-scene" aria-label="旅行灵感图鉴">
   <div id="world-backdrop" class="world-backdrop" aria-hidden="true"><img class="world-photo" alt=""><div class="city-composition"><div class="city-sky"></div><img class="city-water" src="/assets/places/harbour.jpg" alt=""><img class="city-buildings city-far" src="/assets/places/harbour.jpg" alt=""><img class="city-buildings city-middle" src="/assets/places/harbour.jpg" alt=""><img class="city-buildings city-tower" src="/assets/places/harbour.jpg" alt=""></div><div class="world-veil"></div></div>
-        <div class="atlas-topline"><span>THE WORLD / FIELD NOTES</span><span class="atlas-refresh-note">偶遇一处风景 · 每小时更新</span></div>
+        <div class="atlas-topline"><span>FARE SCOUT / A LITTLE FURTHER</span><span class="atlas-refresh-note">每小时更新</span></div>
         <div class="atlas-stage">
           <div class="atlas-visual" aria-hidden="true"><img class="atlas-photo" alt="" src="/assets/places/forest.jpg"></div>
-          <div class="atlas-copy"><p class="atlas-location" id="atlas-location">日本 · 京都</p><h1 id="atlas-title">Arashiyama.</h1><h2 id="atlas-name">岚山竹林</h2><p id="atlas-description" class="atlas-description">仰望交错的竹梢，让一整片绿色把天空轻轻合拢。</p><div class="atlas-meta"><span id="atlas-kind">森林 / FOREST</span></div></div>
+          <div class="atlas-copy"><p class="getaway-kicker">世界很大，空闲刚好。</p><h1>下一次，<br>换个地方醒来<span>。</span></h1><p class="getaway-lead">让好价格带你走远一点。</p><a class="getaway-start" href="#deals-form">从一次出发开始 <span aria-hidden="true">↘</span></a></div>
+          <div class="atlas-caption"><span class="caption-index">此刻的风景 / <span id="atlas-kind">森林 / FOREST</span></span><p class="atlas-location" id="atlas-location">日本 · 京都</p><p id="atlas-title">Arashiyama.</p><h2 id="atlas-name">岚山竹林</h2><p id="atlas-description" class="atlas-description">仰望交错的竹梢，让一整片绿色把天空轻轻合拢。</p></div>
         </div>
-        <div class="atlas-bottom"><div class="atlas-tools"><a id="atlas-credit" href="https://unsplash.com/photos/fSAyrw46Tx4" target="_blank" rel="noopener noreferrer">摄影 Eleonora Albasi · 原图 ↗</a><a id="atlas-license" href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash · 摄影来源</a></div></div>
-        <p id="atlas-image-error" role="status" hidden>风景照片暂时未能载入，可点击摄影来源查看原图。</p>
+        <div class="atlas-bottom"><div class="atlas-tools"><a id="atlas-credit" href="https://unsplash.com/photos/fSAyrw46Tx4" target="_blank" rel="noopener noreferrer">摄影 Eleonora Albasi · 原图 ↗</a><a id="atlas-license" href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash · 摄影来源</a></div><div class="atlas-actions"><button type="button" id="atlas-like" aria-pressed="false">♡ 喜欢</button><button type="button" id="atlas-download">↓ 下载图片</button></div></div>
+        <p id="atlas-action-status" class="atlas-action-status" role="status" aria-live="polite"></p><details class="atlas-saved"><summary id="atlas-likes-count">我的喜欢（0）</summary><ul id="atlas-likes"></ul></details>
+        <p id="atlas-image-error" role="status" hidden>图片未载入，可查看原图。</p>
       </section>
       <div class="deal-layout"><form id="deals-form" class="deal-search">
         <div class="search-topline"><span class="search-mode">你的下一程 <span>往返 · 经济舱 · HKD</span></span><span class="search-invitation">不必一次想好所有事</span></div>
@@ -55,8 +93,8 @@
             <div class="two-col"><label>往返总预算 · HKD<input name="budget" type="number" min="0" max="1000000" placeholder="不限"></label><label>每程最长总时长 · 小时<input name="max_duration_hours" type="number" min="0" max="72" step="0.5" placeholder="不限，含中转"></label></div>
             <fieldset><legend>周几出发 · 不选表示不限</legend><div class="deal-weekdays"><label><input name="weekday" type="checkbox" value="0">周一</label><label><input name="weekday" type="checkbox" value="1">周二</label><label><input name="weekday" type="checkbox" value="2">周三</label><label><input name="weekday" type="checkbox" value="3">周四</label><label><input name="weekday" type="checkbox" value="4">周五</label><label><input name="weekday" type="checkbox" value="5">周六</label><label><input name="weekday" type="checkbox" value="6">周日</label></div></fieldset>
           </div></details></div></details><button type="submit" class="primary search-submit">发现下一站 <span aria-hidden="true">↗</span></button></div>
-      </form><div class="discovery-results"><div class="discovery-heading"><h2>发现目的地</h2><button type="button" id="daily-settings-open" class="text-btn" hidden>推荐与推送偏好 ↗</button></div><div class="discovery-views" id="discovery-views" hidden><div class="discovery-view-buttons" role="group" aria-label="查看机票来源"><button type="button" data-discovery-view="daily" aria-pressed="true">每天为你找</button><button type="button" data-discovery-view="search" aria-pressed="false">本次搜索</button></div><p id="daily-preference-summary" class="muted"></p></div><div id="daily-content" hidden><p id="daily-status" class="deal-date-note" role="status"></p><div id="daily-offers" class="deal-results-grid"></div></div><div id="search-content"><div class="deal-results-head"><div><p id="deal-status" role="status" aria-live="polite" class="muted">搜索后，这里会出现适合你的行程。</p></div><label id="deal-sort" hidden>排序<select name="result_sort" form="deals-form" aria-label="特价结果排序"><option value="price">价格从低到高</option><option value="date">出发日期优先</option><option value="duration">飞行时长优先</option></select></label></div>
-        <div id="deal-result-controls" hidden><p class="deal-date-note">已返回日期的较低价 · 未展示日期表示本次没有返回报价，并非无票。</p><div id="deal-days"></div></div>
+      </form><div class="discovery-results"><div class="discovery-heading"><div><p class="eyebrow">THE NEXT CHAPTER</p><h2>把空闲，变成一趟旅行。</h2></div><button type="button" id="daily-settings-open" class="text-btn" hidden>推荐与推送偏好 ↗</button></div><div class="discovery-views" id="discovery-views" hidden><div class="discovery-view-buttons" role="group" aria-label="查看机票来源"><button type="button" data-discovery-view="daily" aria-pressed="true">每天为你找</button><button type="button" data-discovery-view="search" aria-pressed="false">本次搜索</button></div><p id="daily-preference-summary" class="muted"></p></div><div id="daily-content" hidden><p id="daily-status" class="deal-date-note" role="status"></p><div id="daily-offers" class="deal-results-grid"></div></div><div id="search-content"><div class="deal-results-head"><div><p id="deal-status" role="status" aria-live="polite" class="muted">搜索后，这里会出现适合你的行程。</p></div><label id="deal-sort" hidden>排序<select name="result_sort" form="deals-form" aria-label="特价结果排序"><option value="price">价格从低到高</option><option value="date">出发日期优先</option><option value="duration">飞行时长优先</option></select></label></div>
+        <div id="deal-result-controls" hidden><p class="deal-date-note">已返回日期的较低价 · 未展示日期表示本次没有返回报价，并非无票。</p><div id="deal-days"></div><div id="deal-destinations" class="destination-rail" role="group" aria-label="按已返回目的地筛选"></div></div>
         <div id="deal-results" class="deal-results-grid"></div><p class="deal-date-note">来源：Kiwi。每个目的地城市展示本次返回的较低价行程，结果有限；“特价”不代表平台促销或历史最低价，最终价格与行李额度以预订页为准。</p>
       </div></div></div>
     </section>
