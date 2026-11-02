@@ -1,6 +1,6 @@
 # 实拍风景来源与使用记录
 
-全部为摄影作品，已核对原始照片页的地点、作者与 Unsplash License 标注。2026-11-02 下载；项目网页使用同源 JPEG，不在运行时请求 Unsplash。所有图像仅做缩放、JPEG 导出；页面另用 CSS 裁切、渐隐与不透明度调节，维港顶部另以 CSS 遮罩拆分远景与两座高楼随滚动轻缓移动，天空用配色渐变衔接，无生成式补画。早期缩略图 220px，维港缩略图 300×180px，主图最长边 1800px。
+全部为摄影作品，已核对原始照片页的地点、作者与 Unsplash License 标注。2026-11-02 下载；本地备用图片使用同源 JPEG；动态风景使用下方记录的 Unsplash CDN。所有图像仅做缩放、JPEG 导出；页面另用 CSS 裁切、渐隐与不透明度调节，维港顶部另以 CSS 遮罩拆分远景与两座高楼随滚动轻缓移动，天空用配色渐变衔接，无生成式补画。早期缩略图 220px，维港缩略图 300×180px，主图最长边 1800px。
 
 | 文件 | 地点 | 摄影师 | 原始照片页 |
 | --- | --- | --- | --- |
@@ -18,11 +18,19 @@
 
 维港原始 CDN 图片标识：photo-1621609582945-7769dbd34277。2026-11-02 核对原始照片页，按 Unsplash License 下载为同源 JPEG。
 
-## 动态风景（2026-11-02 本地改动）
+## 动态风景（2026-11-02 修复）
 
-运行时通过 Wikimedia Commons Action API 的 imageinfo/extmetadata 读取精选风景及逐图作者、原始文件页、许可名称和许可 URL。
-仅接受 CC BY 2.0/2.5/3.0/4.0、CC BY-SA 同版本或 CC0 1.0；许可或署名缺失、来源不符合规则时不展示。
-显示尺寸为 API 返回的约 1600px 缩略图，下载相同尺寸；网页另作 CSS 裁切与渐隐。
-页面保留作者、来源及许可证链接，二次使用须遵循对应条款；不能将整个图库视为统一许可。
-本地默认图为上表 forest.jpg，继续遵循 Unsplash License。其余本地图片保留为已有资产，不再供侧栏选择或轮换。
-API 文档：https://www.mediawiki.org/wiki/API:Imageinfo 。
+改为项目维护的 Unsplash 精选目录，从 images.unsplash.com 请求显示及下载用的 1600×1000 JPEG（fit=crop，q=85）。网页另作 CSS 裁切与渐隐；不调用 Unsplash API，不抓取运行时网页，不请求 Wikimedia。
+
+目录保留上表维港、拉迪格岛和鱼尾狮三张的作者、原图页及 CDN 标识；新增一张：
+
+| 地点 | 作者 | 原图页 | CDN 标识 |
+| --- | --- | --- | --- |
+| 意大利布莱埃斯湖 Lago di Braies | Luca Bravo | https://unsplash.com/photos/zAjdgNXsMeg | photo-1470770841072-f978cf4d019e |
+
+新增照片已于 2026-11-02 在 Unsplash 原图页核对：Luca Bravo、Lago di Braies、Boathouse on a mountain lake、Free to use under the Unsplash License。
+
+页面保留摄影师、原图页和 https://unsplash.com/license 。下载为显示尺寸，使用须遵守许可；本项目不将图集作为独立图库产品分发。
+本地默认 forest.jpg 继续使用上表记录。现有 Commons 收藏记录保留原始来源链接。
+
+梯田、新宿 CDN 在本次实源检查中超时，未纳入动态目录；本地旧资产保留。

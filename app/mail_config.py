@@ -42,4 +42,4 @@ def configuration(recipient):
 def public_status(recipient):
     config = configuration(recipient)
     return dict(recipient=recipient, configured=config["ready"],
-                message="邮件服务已就绪" if config["ready"] else "发信服务尚未就绪，提醒会先保存在这里。服务管理员配置后即可发送邮件。")
+                message="邮件服务已就绪" if config["ready"] else "邮件未启用 · 网页提醒可用")

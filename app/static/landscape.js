@@ -31,10 +31,6 @@ export function setupLandscape(panel) {
       pending = true; attemptedAt = Date.now();
       try {
         const place = await fetchLandscape();
-        const preload = new Image(); preload.src = place.imageUrl;
-        let timeout;
-        try { await Promise.race([preload.decode(), new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Image load timed out')), 12000); })]); }
-        finally { clearTimeout(timeout); }
         render(place); error.hidden = true; note.textContent = tr("每小时更新","Updated hourly");
       } catch (cause) {
         console.warn('Landscape refresh failed', {error:cause.name, message:cause.message});

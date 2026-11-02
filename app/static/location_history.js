@@ -12,7 +12,7 @@ async function load(current){
   try{
     const result=await request('/api/location-history');
     if(current===generation){data=result;status='';publish();}
-  }catch(error){if(current===generation){status='最近选择暂时无法加载，可以继续搜索地点。';publish();}}
+  }catch(error){if(current===generation){status='最近选择加载失败';publish();}}
 }
 export function rememberLocation(role,row){
   if(!active) return;
@@ -23,6 +23,6 @@ export function rememberLocation(role,row){
     try{
       const result=await request('/api/location-history',{role,id:row.id});
       if(current===generation){data=result;status='';publish();}
-    }catch(error){if(current===generation){status='地点已选好，最近选择暂未保存，请稍后重新点选。';publish();}}
+    }catch(error){if(current===generation){status='最近选择未保存';publish();}}
   });
 }

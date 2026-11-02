@@ -47,7 +47,7 @@ Python 3.9+ 标准库本地服务，SQLite 持久化，原生 HTML/CSS/JavaScrip
 - `store.py`：SQLite 事务、监控配置、逐组合采样记录。
 - `deals.py` / `deal_jobs.py`：模糊日期往返探索、结果二次过滤、每城市较低价；独立双线程队列和账号隔离的短期内存任务，不写入监控样本或触发通知。
 - `static/holidays.json` / `holidays.js` / `holidays.css`：带年份、来源和正式/参考状态的中国内地假期快捷选择；只填写具体日期，不自动创建任务，维护规则见 `docs/HOLIDAYS.md`。
-- `static/landscape.js` / `landscape-provider.js` / `landscape-actions.js`：每小时从 Wikimedia Commons 精选风景分类获取横向照片，按逐图许可过滤；失败显示同源默认竹林，支持本浏览器爱心列表与授权图片下载。摄影来源与许可见 `static/assets/places/CREDITS.md` 及页面逐图链接，与查询条件独立。
+- `static/landscape.js` / `landscape-provider.js` / `landscape-actions.js`：每小时从已核对来源的 Unsplash 精选目录加载 CDN 照片，解码成功后缓存；单张失败自动换图，全部失败显示同源竹林，支持本浏览器收藏与图片下载。摄影来源与许可见 `static/assets/places/CREDITS.md` 及页面逐图链接，与查询条件独立。
 - `static/ui.js`：默认搜特价、工作区导航及键盘交互、展开筛选摘要；视觉规范和资产来源见 `docs/design-docs/UI_REDESIGN.md`。
 - `static/deals.js` / `deal_views.js` / `deals.css`：搜特价、已返回日期价格条、排序和转监控草稿；复用地点与航班详情组件。
 - `static/getaway.css`：搜特价风景首屏、跨区搜索条与机会排版；`deal_views.js` 依据已返回报价生成目的地导航和停留展示，`deals.js` 联动日期/目的地筛选，不引入新的查询或通知路径。
@@ -123,13 +123,12 @@ HTTP 层只能使用会话返回的用户 ID，不接受请求体中的用户归
 `auth.css` 最后加载，与工作区共用颜色和排版；`appearance.css` 负责侧栏响应式布局。
 字体来源、OFL 许可及重建见 `static/assets/CHINESE-FONT.md`，Python 与 Workers 均提供同源 WOFF2。
 偏好仅在当前浏览器保存，不调用账号接口，不改变航班查询或邮件配置。
-`landscape-provider.js` 集中请求 Wikimedia Commons 公共 CORS API，无需 API key；浏览器直连不携带登录凭据。
-每小时按精选风景分类取最多 12 条元数据，筛选横向 JPEG/PNG、作者、可信图片/来源域名及明确的 CC BY、CC BY-SA 或 CC0 许可。
-成功结果缓存在本浏览器一小时；旧的固定照片及轮换频率偏好不再控制图片。页面打开期间按一小时间隔取图，隐藏页面恢复时补查一次，不在服务器后台下载。
-接口失败、无可用许可、图片解码超时/失败均回退本地岚山竹林，并记录诊断和显示提示；默认图不可用时保留摄影来源入口。
-爱心保存 ID、标题、作者、来源至本浏览器，不固定图片；“我的喜欢”可回到来源页或取消喜欢，不提供背景切换。
-下载当前展示尺寸的 JPEG/PNG，保留可见作者、来源与许可链接，失败提供友好提示；不提供许可未知图片下载。
-Python 与 Workers 的 CSP 仅新增 Commons API 与 upload.wikimedia.org 图片域名，脚本仍为同源。
+`landscape-provider.js` 使用项目维护的 Unsplash 精选目录，包含逐图作者、原始照片页、CDN 图片标识和 Unsplash License；不调用需要密钥的 Unsplash API，不在运行时抓取网页。
+远程图片从 `images.unsplash.com` 加载为 1600×1000 JPEG；预加载采用匿名 CORS，实际解码和尺寸检查通过才呈现并写入 v2 浏览器缓存。
+成功图片保留一小时；缓存图片重新加载失败时跳过，最多尝试三张不同图片，各自最多等待 12 秒；全部失败才显示本地岚山竹林，日志保留逐张错误。
+缓存到期避开上一张；页面隐藏恢复时补查，不运行服务器后台下载。旧 Commons v1 缓存不再使用。
+爱心继续保存在本浏览器，已有 Commons 收藏来源仍可访问；下载当前展示尺寸，页面保留作者、原图和许可链接。
+Python 与 Workers 的 CSP 将风景图片及下载域名切换为 `images.unsplash.com`，保留汇率接口，脚本仍为同源。
 原 `landscape-rotation.js` 与 `appearance-store.js` 的旧频率字段仅保留兼容，当前入口不调用轮换器。
 
 `surfaceOpacity` 控制顶部主题底色遮罩（0–100，默认 65），照片和下方信息区不随它变淡；

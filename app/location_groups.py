@@ -33,11 +33,11 @@ def group(identity):
     if not row:
         raise ValueError('没有找到这个地区分类，请重新选择。')
     identity,label,cities,countries=row
-    note='热门为编辑精选，供浏览起点参考，并非实时热度排名。分类不会限制上方的全局搜索。'
+    note=''
     sections=[]
     if identity=='visa-free':
         return {'id':identity,'label':label,'passport':'中国大陆普通护照','checked_at':'2026-11-01',
-                'source':VISA_SOURCE,'note':'以下为中国大陆普通护照短期旅行互免签证精选，并非全部免签目的地。仍须核对停留期限、旅行目的、入境材料及中转要求；其他护照不适用此分类。',
+                'source':VISA_SOURCE,'note':'短期旅行互免签精选；停留期限、入境及中转要求见官方条件。',
                 'sections':[{'label':'普通护照互免签证精选','locations':records('country',VISA_CODES)}]}
     if cities:
         sections.append({'label':'热门城市','locations':records('city',cities)})

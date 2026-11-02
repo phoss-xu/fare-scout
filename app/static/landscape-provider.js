@@ -1,62 +1,68 @@
 import {landscapes, photoPath} from './landscape-data.js';
 
 export const REFRESH_MS = 60 * 60 * 1000;
-const CACHE_KEY = 'fare-scout:landscape:feed:v1';
-const categories = ['landscapes', 'coasts', 'forests', 'mountains', 'islands', 'bodies of water'];
-export const defaultLandscape = {...landscapes.find(place => place.id === 'forest'),
-  imageUrl:'/assets/places/forest.jpg', downloadUrl:'/assets/places/forest.jpg',
-  license:'Unsplash License', licenseUrl:'https://unsplash.com/license', local:true};
-const plain = value => String(value || '').replace(/<[^>]*>/g, '').replace(/&(?:amp|quot|lt|gt|#39);/g,
-  entity => ({'&amp;':'&','&quot;':'"','&lt;':'<','&gt;':'>','&#39;':"'"}[entity])).trim();
-function trusted(value, host) {
-  try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === host && !url.username && !url.password; }
-  catch { return false; }
-}
-export function permittedLicense(value) {
-  return /^https:\/\/creativecommons\.org\/(?:licenses\/by(?:-sa)?\/(?:2\.0|2\.5|3\.0|4\.0)|publicdomain\/zero\/1\.0)\/$/.test(value);
-}
-export function normalizePhoto(page) {
-  const info = page?.imageinfo?.[0], meta = info?.extmetadata;
-  if (!meta || !Number.isFinite(info.width) || !Number.isFinite(info.height) || !['image/jpeg','image/png'].includes(info.mime) || info.width < 1200 || info.width <= info.height) return null;
-  const licenseUrl = String(meta.LicenseUrl?.value || '').replace(/^http:/, 'https:').replace(/\/?$/, '/');
-  const author = plain(meta.Artist?.value).slice(0, 180), license = plain(meta.LicenseShortName?.value);
-  if (!author || !license || !permittedLicense(licenseUrl) || !trusted(info.thumburl, 'upload.wikimedia.org') ||
-    !trusted(info.url, 'upload.wikimedia.org') || !trusted(info.descriptionurl, 'commons.wikimedia.org')) return null;
-  return {id:`commons:${page.pageid}`, title:'Somewhere.', name:plain(meta.ObjectName?.value || page.title?.replace(/^File:/,'')).slice(0,100),
-    location:'世界风景 · Wikimedia Commons', description:plain(meta.ImageDescription?.value).slice(0,220) || '让眼前的风景，成为下一次出发的灵感。',
-    kind:'精选风景 / FIELD NOTES', author, source:info.descriptionurl, imageUrl:info.thumburl, downloadUrl:info.thumburl,
-    license, licenseUrl, position:'50% 50%'};
-}
+const CACHE_KEY = 'fare-scout:landscape:feed:v2';
+const LICENSE = 'https://unsplash.com/license';
+const cdnIds = {
+  harbour:'photo-1621609582945-7769dbd34277',
+  beach:'photo-1725789644182-060da96d5049',
+  sculpture:'photo-1542715539-63b5fd3d3b9f',
+};
+const lake = {id:'braies',category:'nature',label:'山湖',kind:'山湖 / ALPINE LAKE',
+  title:'Lago di Braies.',name:'布莱埃斯湖',location:'意大利 · 南蒂罗尔',
+  description:'山间湖水与岸边船屋。',author:'Luca Bravo',
+  source:'https://unsplash.com/photos/zAjdgNXsMeg',position:'50% 50%'};
+const remote = (place, imageId) => ({...place,
+  imageUrl:`https://images.unsplash.com/${imageId}?fm=jpg&fit=crop&w=1600&h=1000&q=85`,
+  downloadUrl:`https://images.unsplash.com/${imageId}?fm=jpg&fit=crop&w=1600&h=1000&q=85`,
+  license:'Unsplash License',licenseUrl:LICENSE});
+// Editorial catalogue; author, source and CDN identity are recorded in CREDITS.md.
+// This does not call the authenticated Unsplash API or scrape its pages at runtime.
+export const remoteLandscapes = [remote(lake,'photo-1470770841072-f978cf4d019e'),
+  ...landscapes.filter(place=>cdnIds[place.id]).map(place=>remote(place,cdnIds[place.id]))];
+export const defaultLandscape = {...landscapes.find(place=>place.id==='forest'),
+  imageUrl:'/assets/places/forest.jpg',downloadUrl:'/assets/places/forest.jpg',
+  license:'Unsplash License',licenseUrl:LICENSE,local:true};
 export function validPhoto(photo) {
-  return photo && typeof photo.id === 'string' && photo.id.startsWith('commons:') &&
-    trusted(photo.imageUrl, 'upload.wikimedia.org') && trusted(photo.downloadUrl, 'upload.wikimedia.org') &&
-    trusted(photo.source, 'commons.wikimedia.org') && permittedLicense(photo.licenseUrl) &&
-    ['author','license','name','description','title','location','kind'].every(key => typeof photo[key] === 'string');
+  return Boolean(photo && remoteLandscapes.some(item=>item.id===photo.id &&
+    ['imageUrl','downloadUrl','source','licenseUrl','author','name'].every(key=>photo[key]===item[key])));
 }
-/** Public CORS API; no credentials. Cache one licensed photo per browser per hour. */
-export async function fetchLandscape({fetcher = fetch, storage, now = Date.now()} = {}) {
+/** Decode the actual remote image before displaying or caching its metadata. */
+export async function loadLandscapeImage(photo) {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';img.referrerPolicy = 'no-referrer';
+  img.src = photo.imageUrl;
+  let timer;
+  try {
+    await Promise.race([img.decode(),new Promise((_,reject)=>{
+      timer=setTimeout(()=>reject(new Error('Landscape image timed out')),12000);
+    })]);
+    if(img.naturalWidth<1200 || img.naturalWidth<=img.naturalHeight) throw new Error('Invalid landscape dimensions');
+  } finally {clearTimeout(timer);}
+}
+/** Try alternate curated photos on failure; retain one successfully loaded photo per hour. */
+export async function fetchLandscape({loadImage=loadLandscapeImage,storage,now=Date.now(),random=()=>crypto.getRandomValues(new Uint32Array(1))[0]}={}) {
   let previous;
   try {
     storage ??= globalThis.localStorage;
-    previous = JSON.parse(storage.getItem(CACHE_KEY));
-    if (validPhoto(previous?.photo) && now >= previous.at && now - previous.at < REFRESH_MS) return previous.photo;
-  } catch (error) { console.info('Landscape cache unavailable', error.name); }
-  const hour = Math.floor(now / REFRESH_MS);
-  const params = new URLSearchParams({action:'query', format:'json', formatversion:'2', origin:'*',
-    generator:'categorymembers', gcmtitle:`Category:Featured pictures of ${categories[hour % categories.length]}`,
-    gcmtype:'file', gcmlimit:'12', prop:'imageinfo', iiprop:'url|extmetadata|size|mime', iiurlwidth:'1600',
-    iiextmetadatafilter:'Artist|LicenseShortName|LicenseUrl|ObjectName|ImageDescription'});
-  const response = await fetcher(`https://commons.wikimedia.org/w/api.php?${params}`, {credentials:'omit', signal:AbortSignal.timeout(10000)});
-  if (!response.ok) throw new Error(`Landscape service HTTP ${response.status}`);
-  const data = await response.json();
-  if (data.error) throw new Error(`Landscape service: ${data.error.code}`);
-  const candidates = (data.query?.pages || []).map(normalizePhoto).filter(Boolean);
-  const fresh = candidates.filter(photo => photo.id !== previous?.photo?.id);
-  const pool = fresh.length ? fresh : candidates;
-  if (!pool.length) throw new Error('No licensed landscape returned');
-  const photo = pool[crypto.getRandomValues(new Uint32Array(1))[0] % pool.length];
-  try { storage.setItem(CACHE_KEY, JSON.stringify({at:now, photo})); }
-  catch (error) { console.info('Landscape cache could not be saved', error.name); }
-  return photo;
+    previous=JSON.parse(storage.getItem(CACHE_KEY));
+  } catch(error) {console.info('Landscape cache unavailable',error.name);}
+  const failures=[];
+  if(validPhoto(previous?.photo) && now>=previous.at && now-previous.at<REFRESH_MS) {
+    try {await loadImage(previous.photo);return previous.photo;}
+    catch(error) {failures.push(error);}
+  }
+  const candidates=remoteLandscapes.filter(photo=>photo.id!==previous?.photo?.id);
+  const offset=random()%candidates.length;
+  for(let i=0;i<Math.min(3,candidates.length);i++) {
+    const photo=candidates[(offset+i)%candidates.length];
+    try {
+      await loadImage(photo);
+      try {storage.setItem(CACHE_KEY,JSON.stringify({at:now,photo}));}
+      catch(error) {console.info('Landscape cache could not be saved',error.name);}
+      return photo;
+    } catch(error) {failures.push(error);console.warn(`Landscape candidate failed: ${photo.id} · ${error.name}: ${error.message}`);}
+  }
+  throw new AggregateError(failures,'Unsplash landscape images unavailable');
 }
 export const landscapeImage = place => place.imageUrl || photoPath(place);

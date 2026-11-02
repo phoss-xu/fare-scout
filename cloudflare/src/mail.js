@@ -3,7 +3,7 @@ import {today} from './domain.js';
 export function ready(env) { return env.MAIL_ENABLED==='true' && !!env.RESEND_API_KEY && typeof env.MAIL_FROM==='string' && /^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$/.test(env.MAIL_FROM); }
 export function mailStatus(env,recipient) {
   const configured=ready(env);
-  return {recipient,configured,message:configured?'邮件服务已配置，投递结果以提醒状态为准。':'发信服务尚未启用，提醒会先保存在这里。'};
+  return {recipient,configured,message:configured?'邮件已启用':'邮件未启用 · 网页提醒可用'};
 }
 // External delivery is confined to this adapter; local acceptance leaves MAIL_ENABLED=false.
 export async function sendEmail(env,alert,recipient) {
