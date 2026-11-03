@@ -21,25 +21,27 @@ export function setupLandscapeActions(scene) {
   document.addEventListener('languagechange',()=>sync());
   function sync() {
     const likes = readLikes(), liked = likes.some(item => item.id === photo?.id);
-    heart.setAttribute('aria-pressed', String(liked)); heart.textContent = liked ? tr("♥ 已喜欢","♥ Liked") : tr("♡ 喜欢","♡ Like");
+    heart.setAttribute('aria-pressed', String(liked));
+    const label = liked ? tr('取消喜欢','Unlike') : tr('喜欢','Like');
+    heart.setAttribute('aria-label', label); heart.title = label;
     scene.querySelector('#atlas-likes-count').textContent = tr(`我的喜欢（${likes.length}）`,`My favourites (${likes.length})`);
     list.replaceChildren();
-    if (!likes.length) list.textContent = tr("暂无喜欢 · 仅保存在此浏览器","No favourites yet · Saved in this browser");
+    if (!likes.length) list.textContent = tr("暂无喜欢","No favourites yet");
     for (const item of [...likes].reverse()) {
       if (!safeSource(item.source)) continue;
       const row = document.createElement('li'), link = document.createElement('a'), remove = document.createElement('button');
       link.href = item.source; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = `${item.name} · ${item.author}`;
       remove.type = 'button'; remove.textContent = tr("取消喜欢","Unlike"); remove.setAttribute('aria-label', `${tr("取消喜欢：","Unlike: ")}${item.name}`);
       remove.addEventListener('click', () => {
-        try { toggleLike(item); sync(); } catch (error) { console.warn('Landscape like failed', error.name); status.textContent = tr("浏览器暂时无法保存喜欢，请重试。","Unable to save favourites in this browser. Try again."); }
+        try { toggleLike(item); sync(); } catch (error) { console.warn('Landscape like failed', error.name); status.textContent = tr("保存失败，请重试","Could not save · Retry"); }
       });
       row.append(link, remove); list.append(row);
     }
   }
   heart.addEventListener('click', () => {
     if (!photo) return;
-    try { status.textContent = toggleLike(photo) ? tr("已喜欢","Added to favourites") : tr("已取消喜欢。","Removed from favourites."); sync(); }
-    catch (error) { console.warn('Landscape like failed', error.name); status.textContent = tr("浏览器暂时无法保存喜欢，请重试。","Unable to save favourites in this browser. Try again."); }
+    try { status.textContent = toggleLike(photo) ? tr("已喜欢","Added to favourites") : tr("已取消喜欢","Removed from favourites."); sync(); }
+    catch (error) { console.warn('Landscape like failed', error.name); status.textContent = tr("保存失败，请重试","Could not save · Retry"); }
   });
   // Download the licensed displayed size. The original and its terms remain linked beside it.
   download.addEventListener('click', async () => {

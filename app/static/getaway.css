@@ -27,7 +27,7 @@
 #deals-panel .atlas-actions button{background:#152a2550;border-color:#f7f4e966;color:var(--scene-ink);border-radius:2px;min-height:40px;font-size:10px}
 #deals-panel .atlas-actions button[aria-pressed=true]{color:var(--scene-accent);border-color:var(--scene-accent)}
 #deals-panel .atlas-action-status,#deals-panel .atlas-saved,#deals-panel #atlas-image-error{color:var(--scene-muted);font-size:10px}
-#deals-panel .atlas-saved{position:absolute;right:48px;bottom:74px;margin:0}
+#deals-panel .atlas-saved{position:relative;right:auto;bottom:auto;margin-top:8px}
 #deals-panel .atlas-saved[open]{position:relative;right:auto;bottom:auto}
 #deals-panel .atlas-saved a{color:var(--scene-ink)}
 #deals-panel .atlas-scene :is(a,button,summary):focus-visible{outline-color:var(--scene-accent)}
@@ -180,3 +180,10 @@
 .atlas-refresh:disabled{opacity:.7;cursor:wait}
 @keyframes scenery-spin{to{transform:rotate(360deg)}}
 @media(max-width:760px){.atlas-refresh-tools{gap:8px}#deals-panel .atlas-topline{align-items:center}.atlas-refresh-tools .atlas-refresh-note{max-width:70px}}
+
+/* Compact scenery actions retain full touch targets. */
+#deals-panel .atlas-actions button{display:inline-grid;place-items:center;width:44px;height:44px;padding:0;border-radius:50%}
+.atlas-actions svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#atlas-like[aria-pressed=true] svg{fill:currentColor}
+
+#deal-date-hint:empty,.preset-status:empty{display:none}

@@ -53,7 +53,7 @@ export function dealCards(offers, all, adults, recommendation=false) {
 }
 export function discoveryPlaceholder(kind='initial') {
   if(kind==='loading') return Array.from({length:4},()=>'<div class="skeleton-card" aria-hidden="true"><span class="skeleton-line"></span><span class="skeleton-line"></span><span class="skeleton-line"></span><span class="skeleton-line"></span></div>').join('');
-  const copy={initial:[tr("搜一搜，下一站去哪","Find your next getaway"),''],empty:[tr("本次无匹配行程","No matching itinerary in these results"),tr("可放宽日期或预算；无匹配不代表无票。","Try wider dates or budget. No match does not mean no flights.")],error:[tr("搜索失败","Search failed"),tr("请稍后重试。","Please try again later.")]}[kind];
+  const copy={initial:[tr("搜一搜，下一站去哪","Find your next getaway"),''],empty:[tr("本次无匹配行程","No matching itinerary in these results"),tr("无匹配不代表无票","No match does not mean no flights")],error:[tr("搜索失败","Search failed"),tr("请稍后重试。","Please try again later.")]}[kind];
   return `<div class="discovery-empty"><div><h3>${copy[0]}</h3>${copy[1]?`<p>${copy[1]}</p>`:''}</div><div class="empty-route" aria-hidden="true"><span>出发</span><img src="/assets/airplane-tilt.svg" alt=""><span>远方</span></div></div>`;
 }
 export function resultSummary(result) {

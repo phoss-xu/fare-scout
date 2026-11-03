@@ -25,7 +25,7 @@ export function setupSettings() {
     $('#settings-currency').value=p.currency;
     $('#settings-motion').checked=getAppearance().motion;
     $('#currency-status').textContent=p.currency==='HKD'?tr('港币原价','Original HKD quotes'):
-      exchange.rate?tr(`参考汇率 ${exchange.date} · ${p.currency}`,`Reference rate dated ${exchange.date}; displaying ${p.currency}.`):
+      exchange.rate?tr(`参考汇率 ${exchange.date} · ${p.currency}`,`Rate ${exchange.date} · ${p.currency}`):
       exchange.status==='loading'?tr('汇率加载中 · 暂用港币原价','Loading rates · Showing HKD'):
       tr('汇率不可用 · 显示港币原价','Rates unavailable · Showing HKD');
     $('#currency-retry').hidden=p.currency==='HKD' || exchange.status==='loading' || Boolean(exchange.rate);

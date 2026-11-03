@@ -47,7 +47,7 @@ export function setupLandscape(panel) {
   refreshButton.addEventListener('click',()=>refresh({force:true}));
   photo.addEventListener('error', () => {
     if (scene.dataset.place === defaultLandscape.id) { error.hidden = false; error.textContent = tr("图片未载入，可查看原图。","Image unavailable. View the original photo."); return; }
-    render(defaultLandscape); error.hidden = false; error.textContent = tr("图片加载失败，已用默认风景。","Image unavailable. Showing the default scenery.");
+    render(defaultLandscape); error.hidden = false; error.textContent = tr("图片加载失败 · 已用备用图","Image unavailable · Fallback shown");
     note.textContent = tr("默认风景 · 岚山竹林","Default scenery · Arashiyama Bamboo Grove");
   });
   document.addEventListener('languagechange',()=>{

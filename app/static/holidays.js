@@ -68,6 +68,6 @@ export function setupHolidays(root, form, kind) {
       const data=await calendarRequest;
       if(current!==version) return;
       calendar=data;year=yearFor(calendar,today());render();
-    } catch(error) { if(current===version) root.textContent=tr("暂时无法加载假期，请先手动选择日期。","Holidays are unavailable. Choose dates manually."); }
+    } catch(error) { if(current===version) root.textContent=tr("假期加载失败，请手动选日期","Holidays unavailable · Choose dates manually"); }
   }, clear:clearSelection};
 }

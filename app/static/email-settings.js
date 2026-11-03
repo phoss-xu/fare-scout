@@ -25,7 +25,7 @@ export function setupEmail(getState,refresh,toast) {
       const result=await request(path,body);
       if(!sameUser(userId)) return;
       if(path==='/api/email') {delete $('#email-recipient').dataset.dirty;toast(tr("邮箱已保存","Email saved"));}
-      else if(result.email) toast(result.email.verification==='confirm'?tr("请打开接收确认邮件中的链接。","Open the consent confirmation link in your email."):tr("验证状态已更新","Verification status updated"));
+      else if(result.email) toast(result.email.verification==='confirm'?tr("请在邮件中确认接收","Confirm consent in your email"):tr("验证状态已更新","Verification status updated"));
       else toast(result.message);
       await refresh();
     } catch(error) {if(sameUser(userId)) $('#email-error').textContent=error.message;}

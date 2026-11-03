@@ -13,7 +13,7 @@ export function setupJourney(form, panel) {
     const fixed=form.elements.date_mode.value==='fixed';
     panel.querySelector('#deal-start-label').textContent=fixed?tr('出发日期','Departure date'):tr('最早出发','Earliest departure');
     panel.querySelector('#deal-end-label').textContent=fixed?tr('返程起飞日期','Return departure date'):tr('最晚出发','Latest departure');
-    panel.querySelector('#deal-date-hint').textContent=fixed?tr('两程均按当地起飞日期查询。','Both dates refer to local departures.'):tr('在出发范围内，按勾选的晚数找往返机票。','Find returns for the selected stay lengths.');
+    panel.querySelector('#deal-date-hint').textContent=fixed?tr('当地起飞日期','Local departure dates'):'';
     form.elements.end.min=start || form.elements.start.min;
     form.querySelector('.search-nights').hidden=fixed;
     form.querySelector('.deal-presets').hidden=fixed;

@@ -20,7 +20,7 @@ function chooseMode(next, preserve=false) {
   $('#auth-mode-label').textContent = setup ? 'YOUR ACCOUNT' : register ? 'YOUR NEXT CHAPTER' : 'WELCOME BACK';
   $('#auth-title').textContent = setup ? tr("为账号设置密码","Set your account password") : register ? tr("创建账号","Create account") : tr("欢迎回来","Welcome back");
   $('#auth-submit').textContent = setup ? tr("设置密码","Set password") : register ? tr("创建账号","Create account") : tr("登录","Sign in");
-  $('#auth-hint').textContent = setup || register ? tr("密码至少 6 个字符","Password must have at least 6 characters") : '';
+  $('#auth-hint').textContent = setup || register ? tr("至少 6 位密码","Password: 6+ characters") : '';
   $('#auth-switch').hidden = setup;
   $('#auth-switch').textContent = register ? tr("返回登录","Back to sign in") : tr("创建账号","Create account");
   if(!preserve) $('#auth-error').textContent = '';
@@ -35,7 +35,7 @@ function chooseMode(next, preserve=false) {
     $('#auth-hint').textContent=register?tr("使用指纹、面容或设备 PIN","Use your fingerprint, face or device PIN"):'';
     $('#auth-hint').hidden = !register;
     $('.auth-footer').hidden = !register;
-    $('.auth-footer').textContent=tr("请妥善保存通行密钥，目前不支持账号找回。","Keep your passkey safe. Account recovery is not available yet.");
+    $('.auth-footer').textContent=tr("请保存通行密钥 · 暂不支持找回","Keep your passkey · No account recovery yet");
   }
 }
 

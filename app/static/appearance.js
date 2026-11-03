@@ -37,7 +37,7 @@ export function setupAppearance() {
     opacity.value = value.surfaceOpacity;
     dialog.querySelector('#landscape-opacity-value').value = `${value.surfaceOpacity}%`;
     opacity.setAttribute('aria-valuetext', `${value.surfaceOpacity}%`);
-    status.textContent = saved && preferencesSaved() ? tr('语言、货币与外观保存在此浏览器。','Language, currency and appearance are saved in this browser.') : tr('偏好未能保存，当前页面仍可使用。','Preferences could not be saved. They still apply to this page.');
+    status.textContent = saved && preferencesSaved() ? '' : tr('偏好未保存，仅本页生效','Not saved · Applied to this page');
   }
   subscribePreferences(()=>render(getAppearance()));
   subscribeAppearance(render); render(getAppearance());
@@ -56,7 +56,7 @@ export function setupAppearance() {
     }
   });
   dialog.querySelector('#appearance-reset').addEventListener('click', () => {
-    if (setAppearance(DEFAULT_APPEARANCE)) status.textContent = tr('已恢复默认外观，语言与货币选择保留。','Appearance reset. Language and currency preferences kept.');
+    if (setAppearance(DEFAULT_APPEARANCE)) status.textContent = tr('外观已重置','Appearance reset');
   });
   dialog.addEventListener('close', () => { document.body.style.overflow = previousOverflow || ''; opener.focus(); });
 }
