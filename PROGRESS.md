@@ -1,12 +1,16 @@
 # 当前进展
 
-## 2026-11-03 · 全部改动提交与正式发布准备
+## 2026-11-03 · 全部改动提交、推送与正式发布完成
 
 - 用户明确要求 commit、push 全部改动后部署；包含此前已上线但尚未提交的 Cloudflare 原生邮件、目标邮箱验证/接收确认，以及新的设置布局、背景换图和固定返程/离散晚数搜索。
-- `0a6d909` 已推送 origin/main；剩余改动将整体提交推送。`.env`、`.dev.vars`、`.env.email-secrets` 保持 Git 忽略，未读取或提交 Secret 值。
+- `0a6d909` 已推送 origin/main；剩余改动已整体提交为 `85ad7c1` 并推送 origin/main。`.env`、`.dev.vars`、`.env.email-secrets` 保持 Git 忽略，未读取或提交 Secret 值。
 - 独立发布目录 `/private/tmp/fare-ui-release-rmtrkfep` 的前端 38、Workers 37 全通过；Python 完整回归 67 项通过，共 142 项，dry-run 成功。发布目录的运行时代码、静态资源、迁移与测试逐文件同当前工作区一致。
 - 发布前线上版本 `940b46ab-250e-4ab6-bcc5-93c0c50d6fea`；沿用同一 D1、Passkey Origin、EMAIL 绑定、邮件开启与查价开启配置、原有 Secret，不应用迁移、不初始化数据。远端迁移检查无待应用项。
-- 发布前只读聚合：用户 3、Passkey 3、会话 5、监控/采样/提醒 0、目标邮箱记录 1、接收确认记录 1；SELECT 报告 rows_written=0。正式发布结果后续补录。
+- 发布前只读聚合：用户 3、Passkey 3、会话 5、监控/采样/提醒 0、目标邮箱记录 1、接收确认记录 1；SELECT 报告 rows_written=0。发布后八项计数完全相同，未写入业务记录。
+- 从完整提交 `85ad7c1` 的独立目录发布成功，正式版本 `9fb855a9-5032-41ff-b50b-8005ab53153b`，https://fare-scout.phosssuki.workers.dev 。12 个静态资源更新，EMAIL、CF_EMAIL_API_TOKEN、MAIL_ENABLED=true、QUERY_ENABLED=true、同一 D1 与每分钟 Cron 复核保留；未执行远端迁移或数据初始化。
+- 发布后 15 个公开资源 HTTP 200 且 SHA-256 与发布目录一致；未登录会话为 Passkey、state 返回 401。Python urllib 初次资源核验收到 403，改用已确认可读取公开资源的 curl 完成全部比对。记录 `/tmp/fare-ui-release-verification.json`。
+- 实际浏览器复用用户已有线上会话，验证五个设置分组收起/展开、邮件仍为已验证、点击圆形按钮由拉迪格岛换成布莱埃斯湖；390px 手机设置无横向溢出，控制台无 error。未修改账号偏好、发起机票搜索或点击发送验证邮件，未重做 Passkey 设备认证和真实投递验收。
+- 线上截图 `/tmp/fare-live-release.jpg`、`/tmp/fare-live-settings-desktop.jpg`、`/tmp/fare-live-settings-mobile.jpg`；发布记录随后单独提交推送，运行时代码不再变化。
 
 ## 2026-11-02 · 邮件功能正式上线，真实确认邮件收件成功
 
