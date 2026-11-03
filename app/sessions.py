@@ -9,6 +9,7 @@ from . import store
 from .accounts import public_user
 
 LIFETIME = 7 * 24 * 3600
+REMEMBERED_LIFETIME = 30 * 24 * 3600
 COOKIE = "fare_session"
 
 
@@ -20,11 +21,12 @@ def token_from_cookie(header):
         return ""
 
 
-def issue(user_id, old_token=""):
+def issue(user_id, old_token="", remember=False):
     token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
+    lifetime = REMEMBERED_LIFETIME if remember else LIFETIME
     with store.connect() as db:
         db.execute("DELETE FROM sessions WHERE expires_at<=? OR token_hash=?", (time.time(), digest(old_token)))
-        db.execute("INSERT INTO sessions VALUES(?,?,?,?)", (digest(token), user_id, csrf, time.time() + LIFETIME))
+        db.execute("INSERT INTO sessions VALUES(?,?,?,?)", (digest(token), user_id, csrf, time.time() + lifetime))
     return token, csrf
 
 
@@ -50,6 +52,7 @@ def revoke(token):
         db.execute("DELETE FROM sessions WHERE token_hash=?", (digest(token),))
 
 
-def cookie_header(token, secure=False):
-    value = f"{COOKIE}={token}; Path=/; Max-Age={LIFETIME if token else 0}; HttpOnly; SameSite=Lax"
+def cookie_header(token, secure=False, remember=False):
+    lifetime = REMEMBERED_LIFETIME if remember else LIFETIME
+    value = f"{COOKIE}={token}; Path=/; Max-Age={lifetime if token else 0}; HttpOnly; SameSite=Lax"
     return value + ("; Secure" if secure else "")

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>运行管理 · Fare Scout</title><link rel="stylesheet" href="/admin.css">
+  <script type="module" src="/admin.js"></script>
+</head>
+<body>
+  <header><a class="brand" href="/">Fare Scout <span>运营工作台</span></a><span class="readonly">只读访问</span></header>
+  <main>
+    <div class="intro"><div><p class="eyebrow">OPERATIONS / 运行管理</p><h1>每一次出发，背后的运行。</h1><p>查看用户、查价与投递记录，追踪服务的最近状态。</p></div><button id="refresh" type="button">刷新当前页 ↻</button></div>
+    <p id="notice" role="status" aria-live="polite">正在读取运行记录…</p>
+    <nav aria-label="管理页面"><button data-view="overview" aria-pressed="true">运行概览</button><button data-view="users" aria-pressed="false">用户</button><button data-view="tasks" aria-pressed="false">查价任务</button><button data-view="mail" aria-pressed="false">邮件状态</button></nav>
+    <section id="filters" hidden aria-label="记录筛选"><label>用户 ID<input id="user" type="number" min="1" step="1" placeholder="全部用户"></label><label>状态<select id="status"><option value="">全部状态</option></select></label><button id="apply" type="button">应用筛选</button></section>
+    <section id="content" aria-label="运行数据" aria-busy="true"></section>
+    <div class="pagination" id="pagination" hidden><button id="previous" type="button">上一页</button><span id="page-number"></span><button id="next" type="button">下一页</button></div>
+    <section id="detail" hidden aria-label="任务详情"></section>
+    <footer>时间统一为北京时间。后台查询不会启动任务或发送邮件。数据为空或心跳缺失时，无法据此判断服务正常。</footer>
+  </main>
+</body></html>

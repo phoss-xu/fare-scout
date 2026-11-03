@@ -3,6 +3,7 @@ import {sha256} from '@noble/hashes/sha2.js';
 import {bytesToHex,hexToBytes} from '@noble/hashes/utils.js';
 import {first,run,batch,seconds,now,email,ensure,ApiError} from './db.js';
 const LIFETIME = 7*86400;
+const REMEMBERED_LIFETIME = 30*86400;
 export const token = () => bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
 export const digest = value => bytesToHex(sha256(new TextEncoder().encode(value)));
 export const publicUser = r => ({id:r.id,email:r.email,name:r.name,notification_email:r.notification_email});
@@ -29,7 +30,7 @@ export function verifyPassword(value,stored) {
   return equal(hashPassword(value,salt).split('$')[3],expected) && stored!=null;
 }
 export const cookieToken = request => /(?:^|;\s*)fare_session=([^;]*)/.exec(request.headers.get('Cookie')||'')?.[1] || '';
-export const cookie = (request,value) => `fare_session=${value}; Path=/; Max-Age=${value?LIFETIME:0}; HttpOnly; SameSite=Lax${new URL(request.url).protocol==='https:'?'; Secure':''}`;
+export const cookie = (request,value,lifetime=LIFETIME) => `fare_session=${value}; Path=/; Max-Age=${value?lifetime:0}; HttpOnly; SameSite=Lax${new URL(request.url).protocol==='https:'?'; Secure':''}`;
 export async function current(request,db) {
   const value=cookieToken(request);
   if(!value || value.length>128) return null;
@@ -82,12 +83,13 @@ export async function authenticate(request,env,path,data) {
     await run(db,'DELETE FROM setup_tokens WHERE user_id=?',[row.id]);
     user=publicUser(row);
   } else throw new ApiError('操作不存在。',404);
-  return issueSession(request,db,user);
+  return issueSession(request,db,user,data.remember===true);
 }
-export async function issueSession(request,db,user) {
+export async function issueSession(request,db,user,remember=false) {
   const old=cookieToken(request);
   const value=token(),csrf=token();
+  const lifetime=remember?REMEMBERED_LIFETIME:LIFETIME;
   await batch(db,[['DELETE FROM sessions WHERE expires_at<=? OR token_hash=?',[seconds(),digest(old)]],
-    ['INSERT INTO sessions VALUES(?,?,?,?)',[digest(value),user.id,csrf,seconds()+LIFETIME]]]);
-  return {body:{user,csrf_token:csrf},cookie:cookie(request,value)};
+    ['INSERT INTO sessions VALUES(?,?,?,?)',[digest(value),user.id,csrf,seconds()+lifetime]]]);
+  return {body:{user,csrf_token:csrf},cookie:cookie(request,value,lifetime)};
 }

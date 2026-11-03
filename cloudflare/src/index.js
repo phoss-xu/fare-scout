@@ -4,6 +4,8 @@ import {cleanSourceCache} from './source-cache.js';
 import * as trips from './trips.js';
 import * as searchPresets from './search-presets.js';
 import {ApiError,ensure,report} from './db.js';
+import {adminApi,requireAdmin} from './admin.js';
+import {trackScheduled} from './runtime-health.js';
 import {json,data,asset} from './http.js';
 import {current,requireUser,authenticate} from './auth.js';
 import {passkeyAuth} from './passkeys.js';
@@ -25,6 +27,7 @@ function continueWork(ctx,env,runId=null) {
 }
 async function api(request,env,ctx) {
   const url=new URL(request.url),path=url.pathname,db=env.DB;
+  if(path==='/api/admin' || path.startsWith('/api/admin/')) return adminApi(request,env);
   if(request.method==='GET') {
     if(path==='/api/auth/session') return json({...await current(request,db)||{user:null},auth_mode:env.AUTH_MODE||'password'});
     if(path.startsWith('/api/shared-trips/')) return json(await trips.shared(db,path.slice('/api/shared-trips/'.length)));
@@ -92,6 +95,15 @@ export default {
   async fetch(request,env,ctx) {
     try {
       const path=new URL(request.url).pathname;
+      if(path==='/admin' || path==='/admin/' || path==='/admin.html') {
+        await requireAdmin(request,env);
+        ensure(request.method==='GET','管理后台仅支持只读查询。',405);
+        // Assets canonicalizes admin.html to /admin; fetch the canonical path to avoid redirects.
+        const url=new URL(request.url);url.pathname='/admin';
+        const response=await asset(new Request(url,request),env);
+        const headers=new Headers(response.headers);headers.set('Cache-Control','no-store');
+        return new Response(response.body,{status:response.status,headers});
+      }
       return path.startsWith('/api/')?await api(request,env,ctx):await asset(request,env);
     }
     catch(error) {
@@ -101,13 +113,15 @@ export default {
     }
   },
   async scheduled(controller,env,ctx) {
-    await cleanSourceCache(env.DB);
-    await schedule(env.DB,env.QUERY_ENABLED==='true');
-    await dailyTick(env);
-    // Bounded network work, with pending and retry tasks left durably for the next trigger.
-    await drain(env,2);
-    await dailyTick(env);
-    await deliver(env);
-    await deliverDaily(env);
+    return trackScheduled(env,async()=>{
+      await cleanSourceCache(env.DB);
+      await schedule(env.DB,env.QUERY_ENABLED==='true');
+      await dailyTick(env);
+      // Bounded network work, with pending and retry tasks left durably for the next trigger.
+      await drain(env,2);
+      await dailyTick(env);
+      await deliver(env);
+      await deliverDaily(env);
+    });
   }
 };

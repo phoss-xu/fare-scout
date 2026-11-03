@@ -18,6 +18,10 @@ test('legacy password hashes, session rotation, CSRF, cross-origin and account i
   assert.equal((await request(h,'/api/auth/login',{email:'absent@example.test',password:'wrong'})).status,401);
   const secure=await h.mf.dispatchFetch('https://localhost/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'legacy@example.test',password:'旧账号密码'})});
   assert.equal(secure.status,200);assert.match(secure.headers.get('Set-Cookie'),/; Secure/);assert.match(secure.headers.get('Set-Cookie'),/HttpOnly/);
+  const remembered=await request(h,'/api/auth/login',{email:'legacy@example.test',password:'旧账号密码',remember:true});
+  assert.equal(remembered.status,200);assert.match(remembered.response.headers.get('Set-Cookie'),/Max-Age=2592000/);
+  const ordinary=await request(h,'/api/auth/login',{email:'legacy@example.test',password:'旧账号密码',remember:false});
+  assert.equal(ordinary.status,200);assert.match(ordinary.response.headers.get('Set-Cookie'),/Max-Age=604800/);
   assert.equal((await request(h,'/api/auth/logout',{},a)).status,200);
   assert.equal((await request(h,'/api/state',undefined,a)).status,401);
 });

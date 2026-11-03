@@ -9,7 +9,7 @@ export async function passkeySession(mode,form) {
  try {
   const {options}=await request(`/api/auth/passkey/${kind}/options`,registering?{email:data.email,name:data.name}:{});
   const response=registering?await startRegistration({optionsJSON:options}):await startAuthentication({optionsJSON:options});
-  return await request(`/api/auth/passkey/${kind}/verify`,{response});
+  return await request(`/api/auth/passkey/${kind}/verify`,{response,remember:form.querySelector('#auth-remember')?.checked===true});
  } catch(error) {
   const causeName=error.cause?.name || error.name;
   if(causeName==='NotAllowedError') throw new Error(tr("设备验证已取消或超时，请重试。","Device verification was cancelled or timed out. Try again."));

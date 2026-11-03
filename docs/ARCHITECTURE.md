@@ -10,8 +10,14 @@
 `daily_preferences` 与 `daily_editions` 保存按账号配置、北京时间计划、报价和投递快照。
 每日与手动搜特价共用持久化查询队列但独立运行；每日结果不进入监控价格历史。
 前端 `static/daily.js / daily.css` 在搜特价的发现结果区接入简报及偏好弹窗，复用 `deal_views.js` 卡片与监控草稿；Python 版隐藏每日入口。口径与验证见 [DAILY.md](DAILY.md)。
-邮件新增 Cloudflare 原生 EMAIL 绑定，控制面适配器负责目标邮箱验证；D1 缓存云端验证状态，并保存每个用户独立的接收确认。原 Resend HTTPS 适配器保留。线上邮件已启用，真实确认邮件已完成收件验收，详见 [Cloudflare 邮件接入](CLOUDFLARE_EMAIL.md)。云端使用 Passkey（WebAuthn），五分钟单次挑战绑定 Cookie、固定 Origin/RP、要求设备验证；D1 只保存公钥与计数器，登录后复用会话/CSRF。
+邮件新增 Cloudflare 原生 EMAIL 绑定，控制面适配器负责目标邮箱验证；D1 缓存云端验证状态，并保存每个用户独立的接收确认。原 Resend HTTPS 适配器保留。线上邮件已启用，真实确认邮件已完成收件验收，详见 [Cloudflare 邮件接入](CLOUDFLARE_EMAIL.md)。云端使用 Passkey（WebAuthn），五分钟单次挑战绑定 Cookie、固定 Origin/RP、要求设备验证；D1 只保存公钥与计数器，登录后复用会话/CSRF。登录默认保持 30 天（可取消并用 7 天会话），不保存密码。
 本地 Python 密码版保留，前端根据 auth_mode 切换入口；云端密码接口关闭。
+
+只读管理后台：`/admin → static/admin.js → /api/admin/* → admin.js / admin-pages.js → D1`。
+复用会话并独立校验服务端账号 ID 白名单 `ADMIN_USER_IDS`，默认拒绝；API 仅 GET、分页、邮箱在服务端脱敏。
+读取用户、任务、提醒/每日邮件及运行聚合，不推进队列或刷新验证。`runtime-health.js` 为 Cron 写入单行心跳，
+以 invocation ID 防止迟到结果覆盖新状态；`0010_admin.sql` 为增量表和索引。Python 版不提供管理入口。
+运行口径、授权配置、保留策略边界和面试问答见 [ADMIN.md](ADMIN.md)。
 
 本地 `npm run db:local && npm run dev`，地址 http://localhost:8787；数据库位于 `.wrangler/`。
 SQLite 只读离线导出工具保留原库，副本的计划暂停、旧邮件取消，排除会话与凭据。
@@ -50,7 +56,7 @@ Python 3.9+ 标准库本地服务，SQLite 持久化，原生 HTML/CSS/JavaScrip
 - `static/landscape.js` / `landscape-provider.js` / `landscape-actions.js`：每小时从已核对来源的 Unsplash 精选目录加载 CDN 照片，解码成功后缓存；单张失败自动换图，全部失败保留当前图（首次为同源竹林）；圆形刷新按钮绕过小时缓存并排除当前图，解码成功才切换，支持本浏览器收藏与图片下载。摄影来源与许可见 `static/assets/places/CREDITS.md` 及页面逐图链接，与查询条件独立。
 - `static/ui.js`：默认搜特价、工作区导航及键盘交互、展开筛选摘要；视觉规范和资产来源见 `docs/design-docs/UI_REDESIGN.md`。
 - `static/search-presets.js` / `search-presets.css`：用户显式保存的常用查询组合，表单下方全量快捷回填、固定往返面板内日期快捷项；`search-form.js` 共用查询提交与回填字段，保存/回填不发起查价。
-- `search_presets.py` / Workers `search-presets.js`：账号隔离的组合列表、保存和软移除，每人最多 20 项，按规范化查询去重；仅持久化日期/地点/人数/筛选，不保存查询结果、通知或任务状态。SQLite 随初始化增表，D1 需要增量迁移 `0008_search_presets.sql`，本轮未应用远端迁移。
+- `search_presets.py` / Workers `search-presets.js`：账号隔离的组合列表、保存和软移除，每人最多 20 项，按规范化查询去重；仅持久化日期/地点/人数/筛选，不保存查询结果、通知或任务状态。SQLite 随初始化增表，D1 通过增量迁移 `0008_search_presets.sql` 建表。
 - `static/travel-dates.js` / `date-editor.css`：日期面板内的出发星期多选与未来四个完整周末多选，周末按北京时间计算。周末搜索以 `date_mode=fixed` 和 `date_pairs` 提交具体往返组合；Python 与 Workers 校验每组周六/周日日期、按组查询并保留同一城市不同周末的报价，总查询上限仍为 120 组。
 - `static/deal-progress.js`：查询未结束时显示完成组数、已返回报价及失败组数；`deals.js` 逐批展示报价，只在报价内容变化时重绘，保留日期/目的地筛选与排序。
 - Workers `tasks.js` 以单条 D1 UPDATE 原子领取任务并限制有效运行租约为 4，跨轮询请求共享；手动查询及当前轮询的搜索优先。HTTP 每次并行一批 4 组，Cron 沿用已提交的批次上限；保留现有超时、重试、租约恢复及迟到写入保护。Python `deal_source.py` 共用 4 个查价线程，`deals.py` 按完成顺序聚合，`deal_jobs.py` 在运行中发布部分报价。

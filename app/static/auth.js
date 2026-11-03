@@ -11,6 +11,7 @@ function chooseMode(next, preserve=false) {
   const register = mode === 'register';
   const setup = mode === 'activate';
   $('#auth-name-field').hidden = !register;
+  $('#auth-remember-row').hidden = mode !== 'login';
   $('#auth-email-field').hidden = setup;
   $('#auth-email').required = !setup;
   $('#auth-name').required = register;
@@ -66,6 +67,7 @@ export async function setupAuth(onChange) {
     $('#auth-error').textContent = '';
     try {
       const data = Object.fromEntries(new FormData(event.target));
+      data.remember = $('#auth-remember').checked;
       if (setupToken) data.token = setupToken;
       const session = authMode==='passkey'
         ? await (await import('./passkey_auth.js')).passkeySession(mode,event.target)

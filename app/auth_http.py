@@ -31,6 +31,7 @@ def handle(handler, path, data):
     action = {"/api/auth/register": accounts.register, "/api/auth/login": accounts.login,
               "/api/auth/activate": accounts.activate}[path]
     user = action(data)
-    token, csrf = sessions.issue(user["id"], old_token)
-    handler.send(200, {"user": user, "csrf_token": csrf}, cookie=sessions.cookie_header(token, secure))
+    remember = data.get("remember") is True
+    token, csrf = sessions.issue(user["id"], old_token, remember)
+    handler.send(200, {"user": user, "csrf_token": csrf}, cookie=sessions.cookie_header(token, secure, remember))
     return True

@@ -24,7 +24,8 @@ test('Passkey registration and signature login issue opaque sessions; passwords 
  const options=await request(h,'/api/auth/passkey/login/options',{},session);
  assert.equal(options.data.options.userVerification,'required');
  const login=key.login(options.data.options);
- assert.equal((await request(h,'/api/auth/passkey/login/verify',{response:login},session)).status,200);
+ const signedIn=await request(h,'/api/auth/passkey/login/verify',{response:login,remember:true},session);
+ assert.equal(signedIn.status,200);assert.match(signedIn.response.headers.get('Set-Cookie'),/Max-Age=2592000/);
  assert.equal((await request(h,'/api/state',undefined,session)).data.user.email,'passkey@example.test');
  assert.equal((await request(h,'/api/auth/passkey/login/verify',{response:login},session)).status,400);
  assert.equal((await h.db.prepare('SELECT counter FROM passkeys').first()).counter,1);

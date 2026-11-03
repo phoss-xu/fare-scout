@@ -19,6 +19,8 @@
 .auth-card h2{font:500 29px/1.45 var(--family);letter-spacing:.5px;margin:0;color:var(--ink)}
 .auth-hint{font:400 13px/1.85 var(--family);color:var(--muted);margin:12px 0 26px;min-height:3.7em}
 .auth-card form>label{font:500 12px/1.6 var(--family);gap:8px;margin:0 0 18px}
+.auth-card form>.auth-remember{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:9px;margin:0 0 16px!important;font:400 12px/1.6 var(--family);color:var(--muted);cursor:pointer}
+.auth-card .auth-remember input{width:16px;height:16px;margin:0;accent-color:var(--green);flex:0 0 auto}
 .auth-card input:not([type=checkbox]){border-radius:10px;min-height:50px;padding:12px 14px;font-size:14px;background:var(--paper);border-color:var(--line)}
 .auth-card input:focus{border-color:var(--green);background:var(--white)}
 .auth-card .primary{border-radius:99px;min-height:50px;margin-top:6px;font:500 14px/1.5 var(--family);background:var(--green);border-color:var(--green);color:var(--on-accent)}

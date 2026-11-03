@@ -72,7 +72,7 @@ async function verify(request,env,kind,data) {
   ensure(changed.meta.changes===1,'登录验证已更新，请重新操作。',409);
   user=await first(db,'SELECT * FROM users WHERE id=?',[key.user_id]);
  }
- return issueSession(request,db,publicUser(user));
+ return issueSession(request,db,publicUser(user),data.remember===true);
 }
 export async function passkeyAuth(request,env,path,data) {
  ensure(env.AUTH_MODE==='passkey','此环境未启用通行密钥。',404);

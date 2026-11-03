@@ -11,7 +11,7 @@
   "assets": {
     "directory": "app/static",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/setup"]
+    "run_worker_first": ["/api/*", "/setup", "/admin", "/admin/", "/admin.html"]
   },
   "d1_databases": [
     {

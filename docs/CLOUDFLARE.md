@@ -29,7 +29,7 @@ npm run dev
 - 要求可发现凭据与设备用户验证，当前提供 P-256 / ES256。
 - 服务端固定校验 `PASSKEY_ORIGIN`、RP ID 和 challenge；challenge 由 HttpOnly/SameSite Cookie 绑定、五分钟过期，验证时单次消费。
 - 校验签名、凭据归属、userHandle、验证标志与计数器，签名失败不颁发会话；账号/公钥同事务创建。
-- 登录后使用服务端不透明会话（7 天）、HTTPS Secure/HttpOnly/SameSite Cookie 和逐会话 CSRF，同源检查继续生效。
+- 登录后使用服务端不透明会话；登录页默认保持 30 天，取消选项则 7 天。Cookie 使用 HTTPS Secure/HttpOnly/SameSite 与逐会话 CSRF，同源检查继续生效；不保存登录密码。
 - 云端密码注册/登录/初始化入口关闭，避免触发旧 JS 密码计算；旧本地密码算法保留供 Python 与原测试使用。
 
 凭据绑定网站域名：localhost 和正式站分别注册；以后换域名需要安排凭据迁移/重新注册。请选择支持同步的密码管理器或妥善保存安全密钥；当前尚未提供账号找回、追加密钥或设备管理界面。邮箱用于提醒，暂未验证所有权。

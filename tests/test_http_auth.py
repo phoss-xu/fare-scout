@@ -2,11 +2,12 @@ import http.client
 import json
 import tempfile
 import threading
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from app import accounts, store
+from app import accounts, sessions, store
 from app.server import Handler, ThreadingHTTPServer
 from test_app import config
 
@@ -111,6 +112,18 @@ class HTTPAuthTests(unittest.TestCase):
         self.assertEqual(self.request('/api/auth/logout', {}, cookie, csrf)[0], 200)
         self.assertEqual(self.request('/api/state', cookie=cookie)[0], 401)
         self.assertEqual(self.request('/api/auth/session', cookie=cookie)[1], {"user": None})
+
+    def test_remembered_login_extends_cookie_and_server_session_to_thirty_days(self):
+        status, body, cookie = self.request('/api/auth/login', {"email": "alice@example.com", "password": "alice-test-password", "remember": True})
+        self.assertEqual(status, 200)
+        self.assertIn(f"Max-Age={sessions.REMEMBERED_LIFETIME}", cookie)
+        token = cookie.split(';')[0].split('=', 1)[1]
+        with store.connect() as db:
+            row = db.execute("SELECT expires_at FROM sessions WHERE token_hash=?", (sessions.digest(token),)).fetchone()
+        self.assertGreater(row["expires_at"], time.time() + sessions.REMEMBERED_LIFETIME - 5)
+        status, _, cookie = self.request('/api/auth/login', {"email": "alice@example.com", "password": "alice-test-password", "remember": False})
+        self.assertEqual(status, 200)
+        self.assertIn(f"Max-Age={sessions.LIFETIME}", cookie)
 
     def test_global_location_search_and_scoped_watch_roundtrip(self):
         self.assertEqual(self.request('/api/locations?q=Tokyo')[0], 401)
