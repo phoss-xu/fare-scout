@@ -19,17 +19,20 @@ def send_email(config, alert, watch):
     message = EmailMessage()
     destination = location_label(alert["destination"])
     origin = json.loads(alert["route_key"])[0] if alert.get("route_key") else watch["origin"]
+    unit = (watch.get("currency", "HKD") + " ") if watch.get("currency", "HKD") != "HKD" else "HK$"
     label = "进入预算" if alert["reason"] == "budget" else "机票降价"
-    message["Subject"] = f"Fare Scout · {origin} → {destination} {label} · HK${alert['price']:g}"
+    message["Subject"] = f"Fare Scout · {origin} → {destination} {label} · {unit}{alert['price']:g}"
     message["From"] = config["sender"]
     message["To"] = config["recipient"]
     # Stable ID also helps providers deduplicate ambiguous post-DATA disconnects.
     message["Message-ID"] = f"<fare-scout-{alert['id']}-{alert['created_at'].replace(':', '')}@{config['sender'].split('@')[-1]}>"
-    previous = f"上次有效报价：HK${alert['previous_price']:g}\n" if alert["previous_price"] is not None else "首次采样进入预算。\n"
+    previous = f"上次有效报价：{unit}{alert['previous_price']:g}\n" if alert["previous_price"] is not None else "首次采样进入预算。\n"
     returning = "返程抵达日期" if watch["mode"] == "weekend" else "返程起飞日期"
+    return_line = '' if watch.get('trip_type') == 'oneway' else f"{returning}：{alert['arrival']}\n"
+    trip_label = '单程' if watch.get('trip_type') == 'oneway' else '往返'
     sampled = datetime.fromisoformat(alert["created_at"]).astimezone(ZoneInfo("Asia/Shanghai")).isoformat(timespec="minutes")
-    message.set_content(f"{origin} → {destination}\n出发日期：{alert['departure']}\n{returning}：{alert['arrival']}\n"
-                        f"{watch['adults']} 位成人 · 经济舱 · 往返总价 HK${alert['price']:g}\n{previous}"
+    message.set_content(f"{origin} → {destination}\n出发日期：{alert['departure']}\n{return_line}"
+                        f"{watch['adults']} 位成人 · 经济舱 · {trip_label}总价 {unit}{alert['price']:g}\n{previous}"
                         f"采样时间：{sampled}\n核价链接：{alert['booking_url'] or '暂无，请在网页重新查价'}\n\n"
                         "报价可能变化，请在预订前重新核价。记录来自有限查询结果，不代表完整市场最低价。\n"
                         "可在 Fare Scout 本地网页的「自动查价与提醒」中暂停提醒。")

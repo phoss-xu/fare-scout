@@ -1,7 +1,9 @@
+import {setupTripActions} from './trip-actions.js';
+import {updateTripState} from './trip-state.js';
 import {visibilityPoll} from './polling.js';
 import {historyPanel} from './history-panel.js';
 import {tr,setupLanguage} from './i18n.js';
-import {subscribePreferences} from './preferences.js';
+import {getPreferences,subscribePreferences} from './preferences.js';
 import {subscribeCurrency} from './currency.js';
 import {setupSettings,renderSettings} from './settings.js';
 import {request} from './api.js';
@@ -38,6 +40,7 @@ async function refresh() {
       return;
     }
     state = result;refreshFailed=false;
+    updateTripState(state);
     renderSettings(state);
     $('#page-error').hidden = true;
     $('#summary').textContent = `${state.watches.length}${tr(" 份出行计划 · "," travel watches · ")}${state.watches.filter(w => w.running).length}${tr(" 份查询中"," checking prices")}`;
@@ -74,6 +77,7 @@ setupLanguage();
 setupWorkspace();
 setupAppearance();
 setupSettings();
+const tripActions=setupTripActions(refresh,toast);
 const daily=setupDaily(refresh,toast,openWatch,c=>discovery.applyPreferences(c));
 const sampleHistory=historyPanel($('#history'),$('#history-dialog'),()=>state);
 const form = $('#watch-form');
@@ -139,7 +143,7 @@ form.addEventListener('submit', async event => {
   const button = form.querySelector('[type=submit]');
   button.disabled = true;
   $('#form-error').textContent = '';
-  const data = Object.fromEntries(new FormData(form));
+  const data = {...Object.fromEntries(new FormData(form)),currency:getPreferences().currency};
   data.auto_enabled = form.elements.auto_enabled.checked;
   data.alerts_enabled = form.elements.alerts_enabled.checked;
   if (data.mode === 'weekend') data.end = data.start;
@@ -157,6 +161,7 @@ const statePoller=visibilityPoll(refresh,{delay:()=>refreshFailed?60000:state?.w
 await setupAuth(user => {
   generation += 1;
   currentUser = user;
+  tripActions.reset(user);
   resetHistory(user);
   state = null;
   renderSettings(null);

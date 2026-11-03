@@ -1,3 +1,6 @@
+import {locationName,loadLocationNames} from './location-names.js';
+import {boardingItinerary} from './boarding-itinerary.js';
+import {registerTrip,tripTools,tripAlert,tripNote} from './trip-state.js';
 import {tr} from './i18n.js';
 import {price} from './format.js';
 import {escape, money, time} from './format.js';
@@ -12,7 +15,7 @@ export function watchDraft(offer,config) {
 export function sortedOffers(offers, sort='price', day='') {
   return offers.filter(o => !day || o.outbound.departureTime.slice(0,10) === day).slice().sort((a,b) =>
     sort === 'date' ? a.outbound.departureTime.localeCompare(b.outbound.departureTime) || a.price-b.price :
-    sort === 'duration' ? (a.outbound.durationSeconds+a.inbound.durationSeconds)-(b.outbound.durationSeconds+b.inbound.durationSeconds) || a.price-b.price : a.price-b.price);
+    sort === 'duration' ? (a.outbound.durationSeconds+(a.inbound?.durationSeconds || 0))-(b.outbound.durationSeconds+(b.inbound?.durationSeconds || 0)) || a.price-b.price : a.price-b.price);
 }
 export function sampledDays(offers) {
   const days = new Map();
@@ -27,6 +30,7 @@ function compactLeg(leg, name) {
   return `<div class="compact-flight"><span>${name}<strong>${clock(leg.departureTime)} → ${clock(leg.arrivalTime)}</strong></span><span>${escape(leg.from)} → ${escape(leg.to)}<span>${duration(leg.durationSeconds)} · ${leg.stops===0?tr("直飞","Direct"):`${leg.stops}${tr(" 次中转"," stops")}`}</span></span></div>`;
 }
 function experience(offer, travel) {
+  if(!offer.inbound) return "";
   if (travel) return `${tr("<div class=\"trip-experience\"><div><span>可玩时间</span><strong>可玩 ","<div class=\"trip-experience\"><div><span>Time away</span><strong>Full days away: ")}${escape(travel.full_days)}${tr(" 个白天</strong></div><div><span>工作日历估算</span><strong>"," full days</strong></div><div><span>Work calendar estimate</span><strong>")}${travel.calendar_reference?tr("预计","Estimated "):''}${travel.leave_days?`${tr("请假 ","Leave days: ")}${escape(travel.leave_days)}${tr(" 天"," days")}`:tr("不用请假","No leave needed")}</strong></div></div>`;
   const start=offer.outbound.arrivalTime?.slice(0,10), end=offer.inbound.departureTime?.slice(0,10);
   const nights=(Date.parse(end)-Date.parse(start))/86400000;
@@ -36,19 +40,21 @@ export function destinationChoices(offers, day='') {
   const choices=new Map();
   for (const offer of sortedOffers(offers,'price',day)) {
     const key=offer.destination_id || offer.outbound.to;
-    if(!choices.has(key)) choices.set(key,{key,name:offer.destination_name || offer.outbound.segments?.at(-1)?.toCity || offer.outbound.to,price:offer.price});
+    if(!choices.has(key)) choices.set(key,{key,name:locationName(offer.outbound.to,'city',offer.destination_name || offer.outbound.segments?.at(-1)?.toCity),price:offer.price});
   }
   return [...choices.values()];
 }
-export function dealCards(offers, all, adults, recommendation=false) {
+export function dealCards(offers, all, adults, recommendation=false,context={}) {
+  if(offers.length && typeof document!=='undefined') loadLocationNames();
   return offers.map(o => {
+    const ref=registerTrip(o,{...context,adults});
     const index = all.indexOf(o), out = o.outbound, back = o.inbound, segment=out.segments?.at(-1), t=recommendation?o.travel:null;
-    const badge=t?`${t.calendar_reference?tr("预计","Estimated "):''}${t.leave_days?`${tr("请假 ","Leave days: ")}${t.leave_days}${tr(" 天"," days")}`:tr("不用请假","No leave needed")}${tr(" · 可玩 "," · Full days away: ")}${t.full_days}${tr(" 个白天"," full days")}`:tr("本次低价","Lower fare in this search");
+    const badge=t?`${t.calendar_reference?tr("预计","Estimated "):''}${t.leave_days?`${tr("请假 ","Leave days: ")}${t.leave_days}${tr(" 天"," days")}`:tr("不用请假","No leave needed")}${tr(" · 可玩 "," · Full days away: ")}${t.full_days}${tr(" 个白天"," full days")}`:context.archived?tr("行程快照","Trip snapshot"):tr("本次低价","Lower fare in this search");
     const leave=t?`<p class="deal-date-note">${t.red_eye?tr("凌晨往返 · ","Overnight return · "):''}${t.leave_dates.length?tr("请假日期：","Leave dates: ")+t.leave_dates.map(escape).join('、'):tr("内地日历估算","Mainland China calendar estimate")}${t.calendar_reference?tr(" · 假期及补班待公布"," · Holidays and make-up workdays unconfirmed"):''}</p>`:'';
     let booking = tr("<span class=\"muted\">暂无核价入口</span>","<span class=\"muted\">No booking link available</span>");
     try { const url = new URL(o.bookingUrl); if (url.protocol === 'https:') booking = `<a class="small-btn" href="${escape(url.href)}${tr("\" target=\"_blank\" rel=\"noopener noreferrer\">前往核价 ↗</a>","\" target=\"_blank\" rel=\"noopener noreferrer\">Check price ↗</a>")}`; }
     catch { booking = tr("<span class=\"muted\">暂无核价入口</span>","<span class=\"muted\">No booking link available</span>"); }
-    return `<article class="card deal-card"><div class="card-top"><span class="badge">${badge}</span><span class="muted">${out.stops===0&&back.stops===0?tr("往返直飞","Direct both ways"):tr("含中转","With stops")}</span></div><div class="deal-result-title"><div><h3>${escape(o.destination_name || segment?.toCity || out.to)}<span class="deal-airport">${escape(out.to)}</span></h3><p>${escape(out.from)}${tr(" 出发 · "," departure · ")}${escape(o.destination_country || segment?.toCountry || '')}</p></div><div class="price">${price(o.price)}<span> / ${adults}${tr(" 人往返</span></div></div>"," travellers, return</span></div></div>")}${experience(o,t)}<p class="trip-dates">${escape(out.departureTime.slice(0,10))}${tr(" 出发 — "," departure — ")}${escape((t?back.arrivalTime:back.departureTime).slice(0,10))} ${t?tr("返抵","return arrival"):tr("返程起飞","Return departure")}</p>${leave}<p class="ticket-baggage">${baggageItems(o.baggage).map(escape).join(' · ')}</p>${compactLeg(out,tr("去程","Outbound"))}${compactLeg(back,tr("返程","Inbound"))}${tr("<details class=\"deal-flight-more\"><summary>航班与行李详情</summary>","<details class=\"deal-flight-more\"><summary>Flight & baggage details</summary>")}${flightDetails(o)}</details><div class="card-bottom"><button type="button" class="text-btn" ${recommendation?'data-daily-watch':'data-deal-watch'}="${index}${tr("\">创建监控</button>","\">Create watch</button>")}${booking}</div></article>`;
+    return `<article class="card deal-card"><div class="card-top"><span class="badge">${badge}</span><span class="muted">${out.stops===0&&(!back || back.stops===0)?(back?tr("往返直飞","Direct both ways"):tr("单程直飞","Direct one-way")):tr("含中转","With stops")}</span>${context.public?'':tripTools(ref)}</div><div class="deal-result-title"><div><h3>${escape(locationName(out.to,'city',o.destination_name || segment?.toCity))}<span class="deal-airport">${escape(out.to)}</span></h3><p>${escape(out.from)}${tr(" 出发 · "," departure · ")}${escape(o.destination_country || segment?.toCountry || '')}</p></div><div class="price">${price(o.price,o.currency || context.currency || 'HKD')}<span> / ${adults}${back?tr(" 人往返</span></div></div>"," travellers, return</span></div></div>"):tr(" 人单程</span></div></div>"," travellers, one-way</span></div></div>")}${boardingItinerary(o)}${experience(o,t)}<p class="trip-dates">${escape(out.departureTime.slice(0,10))}${back?tr(" 出发 — "," departure — ")+escape((t?back.arrivalTime:back.departureTime).slice(0,10))+" "+(t?tr("返抵","return arrival"):tr("返程起飞","Return departure")):tr(" 出发 · 单程"," departure · One-way")}</p>${leave}<p class="ticket-baggage">${baggageItems(o.baggage).map(escape).join(' · ')}</p>${compactLeg(out,tr("去程","Outbound"))}${back?compactLeg(back,tr("返程","Inbound")):""}${tr("<details class=\"deal-flight-more\"><summary>航班与行李详情</summary>","<details class=\"deal-flight-more\"><summary>Flight & baggage details</summary>")}${flightDetails(o)}</details><div class="card-bottom">${context.public?'':tripAlert(ref)}${booking}</div>${tripNote(ref)}</article>`;
   }).join('') || discoveryPlaceholder('empty');
 }
 export function discoveryPlaceholder(kind='initial') {
@@ -57,5 +63,5 @@ export function discoveryPlaceholder(kind='initial') {
   return `<div class="discovery-empty"><div><h3>${copy[0]}</h3>${copy[1]?`<p>${copy[1]}</p>`:''}</div><div class="empty-route" aria-hidden="true"><span>出发</span><img src="/assets/airplane-tilt.svg" alt=""><span>远方</span></div></div>`;
 }
 export function resultSummary(result) {
-  return `${result.offers.length}${result.config?.date_pairs ? tr(" 组往返报价 · Kiwi · "," return quotes · Kiwi · ") : tr(" 个目的地 · Kiwi · "," destinations · Kiwi · ")}${time(result.checked_at)}${result.failures ? ` · ${result.failures}${tr(" 组查询失败"," failed groups")}` : ''}`;
+  return `${result.offers.length}${result.config?.trip_type==='oneway'?tr(" 组单程报价 · Kiwi · "," one-way quotes · Kiwi · "):result.config?.date_pairs ? tr(" 组往返报价 · Kiwi · "," return quotes · Kiwi · ") : tr(" 个目的地 · Kiwi · "," destinations · Kiwi · ")}${time(result.checked_at)}${result.failures ? ` · ${result.failures}${tr(" 组查询失败"," failed groups")}` : ''}`;
 }

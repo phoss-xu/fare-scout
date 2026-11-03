@@ -13,12 +13,16 @@ def query(config, origin, scope, kiwi_factory, accepts):
     args = dict(flyFrom=origin['code'], flyTo=scope['code'] if scope else 'anywhere',
                 departureDate=fmt(config['start']), departureDateTo=fmt(config['end']),
                 nights_in_dst_from=config['min_nights'], nights_in_dst_to=config['max_nights'],
-                adults=config['adults'], currency='HKD', cabinClass='M', sort='price',
+                adults=config['adults'], currency=config['currency'], locale=config.get('locale', 'zh-CN'), cabinClass='M', sort='price',
                 one_for_city=len(config.get('nights', [])) == config['max_nights']-config['min_nights']+1, allow_self_transfer=False)
     if config.get('date_mode') == 'fixed':
         for key in ('departureDateTo', 'nights_in_dst_from', 'nights_in_dst_to'):
             args.pop(key)
         args['returnDate'] = fmt(config['end'])
+        args['one_for_city'] = True
+    if config.get('trip_type') == 'oneway':
+        for key in ('returnDate', 'returnDateTo', 'nights_in_dst_from', 'nights_in_dst_to'):
+            args.pop(key, None)
         args['one_for_city'] = True
     if config['max_stops'] >= 0:
         args['max_sector_stopovers'] = config['max_stops']
@@ -34,7 +38,7 @@ def query(config, origin, scope, kiwi_factory, accepts):
         if not accepts(offer, config, scope, origin):
             continue
         airport = locations.resolve('airport:' + offer['outbound']['to'])
-        offer = dict(offer, destination_name=locations.label(airport['code']),
+        offer = dict(offer, currency=config['currency'], destination_name=locations.label(airport['code']),
                      destination_country=airport['country_name'])
         key = airport['city_code'] or airport['code']
         if key not in results or offer['price'] < results[key]['price']:

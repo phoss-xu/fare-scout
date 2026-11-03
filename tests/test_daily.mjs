@@ -10,7 +10,7 @@ test('daily recommendation cards show arrival date, leave assumptions and reject
   assert.ok(html.includes('2027-01-04 返抵'));assert.ok(html.includes('预计不用请假'));
   assert.ok(html.includes('假期及补班待公布'));assert.ok(html.includes('可玩 2 个白天'));
   assert.ok(html.includes('&lt;img'));assert.ok(!html.includes('href="javascript:'));
-  assert.ok(html.includes('class="card deal-card"'));assert.ok(html.includes('data-daily-watch="0"'));
+  assert.ok(html.includes('class="card deal-card"'));assert.ok(html.includes('data-trip-alert="'));
   const draft=watchDraft(offer,{adults:2,budget:2000,max_stops:1,max_duration_hours:8});
   assert.equal(draft.start,'2027-01-02');assert.equal(draft.end,'2027-01-03');assert.equal(draft.adults,2);
 });

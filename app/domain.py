@@ -11,6 +11,13 @@ def today():
 
 
 def validate(data):
+    trip_type = data.get('trip_type', 'roundtrip')
+    if trip_type not in ('roundtrip', 'oneway'):
+        raise ValueError('请选择有效的行程类型。')
+    if trip_type == 'oneway':
+        if data.get('mode', 'fixed') != 'fixed':
+            raise ValueError('单程提醒请选择固定出发日期。')
+        data = {**data, 'end': data.get('start')}
     origin_selections = location_scopes.selections(data.get("origins", [data.get("origin", "HKG")]))
     destination_selections = location_scopes.selections(data.get("destinations", []))
     origins = location_scopes.expand(origin_selections)
@@ -18,6 +25,9 @@ def validate(data):
     origin = origins[0]
     if len(origins) == len(destinations) == 1 and origin['kind'] == 'airport' and origin['id'] == destinations[0]['id']:
         raise ValueError("出发机场和目的机场不能相同。")
+    currency = data.get("currency", "HKD")
+    if currency not in ("HKD", "CNY", "USD", "EUR", "JPY", "GBP", "SGD", "AUD", "CAD"):
+        raise ValueError("请选择支持的报价货币。")
     mode = data.get("mode", "fixed")
     if mode not in {"fixed", "weekend"}:
         raise ValueError("请选择固定日期或周末出行。")
@@ -39,12 +49,12 @@ def validate(data):
         raise ValueError("请输入有效的往返总预算。")
     if not math.isfinite(max_duration) or not 0 <= max_duration <= 72 or max_stops not in (-1, 0, 1, 2, 3):
         raise ValueError("请检查每程最长时长或中转次数。")
-    return dict(origin=origin["code"], destinations=[d["code"] for d in destinations], mode=mode,
+    return dict(**({'trip_type': 'oneway'} if trip_type == 'oneway' else {}), origin=origin["code"], destinations=[d["code"] for d in destinations], mode=mode,
                 origin_location=origin, origin_locations=origins, destination_locations=destinations,
                 origin_selections=origin_selections, destination_selections=destination_selections,
                 max_duration_hours=max_duration, max_stops=max_stops,
                 start=start.isoformat(), end=end.isoformat(), adults=adults,
-                weeks=weeks, budget=budget, currency="HKD", cabin="M", **validate_settings(data))
+                weeks=weeks, budget=budget, currency=currency, cabin="M", **validate_settings(data))
 
 
 def jobs(watch):
@@ -61,6 +71,11 @@ def jobs(watch):
 
 
 def matches(offer, watch, job):
+    if watch.get('trip_type') == 'oneway':
+        from .oneway import accepts
+        config = {**watch, 'start': job['departure'], 'end': job['departure'], 'date_mode': 'fixed', 'weekdays': [], 'budget': 0}
+        return accepts(offer, config, locations.resolve(job.get('location_id') or job['destination']),
+                       locations.resolve(job['origin_id']) if job.get('origin_id') else locations.origin(watch))
     outbound, inbound = offer.get("outbound") or {}, offer.get("inbound") or {}
     try:
         price = offer["price"]

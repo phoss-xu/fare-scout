@@ -4,9 +4,10 @@ import {travelWindows} from './travel-time.js';
 import {resolve} from './locations.js';
 
 export const defaults = {enabled:false,push_time:'08:30',origins:['airport:HKG','airport:SZX'],budget:0,adults:1,
-  max_leave_days:0,min_full_days:2,prefer_red_eye:true};
+  max_leave_days:0,min_full_days:2,prefer_red_eye:true,currency:'HKD'};
 export function preferences(d) {
   const c={...defaults,...d};
+  ensure(['HKD','CNY','USD','EUR','JPY','GBP','SGD','AUD','CAD'].includes(c.currency),'请选择支持的报价货币。');
   ensure(typeof c.enabled==='boolean' && typeof c.prefer_red_eye==='boolean','请选择是否开启每日推荐及凌晨航班优先。');
   ensure(typeof c.push_time==='string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(c.push_time),'请选择有效的推送时间。');
   ensure(Array.isArray(c.origins) && c.origins.length && c.origins.every(o=>['airport:HKG','airport:SZX'].includes(o)),'请选择香港或深圳机场。');

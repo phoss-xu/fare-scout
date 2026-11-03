@@ -98,3 +98,8 @@ test('complete source failures differ from successful empty daily editions',asyn
     assert.equal(e.status,mode==='empty'?'ready':'error');assert.equal(e.failures,mode==='empty'?0:12);assert.deepEqual(e.offers,[]);
   }
 });
+test('daily preferences preserve selected quote currency without relabeling older defaults',()=>{
+ assert.equal(daily.preferences({currency:'CNY'}).currency,'CNY');
+ assert.equal(daily.preferences({}).currency,'HKD');
+ assert.throws(()=>daily.preferences({currency:'XXX'}));
+});

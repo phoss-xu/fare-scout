@@ -15,8 +15,12 @@ export async function ensureRates() {
   })();
   return pending;
 }
-export function displayAmount(value) {
-  const {currency,language}=getPreferences(),rate=rates[currency];
-  const code=rate?currency:'HKD';
-  return {code,date:rate?.date,converted:code!=='HKD',amount:new Intl.NumberFormat(language,{maximumFractionDigits:code==='HKD'||code==='JPY'?0:2}).format(Number(value)*(rate?.rate || 1))};
+const labels={HKD:'港币',CNY:'人民币',USD:'美元',EUR:'欧元',JPY:'日元',GBP:'英镑',SGD:'新加坡元',AUD:'澳元',CAD:'加元'};
+export function currencyLabel(code) {return getPreferences().language==='zh-CN'?(labels[code] || code):code;}
+export function displayAmount(value,source='HKD') {
+  const {currency,language}=getPreferences();
+  const direct=source===currency,available=direct || (rates[source] && rates[currency]);
+  const code=available?currency:source,converted=code!==source;
+  const rate=converted?rates[code].rate/rates[source].rate:1;
+  return {code,date:converted?(rates[code].date || rates[source].date):null,converted,amount:new Intl.NumberFormat(language,{maximumFractionDigits:code==='JPY'?0:2}).format(Number(value)*rate)};
 }

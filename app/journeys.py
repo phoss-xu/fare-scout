@@ -4,6 +4,8 @@ import json
 
 def identity(config, job, offer):
     out, back = offer.get("outbound") or {}, offer.get("inbound") or {}
+    if config.get('trip_type') == 'oneway':
+        return json.dumps([out['from'], out['to'], '', '', out['departureTime'][:10], '', ''], separators=(',', ':'))
     return json.dumps([out.get("from") or config["origin"], out.get("to") or job["destination"],
                        back.get("from") or job["destination"], back.get("to") or config["origin"],
                        (out.get("departureTime") or job["departure"])[:10],

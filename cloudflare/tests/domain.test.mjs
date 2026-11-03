@@ -61,3 +61,52 @@ test('weekend pair validation agrees across runtimes and rejects empty or mismat
   for(const date_pairs of [[],null,[{}],pairs.concat(pairs,pairs),[{start,end:pairs[1].end}]]) assert.throws(()=>domain.validate({...value,date_pairs},true));
   assert.throws(()=>domain.validate({...value,date_mode:'range'},true));
 });
+
+test('one-way fixed and flexible discovery agree across runtimes and omit return arguments',async()=>{
+  const built=await build({entryPoints:['cloudflare/src/provider.js'],bundle:true,format:'esm',platform:'browser',write:false});
+  const provider=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+  const j={origin_id:'airport:HKG',location_id:'airport:SIN'};
+  for(const date_mode of ['fixed','range']) {
+    const value=config({trip_type:'oneway',date_mode,nights:[],weekdays:[domain.weekday(future(20))]});
+    const c=domain.validate(value,true);
+    const expected=JSON.parse(execFileSync('python3',['-c','import json,sys;from app.deals import validate;print(json.dumps(validate(json.loads(sys.argv[1])),ensure_ascii=False))',JSON.stringify(value)],{encoding:'utf8'}));
+    assert.deepEqual(c,expected);
+    assert.deepEqual(c.nights,[]);
+    const args=provider.argumentsFor(c,j,true);
+    for(const key of ['returnDate','returnDateTo','nights_in_dst_from','nights_in_dst_to']) assert.equal(key in args,false);
+    assert.equal('departureDateTo' in args,date_mode==='range');
+    const flight=offer();delete flight.inbound;
+    assert.equal(domain.accepts(flight,c,j),true);
+    assert.equal(domain.accepts(offer(),c,j),false);
+    if(date_mode==='range') assert.equal(domain.accepts(flight,{...c,weekdays:[(domain.weekday(c.start)+1)%7]},j),false);
+    for(const bad of [{price:0},{price:1501},{outbound:{...flight.outbound,to:'BKK'}},{outbound:{...flight.outbound,stops:1}},{outbound:{...flight.outbound,durationSeconds:Infinity}}]) {
+      assert.equal(domain.accepts({...flight,...bad},{...c,max_stops:0},j),false);
+    }
+  }
+  assert.throws(()=>domain.validate(config({trip_type:'unknown'}),true));
+  assert.equal(domain.validate(config({trip_type:'oneway'})).trip_type,'oneway');
+});
+
+test('one-way watch jobs, membership and price identity agree across runtimes without return-date arguments',async()=>{
+  const value=config({trip_type:'oneway',max_stops:0}),c=domain.validate(value),j=domain.jobs(c)[0],o=offer();delete o.inbound;
+  const expected=JSON.parse(execFileSync('python3',['-c','import json,sys;from app.domain import validate,jobs,matches;from app.journeys import identity;c=validate(json.loads(sys.argv[1]));o=json.loads(sys.argv[2]);j=jobs(c)[0];print(json.dumps(dict(config=c,jobs=jobs(c),matches=matches(o,c,j),key=identity(c,j,o)),ensure_ascii=False))',JSON.stringify(value),JSON.stringify(o)],{encoding:'utf8'}));
+  assert.deepEqual(c,expected.config);assert.deepEqual(domain.jobs(c),expected.jobs);assert.equal(c.start,c.end);
+  assert.equal(domain.matches(o,c,j),true);assert.equal(expected.matches,true);assert.equal(domain.routeKey(c,j,o),expected.key);
+  assert.equal(domain.matches(offer(),c,j),false);assert.equal(domain.matches({...o,outbound:{...o.outbound,to:'BKK'}},c,j),false);
+  const built=await build({entryPoints:['cloudflare/src/provider.js'],bundle:true,format:'esm',platform:'browser',write:false});
+  const provider=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+  assert.ok(!('returnDate' in provider.argumentsFor(c,j,false)));
+});
+test('selected quote currencies are validated, passed to source and preserved in both runtimes',async()=>{
+ const built=await build({entryPoints:['cloudflare/src/provider.js'],bundle:true,format:'esm',platform:'browser',write:false});
+ const provider=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+ for(const currency of ['CNY','USD','JPY']) {
+  const input=config({currency,budget:600,date_mode:'fixed'}),c=domain.validate(input,true);
+  const python=JSON.parse(execFileSync('python3',['-c','import json,sys;from app.deals import validate;print(json.dumps(validate(json.loads(sys.argv[1]))))',JSON.stringify(input)],{encoding:'utf8'}));
+  assert.deepEqual(c,python);
+  const args=provider.argumentsFor(c,{origin_id:'airport:HKG',location_id:'airport:SIN'},true);
+  assert.equal(args.currency,currency);assert.equal(args.price_to,600);
+  assert.equal(domain.validate(input).currency,currency);
+ }
+ assert.throws(()=>domain.validate(config({currency:'XXX'}),true));
+});

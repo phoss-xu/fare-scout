@@ -57,6 +57,21 @@ class HTTPAuthTests(unittest.TestCase):
         self.assertIn("SameSite=Lax", cookie)
         return cookie.split(";")[0], body["csrf_token"]
 
+    def test_trip_api_auth_isolation_and_public_share(self):
+        data = json.loads((Path(__file__).with_name('fixtures') / 'trip-snapshot.json').read_text())
+        self.assertEqual(self.request('/api/trips')[0], 401)
+        cookie, csrf = self.login()
+        self.assertEqual(self.request('/api/trips', data, cookie)[0], 403)
+        status, body, _ = self.request('/api/trips', data, cookie, csrf)
+        self.assertEqual(status, 200)
+        self.assertEqual(len(body['trips']), 1)
+        status, body, _ = self.request('/api/shared-trips', data, cookie, csrf)
+        self.assertEqual(status, 201)
+        public = self.request('/api/shared-trips/' + body['id'])
+        self.assertEqual(public[0], 200)
+        self.assertNotIn('email', json.dumps(public[1]))
+        self.assertEqual(self.request('/api/shared-trips/missing')[0], 404)
+
     def test_recoverable_deletion_is_authenticated_and_owner_scoped(self):
         cookie, csrf=self.login()
         own=store.create(config(),self.alice['id'])

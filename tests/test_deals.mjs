@@ -14,7 +14,7 @@ test('flight cards escape source data and reject unsafe booking links',()=>{
  const offers=[offer('25',1200)];offers[0].bookingUrl='javascript:alert(1)';
  const html=dealCards(offers,offers,2);
  assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('href="javascript:'));
- assert.ok(html.includes('/ 2 人往返'));assert.ok(html.includes('data-deal-watch="0"'));
+ assert.ok(html.includes('/ 2 人往返'));assert.ok(html.includes('data-trip-alert="'));
 });
 test('destination navigation uses each returned destination minimum within the selected date',async()=>{
  const {destinationChoices}=await import('../app/static/deal_views.js');
@@ -32,4 +32,11 @@ test('trip nights follow destination local dates and missing arrivals never inve
  assert.ok(!dealCards([o],[o],1).includes('不用请假'));
  delete o.outbound.arrivalTime;
  assert.ok(!dealCards([o],[o],1).includes('目的地停留'));
+});
+test('one-way cards and flight details show only outbound and preserve booking and duration sorting',()=>{
+ const one=offer('25',1200),other=offer('26',1000,7200);delete one.inbound;delete other.inbound;
+ const html=dealCards([one],[one],2);
+ assert.match(html,/2 人单程/);assert.match(html,/单程直飞/);assert.match(html,/https:\/\/example.com\/book/);
+ for(const text of ['返程','人往返','目的地停留','data-deal-watch']) assert.ok(!html.includes(text),text);
+ assert.equal(sortedOffers([other,one],'duration')[0],one);
 });

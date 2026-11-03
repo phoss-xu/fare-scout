@@ -22,8 +22,9 @@ export function setupOfferViews(container) {
     if(!data) return;
     if(mode==='map' && data.offers.length) {
       disposeMap=mountRouteMap(container,data);
-    } else container.innerHTML=dealCards(data.offers,data.all,data.adults,data.recommendation);
+    } else container.innerHTML=dealCards(data.offers,data.all,data.adults,data.recommendation,data.context);
   }
+  document.addEventListener('locationnameschange',render);
   toolbar.addEventListener('click',event=>{
     const button=event.target.closest('[data-offer-view]');if(!button) return;
     mode=button.dataset.offerView;
@@ -31,7 +32,7 @@ export function setupOfferViews(container) {
     render();toolbar.querySelector(`[data-offer-view="${mode}"]`).focus();
   });
   return {
-    render(offers,all,adults,recommendation=false){data={offers,all,adults,recommendation};render();},
+    render(offers,all,adults,recommendation=false,context={}){data={offers,all,adults,recommendation,context};render();},
     clear(){disposeMap();disposeMap=()=>{};data=undefined;toolbar.hidden=true;delete container.dataset.offerView;}
   };
 }

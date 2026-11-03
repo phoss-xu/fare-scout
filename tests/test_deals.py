@@ -101,6 +101,42 @@ class DealTests(unittest.TestCase):
             with self.subTest(invalid=invalid),self.assertRaises(ValueError):
                 search_config(start=pairs[0]['start'],end=pairs[-1]['end'],date_mode='fixed',date_pairs=invalid)
 
+    def test_native_currency_query_and_budget_are_preserved(self):
+        watch = search_config(currency='CNY', date_mode='fixed', budget=2000)
+        flight = offer(watch, dict(departure=watch['start'], arrival=watch['end']))
+        with patch.object(deals.Kiwi, 'call'), patch.object(deals.Kiwi, 'query', return_value=[flight]) as query:
+            result = deals.search(watch)
+        self.assertEqual(query.call_args.args[0]['currency'], 'CNY')
+        self.assertEqual(query.call_args.args[0]['price_to'], 2000)
+        self.assertEqual(result['offers'][0]['currency'], 'CNY')
+        with self.assertRaises(ValueError):
+            search_config(currency='XXX')
+
+    def test_oneway_search_omits_return_and_filters_outbound(self):
+        for mode in ('fixed', 'range'):
+            watch = search_config(trip_type='oneway', date_mode=mode, nights=[], max_stops=0)
+            flight = offer(watch, dict(departure=watch['start'], arrival=watch['end']))
+            flight.pop('inbound')
+            self.assertTrue(deals.accepts(flight, watch, None))
+            if mode == 'range':
+                from datetime import date
+                other_day = (date.fromisoformat(watch['start']).weekday()+1)%7
+                filtered = search_config(trip_type='oneway', weekdays=[other_day], nights=[])
+                self.assertFalse(deals.accepts(flight, filtered, None))
+            for path, value in [('price', 0), ('price', 999999)]:
+                self.assertFalse(deals.accepts(dict(flight, **{path:value}), dict(watch, budget=2000), None))
+            bad = deepcopy(flight); bad['outbound']['stops'] = 1
+            self.assertFalse(deals.accepts(bad, watch, None))
+            bad = deepcopy(flight); bad['outbound']['to'] = 'HKG'
+            self.assertFalse(deals.accepts(bad, watch, None))
+            with patch.object(deals.Kiwi, 'call'), patch.object(deals.Kiwi, 'query', return_value=[flight]) as query:
+                self.assertEqual(len(deals.search(watch)['offers']), 1)
+            args = query.call_args.args[0]
+            for key in ('returnDate', 'returnDateTo', 'nights_in_dst_from', 'nights_in_dst_to'):
+                self.assertNotIn(key, args)
+            self.assertEqual('departureDateTo' in args, mode == 'range')
+            self.assertEqual(watch['nights'], [])
+
     def test_tasks_are_account_isolated_and_reject_duplicate_running_search(self):
         with patch.object(deal_jobs,'TASKS',{}), patch.object(deal_jobs.POOL,'submit'):
             identity=deal_jobs.start(1,search_config())

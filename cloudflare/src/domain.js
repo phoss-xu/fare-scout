@@ -20,6 +20,12 @@ export function policy(d) {
   return {auto_enabled,alerts_enabled,interval_hours,min_drop};
 }
 export function validate(d, discovery = false) {
+  const trip_type=d.trip_type ?? 'roundtrip';
+  ensure(['roundtrip','oneway'].includes(trip_type), '请选择有效的行程类型。');
+  const oneWay=trip_type==='oneway';
+  if(oneWay && (d.date_mode==='fixed' || !discovery)) d={...d,end:d.start};
+  const currency=d.currency ?? 'HKD';
+  ensure(['HKD','CNY','USD','EUR','JPY','GBP','SGD','AUD','CAD'].includes(currency),'请选择支持的报价货币。');
   const origin_selections = selections(d.origins ?? [d.origin ?? 'airport:HKG']);
   const destination_selections = selections(d.destinations ?? [], discovery);
   const os = expand(origin_selections), ds = expand(destination_selections);
@@ -30,7 +36,9 @@ export function validate(d, discovery = false) {
   const adults=number(d.adults,1),weeks=number(d.weeks,1),budget=number(d.budget,0),max_duration_hours=number(d.max_duration_hours,0),max_stops=number(d.max_stops,-1);
   ensure(Number.isInteger(adults) && adults>=1 && adults<=9 && Number.isInteger(weeks) && weeks>=1 && weeks<=4, '成人数须为 1–9，周末数量须为 1–4。');
   ensure(budget>=0 && budget<=1000000 && max_duration_hours>=0 && max_duration_hours<=72 && [-1,0,1,2,3].includes(max_stops), '请检查预算、每程最长时长或中转次数。');
-  const config = {origin:os[0].code,origin_location:os[0],origin_locations:os,destination_locations:ds,origin_selections,destination_selections,destinations:ds.map(r=>r.code),start,end,mode,adults,weeks,budget,max_duration_hours,max_stops,currency:'HKD',cabin:'M',...policy(d)};
+  ensure(!oneWay || discovery || mode==='fixed','单程提醒请选择固定出发日期。');
+  const config = {origin:os[0].code,origin_location:os[0],origin_locations:os,destination_locations:ds,origin_selections,destination_selections,destinations:ds.map(r=>r.code),start,end,mode,adults,weeks,budget,max_duration_hours,max_stops,currency,cabin:'M',...policy(d)};
+  if(oneWay) config.trip_type='oneway';
   if (discovery) {
     const date_mode=d.date_mode ?? 'range';
     ensure(['range','fixed'].includes(date_mode), '请选择固定往返或灵活日期。');
@@ -38,12 +46,12 @@ export function validate(d, discovery = false) {
     ensure(os.length*Math.max(1,ds.length)<=120, '这次选择超过 120 组出发地与目的地组合，请缩小范围。');
     ensure(end<=plusDays(start,180) && end<=plusDays(today(),365), '请选择未来一年内的出发时间，单次日期跨度不超过 180 天。');
     const selected=d.nights !== undefined ? d.nights : (Number.isInteger(min_nights) && Number.isInteger(max_nights) && min_nights>=1 && max_nights<=10 && min_nights<=max_nights ? Array.from({length:max_nights-min_nights+1},(_,i)=>min_nights+i) : []);
-    ensure(date_mode==='fixed' || (Array.isArray(selected) && selected.length>0 && selected.every(n=>Number.isInteger(n)&&n>=1&&n<=10)), '请勾选 1–10 晚中的至少一项。');
-    const nights=date_mode==='fixed'?[]:[...new Set(selected)].sort((a,b)=>a-b);
+    ensure(oneWay || date_mode==='fixed' || (Array.isArray(selected) && selected.length>0 && selected.every(n=>Number.isInteger(n)&&n>=1&&n<=10)), '请勾选 1–10 晚中的至少一项。');
+    const nights=oneWay || date_mode==='fixed'?[]:[...new Set(selected)].sort((a,b)=>a-b);
     min_nights=nights.length?Math.min(...nights):0;max_nights=nights.length?Math.max(...nights):0;
     ensure(Array.isArray(weekdays) && weekdays.every(n=>Number.isInteger(n)&&n>=0&&n<7), '请检查出发星期。');
     if(d.date_pairs!==undefined) {
-      ensure(date_mode==='fixed' && Array.isArray(d.date_pairs) && d.date_pairs.length>=1 && d.date_pairs.length<=4,'请至少选择一个周末，最多选择四个。');
+      ensure(!oneWay && date_mode==='fixed' && Array.isArray(d.date_pairs) && d.date_pairs.length>=1 && d.date_pairs.length<=4,'请至少选择一个周末，最多选择四个。');
       const pairs=d.date_pairs.map(p=>{
         ensure(p && typeof p==='object','请检查所选周末。');
         const start=date(p.start),end=date(p.end);
@@ -54,7 +62,7 @@ export function validate(d, discovery = false) {
       ensure(start===config.date_pairs[0].start && end===config.date_pairs.at(-1).end,'所选周末与日期范围不一致，请重新选择。');
       ensure(os.length*Math.max(1,ds.length)*config.date_pairs.length<=120,'所选周末及地点超过 120 组查询，请缩小范围。');
     }
-    Object.assign(config,{date_mode,nights,min_nights,max_nights,weekdays:date_mode==='fixed'?[]:[...new Set(weekdays)].sort()});
+    Object.assign(config,{locale:['zh-CN','en'].includes(d.locale)?d.locale:'zh-CN',trip_type,date_mode,nights,min_nights,max_nights,weekdays:date_mode==='fixed'?[]:[...new Set(weekdays)].sort()});
   }
   return config;
 }
@@ -65,6 +73,7 @@ export function jobs(c) {
 }
 function localTime(value) { return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value) && Number.isFinite(Date.parse(value)); }
 export function matches(offer,c,j) {
+  if(c.trip_type==='oneway') return acceptsOneWay(offer,{...c,start:j.departure,end:j.departure,date_mode:'fixed',weekdays:[],budget:0},j);
   const out=offer.outbound, back=offer.inbound;
   if (!out || !back || typeof offer.price!=='number' || !Number.isFinite(offer.price) || offer.price<=0) return false;
   const o=resolve(j.origin_id || c.origin_location || c.origin), d=resolve(j.location_id || j.destination);
@@ -76,6 +85,7 @@ export function matches(offer,c,j) {
   return [out,back].every(leg=>Number.isInteger(leg.stops) && leg.stops>=0 && (c.max_stops<0 || leg.stops<=c.max_stops) && Number.isFinite(leg.durationSeconds) && leg.durationSeconds>0 && (!c.max_duration_hours || leg.durationSeconds<=c.max_duration_hours*3600));
 }
 export function accepts(offer,c,j) {
+  if(c.trip_type==='oneway') return acceptsOneWay(offer,c,j);
   const out=offer.outbound,back=offer.inbound;
   if (!out || !back || !localTime(out.arrivalTime)) return false;
   const dep=out.departureTime?.slice(0,10),ret=back.departureTime?.slice(0,10),nights=(Date.parse(ret)-Date.parse(out.arrivalTime.slice(0,10)))/86400000;
@@ -85,4 +95,15 @@ export function accepts(offer,c,j) {
   } else if (!(dep>=c.start && dep<=c.end) || (c.weekdays.length && !c.weekdays.includes(weekday(dep))) || !(nights>=c.min_nights && nights<=c.max_nights) || (c.nights && !c.nights.includes(nights)) || (c.budget && offer.price>c.budget)) return false;
   try { return matches(offer,c,{...j,location_id:j.location_id || 'airport:'+out.to,departure:dep,arrival:ret}); } catch { return false; }
 }
-export const routeKey = (c,j,o) => JSON.stringify([o.outbound.from,o.outbound.to,o.inbound.from,o.inbound.to,o.outbound.departureTime.slice(0,10),o.inbound.departureTime.slice(0,10),o.inbound.arrivalTime.slice(0,10)]);
+function acceptsOneWay(offer,c,j) {
+  const out=offer.outbound;
+  if(!out || offer.inbound || ![out.departureTime,out.arrivalTime].every(localTime)) return false;
+  const dep=out.departureTime.slice(0,10);
+  if(!(dep>=c.start && dep<=c.end) || (c.date_mode==='fixed' && dep!==c.start) || (c.weekdays.length && !c.weekdays.includes(weekday(dep)))) return false;
+  if(typeof offer.price!=='number' || !Number.isFinite(offer.price) || offer.price<=0 || (c.budget && offer.price>c.budget)) return false;
+  try {
+    if(!contains(resolve(j.origin_id),out.from) || !contains(resolve(j.location_id || 'airport:'+out.to),out.to) || out.from===out.to) return false;
+    return Number.isInteger(out.stops) && out.stops>=0 && (c.max_stops<0 || out.stops<=c.max_stops) && Number.isFinite(out.durationSeconds) && out.durationSeconds>0 && (!c.max_duration_hours || out.durationSeconds<=c.max_duration_hours*3600);
+  } catch { return false; }
+}
+export const routeKey = (c,j,o) => JSON.stringify([o.outbound.from,o.outbound.to,o.inbound?.from || '',o.inbound?.to || '',o.outbound.departureTime.slice(0,10),o.inbound?.departureTime.slice(0,10) || '',o.inbound?.arrivalTime.slice(0,10) || '']);

@@ -22,7 +22,7 @@ export function mountRouteChart(container,groups,geo,onSelect) {
     markers.forEach(m=>m.remove());markers=[];
     const width=container.clientWidth,height=container.clientHeight;
     const center=map.getCenter().lng;
-    const points=groups.map((g,index)=>{const coordinates=[...geo.airports[g.to]];while(coordinates[0]-center>180)coordinates[0]-=360;while(coordinates[0]-center< -180)coordinates[0]+=360;const p=map.project(coordinates);return {index,coordinates,x:p.x,y:p.y,price:g.offers[0].price};}).filter(p=>p.x>12 && p.x<width-12 && p.y>12 && p.y<height-36);
+    const points=groups.map((g,index)=>{const coordinates=[...geo.airports[g.to]];while(coordinates[0]-center>180)coordinates[0]-=360;while(coordinates[0]-center< -180)coordinates[0]+=360;const p=map.project(coordinates);return {index,coordinates,x:p.x,y:p.y,price:g.offers[0].price,currency:g.offers[0].currency};}).filter(p=>p.x>12 && p.x<width-12 && p.y>12 && p.y<height-36);
     const reserved=[...new Set(groups.map(g=>g.from))].map(code=>{const p=map.project(geo.airports[code]);return {x:p.x-36,y:p.y-34,w:72,h:34};});
     const labels=bubbleLayout(points,width,height,selected,reserved),labeled=new Set(labels.map(p=>p.index));
     function marker(point,button,anchor='center',offset=[0,0]){
@@ -30,14 +30,14 @@ export function mountRouteChart(container,groups,geo,onSelect) {
       markers.push(new renderer.Marker({element:wrapper,anchor,offset}).setLngLat(point.coordinates).addTo(map));
     }
     labels.forEach(point=>{
-      const button=document.createElement('button');button.type='button';button.className='fare-bubble';button.textContent=bubblePrice(point.price);
-      button.dataset.routeIndex=point.index;button.setAttribute('aria-label',`${routeName(groups[point.index])} · ${bubblePrice(point.price)}`);button.setAttribute('aria-pressed',String(selected===point.index));button.title=routeName(groups[point.index]);
+      const button=document.createElement('button');button.type='button';button.className='fare-bubble';button.textContent=bubblePrice(point.price,point.currency);
+      button.dataset.routeIndex=point.index;button.setAttribute('aria-label',`${routeName(groups[point.index])} · ${bubblePrice(point.price,point.currency)}`);button.setAttribute('aria-pressed',String(selected===point.index));button.title=routeName(groups[point.index]);
       button.onclick=()=>onSelect(point.index);marker(point,button,'bottom',[0,-8]);
     });
     clusterPoints(points.filter(p=>!labeled.has(p.index)),38).forEach(cluster=>{
       if(labels.some(b=>cluster.x>b.x-10 && cluster.x<b.x+b.w+10 && cluster.y>b.y-10 && cluster.y<b.y+b.h+18))return;
       const point=cluster.items[0],button=document.createElement('button');button.type='button';
-      if(cluster.items.length===1){button.className='fare-dot';button.setAttribute('aria-label',`${routeName(groups[point.index])} · ${bubblePrice(point.price)}`);button.onclick=()=>onSelect(point.index);}
+      if(cluster.items.length===1){button.className='fare-dot';button.setAttribute('aria-label',`${routeName(groups[point.index])} · ${bubblePrice(point.price,point.currency)}`);button.onclick=()=>onSelect(point.index);}
       else{button.className='fare-cluster';button.textContent=cluster.items.length;button.setAttribute('aria-label',tr(`放大查看 ${cluster.items.length} 个目的地`,`Zoom into ${cluster.items.length} destinations`));button.onclick=()=>map.easeTo({center:map.unproject([cluster.x,cluster.y]),zoom:Math.min(12,map.getZoom()+1.5),duration:350});}
       marker(point,button);
     });

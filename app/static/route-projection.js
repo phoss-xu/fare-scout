@@ -1,3 +1,4 @@
+import {locationName} from './location-names.js';
 /** Equirectangular chart centered on the shortest longitude interval, including the date line. */
 export function routeProjection(points,width=1000,height=560) {
   const longitudes=points.map(p=>(p[0]+360)%360).sort((a,b)=>a-b);
@@ -56,4 +57,4 @@ export function mapLabels(points,width,height,selected=-1,limit=6) {
   }
   return placed;
 }
-export const routeName=group=>group.offers[0].destination_name || group.offers[0].outbound.segments?.at(-1)?.toCity || group.to;
+export const routeName=group=>locationName(group.to,'city',group.offers[0].destination_name || group.offers[0].outbound.segments?.at(-1)?.toCity);

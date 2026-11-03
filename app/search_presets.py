@@ -12,6 +12,10 @@ def snapshot(data):
     config = deals.validate(data)
     result = {key: config[key] for key in ('start', 'end', 'date_mode', 'adults', 'budget',
               'max_stops', 'max_duration_hours', 'nights', 'weekdays')}
+    if config['trip_type'] == 'oneway':
+        result['trip_type'] = 'oneway'
+    if config['currency'] != 'HKD':
+        result['currency'] = config['currency']
     result['origins'] = sorted(row['id'] for row in config['origin_selections'])
     result['destinations'] = sorted(row['id'] for row in config['destination_selections'])
     if 'date_pairs' in config:

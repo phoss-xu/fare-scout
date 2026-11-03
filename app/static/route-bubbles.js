@@ -1,6 +1,6 @@
 import {displayAmount} from './currency.js';
-export function bubblePrice(value) {
-  const p=displayAmount(value),symbols={CNY:'¥',JPY:'¥',USD:'$',HKD:'HK$',EUR:'€',GBP:'£',SGD:'S$',AUD:'A$',CAD:'C$'};
+export function bubblePrice(value,currency) {
+  const p=displayAmount(value,currency),symbols={CNY:'¥',JPY:'¥',USD:'$',HKD:'HK$',EUR:'€',GBP:'£',SGD:'S$',AUD:'A$',CAD:'C$'};
   return `${p.converted?'≈ ':''}${symbols[p.code] || p.code}${p.amount.replace(/\.00$/,'')}`;
 }
 /** Select readable price pins at their real positions; density grows with the viewport. */
@@ -8,7 +8,7 @@ export function bubbleLayout(points,width,height,selected=-1,reserved=[]) {
   const boxes=[],limit=Math.min(32,Math.max(3,Math.floor(width*height/17000)));
   for(const point of points.slice().sort((a,b)=>(b.index===selected)-(a.index===selected) || a.price-b.price)) {
     if(boxes.length>=limit)break;
-    const w=Math.max(58,bubblePrice(point.price).length*8+20),h=34,x=point.x-w/2,y=point.y-h-10;
+    const w=Math.max(58,bubblePrice(point.price,point.currency).length*8+20),h=34,x=point.x-w/2,y=point.y-h-10;
     if(x<6 || x+w>width-6 || y<6 || y+h>height-35)continue;
     if(point.index!==selected && reserved.some(p=>x<p.x+p.w+8 && x+w+8>p.x && y<p.y+p.h+8 && y+h+8>p.y))continue;
     if(boxes.some(p=>x<p.x+p.w+12 && x+w+12>p.x && y<p.y+p.h+10 && y+h+10>p.y))continue;

@@ -72,7 +72,8 @@ export async function setupAuth(onChange) {
         : await request(`/api/auth/${mode}`, data);
       setupToken = null;
       $('#auth-password').value = '';
-      history.replaceState(null, '', '/');
+      const sharedTrip=new URLSearchParams(location.search).get('trip');
+      history.replaceState(null, '', sharedTrip?'/?trip='+encodeURIComponent(sharedTrip):'/');
       showSession(session);
     } catch (error) { $('#auth-error').textContent = error.message; }
     finally { button.disabled = false; }

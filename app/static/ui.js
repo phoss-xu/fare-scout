@@ -1,10 +1,12 @@
+import {getPreferences} from './preferences.js';
+import {currencyLabel} from './currency.js';
 import {tr} from './i18n.js';
 /** Navigation and disclosure behavior for the existing workspace. */
 export function setupWorkspace() {
   const nav=document.querySelector('.tabs'), heading=document.querySelector('#workspace-heading');
   const buttons=[...nav.querySelectorAll('[data-tab]')];
   function select(tab, focus=false) {
-    const titles={watches:[tr("我的出行监控","Your travel watches"),''],offers:[tr("机票机会","Flight opportunities"),''],alerts:[tr("提醒中心","Alerts"),'']};
+    const titles={watches:[tr("我的行程","My trips"),''],offers:[tr("机票机会","Flight opportunities"),''],alerts:[tr("提醒中心","Alerts"),'']};
     const name=tab.dataset.tab;
     buttons.forEach(button=>{const active=button===tab;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;button.setAttribute('aria-controls',`${button.dataset.tab}-panel`);});
     ['deals','watches','offers','alerts'].forEach(key=>document.querySelector(`#${key}-panel`).hidden=key!==name);
@@ -36,7 +38,7 @@ export function setupSearchLayout(form,panel) {
     panel.querySelector('#deal-anywhere').hidden=true;
     const count=form.elements.adults.value, stops=form.elements.max_stops;
     const filters=[`${count}${tr(" 位成人"," adults")}`,stops.value==='-1'?tr("不限中转","Any stops"):stops.options[stops.selectedIndex].text];
-    if(Number(form.elements.budget.value)) filters.push(`${tr("预算 HK$","Budget HK$")}${form.elements.budget.value}`);
+    if(Number(form.elements.budget.value)) filters.push(`${tr('预算 ','Budget ')+currencyLabel(getPreferences().currency)} ${form.elements.budget.value}`);
     panel.querySelector('#deal-filter-summary').textContent=filters.join(' · ');
   }
   document.addEventListener('languagechange',sync);

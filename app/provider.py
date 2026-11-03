@@ -37,7 +37,7 @@ class Kiwi:
         fmt = lambda value: date.fromisoformat(value).strftime("%d/%m/%Y")
         args = dict(flyFrom=(locations.resolve(job["origin_id"]) if job.get("origin_id") else locations.origin(watch))["code"], flyTo=locations.resolve(job.get("location_id") or job["destination"])["code"],
                     departureDate=fmt(job["departure"]), returnDate=fmt(job["arrival"]),
-                    currency=watch["currency"], adults=watch["adults"], cabinClass="M",
+                    currency=watch["currency"], locale="zh-CN", adults=watch["adults"], cabinClass="M",
                     sort="price", allow_self_transfer=False)
         if watch.get("max_stops", 1) >= 0:
             args["max_sector_stopovers"] = watch.get("max_stops", 1)
@@ -45,7 +45,9 @@ class Kiwi:
             args.update(returnDate=fmt((date.fromisoformat(job["arrival"]) - timedelta(days=1)).isoformat()),
                         returnDateTo=fmt(job["arrival"]), dtime_from=0, dtime_to=5,
                         ret_atime_from=0, ret_atime_to=5)
-        offers = [o for o in self.query(args) if matches(o, watch, job)]
+        if watch.get('trip_type') == 'oneway':
+            args.pop('returnDate', None)
+        offers = [dict(o, currency=watch["currency"]) for o in self.query(args) if matches(o, watch, job)]
         cheapest = {}
         for offer in offers:
             key = journeys.identity(watch, job, offer)
@@ -73,4 +75,6 @@ class Kiwi:
                         break
         if not isinstance(data, dict) or data.get("error") or not isinstance(data.get("itineraries"), list):
             raise RuntimeError("Unrecognized Kiwi result")
+        if data.get("currency") and data["currency"] != args.get("currency", "HKD"):
+            raise RuntimeError("Kiwi returned a different quote currency")
         return [o for o in data["itineraries"] if isinstance(o, dict)]

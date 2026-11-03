@@ -2,14 +2,14 @@ import {all,first,run,now} from './db.js';
 import {ready,sendText,WaitingForVerification} from './mail.js';
 
 export function editionText(e) {
-  const c=JSON.parse(e.config),offers=JSON.parse(e.offers);
+  const c=JSON.parse(e.config),offers=JSON.parse(e.offers),unit=c.currency && c.currency!=='HKD'?c.currency+' ':'HK$';
   const heading=e.status==='error'?'今日查询失败，暂时无法生成推荐。':offers.length?'今天为你找到这些出行选择：':'本次有限结果中没有符合偏好的行程，不代表市场上没有航班。';
-  const rows=offers.map(o=>`${o.outbound.from} → ${o.destination_name || o.outbound.to} · 往返 HK$${o.price}\n`+
+  const rows=offers.map(o=>`${o.outbound.from} → ${o.destination_name || o.outbound.to} · 往返 ${unit}${o.price}\n`+
     `去程 ${o.outbound.departureTime} → ${o.outbound.arrivalTime}\n返程 ${o.inbound.departureTime} → ${o.inbound.arrivalTime} 抵达\n`+
     `${o.travel.calendar_reference?'预计':'需'}请假 ${o.travel.leave_days} 天 · 可玩 ${o.travel.full_days} 个完整白天（09:00–20:00）${o.travel.red_eye?' · 凌晨往返':''}\n`+
     `请假日期：${o.travel.leave_dates.join('、')||'无'}${o.travel.calendar_reference?'；假期/补班安排尚待正式公布，需复核':''}\n核价链接：${o.bookingUrl || '暂无'}`);
   return `Fare Scout · ${e.day} 每日推荐\n${heading}\n\n${rows.join('\n\n')}\n\n`+
-    `${c.adults} 位成人 · 经济舱 · HKD 往返总价 · 最近查询 ${e.checked_at}\n`+
+    `${c.adults} 位成人 · 经济舱 · ${c.currency || 'HKD'} 往返总价 · 最近查询 ${e.checked_at}\n`+
     `查询 ${e.total} 组，失败 ${e.failures} 组。有限结果不代表完整市场最低价。所有起降为机场当地时间。\n`+
     '请假按内地工作日/调休、18:00 下班、06:00 前抵达可上班估算，未计跨境交通和休息时间。可在网页修改时间或关闭每日推荐。';
 }

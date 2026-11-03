@@ -1,3 +1,4 @@
+import {currencyLabel} from './currency.js';
 import {request} from './api.js';
 import {tr} from './i18n.js';
 import {escape} from './format.js';
@@ -5,13 +6,13 @@ import {chinaToday} from './holidays.js';
 
 export function presetDescription(c) {
   const places=ids=>ids.map(id=>id.split(':').at(-1)).join(' / ');
-  const dates=c.date_pairs ? c.date_pairs.map(p=>`${p.start.slice(5)}–${p.end.slice(5)}`).join(' · ') : `${c.start} — ${c.end}`;
+  const dates=c.trip_type==='oneway' && c.date_mode==='fixed'?c.start:c.date_pairs ? c.date_pairs.map(p=>`${p.start.slice(5)}–${p.end.slice(5)}`).join(' · ') : `${c.start} — ${c.end}`;
   return `${places(c.origins)} → ${c.destinations.length?places(c.destinations):tr('任何地方','Anywhere')} · ${dates}`;
 }
 export function presetDetails(c) {
-  const mode=c.date_pairs?tr(`${c.date_pairs.length} 个周末`,`${c.date_pairs.length} weekends`):c.date_mode==='fixed'?tr('固定往返','Fixed return dates'):tr(`灵活日期 · ${c.nights.join('、')} 晚`,`Flexible dates · ${c.nights.join(', ')} nights`);
+  const mode=c.trip_type==='oneway'?tr(c.date_mode==='fixed'?'单程 · 固定日期':'单程 · 灵活日期',c.date_mode==='fixed'?'One-way · Fixed date':'One-way · Flexible dates'):c.date_pairs?tr(`${c.date_pairs.length} 个周末`,`${c.date_pairs.length} weekends`):c.date_mode==='fixed'?tr('固定往返','Fixed return dates'):tr(`灵活日期 · ${c.nights.join('、')} 晚`,`Flexible dates · ${c.nights.join(', ')} nights`);
   const days=tr(['周一','周二','周三','周四','周五','周六','周日'],['Mon','Tue','Wed','Thu','Fri','Sat','Sun']);
-  return [mode,`${c.adults}${tr(' 位成人',' adults')}`,c.weekdays.length?c.weekdays.map(d=>days[d]).join(' / '):'',c.max_stops===0?tr('直飞','Direct'):c.max_stops>0?tr(`最多 ${c.max_stops} 次中转`,`Up to ${c.max_stops} stops`):'',c.budget?`HK$${c.budget}`:'',c.max_duration_hours?tr(`每程 ${c.max_duration_hours} 小时内`,`Up to ${c.max_duration_hours} hours per leg`):''].filter(Boolean).join(' · ');
+  return [mode,`${c.adults}${tr(' 位成人',' adults')}`,c.weekdays.length?c.weekdays.map(d=>days[d]).join(' / '):'',c.max_stops===0?tr('直飞','Direct'):c.max_stops>0?tr(`最多 ${c.max_stops} 次中转`,`Up to ${c.max_stops} stops`):'',c.budget?`${currencyLabel(c.currency || 'HKD')} ${c.budget}`:'',c.max_duration_hours?tr(`每程 ${c.max_duration_hours} 小时内`,`Up to ${c.max_duration_hours} hours per leg`):''].filter(Boolean).join(' · ');
 }
 export function presetCards(rows, selected='') {
   return rows.map(row=>{
@@ -26,10 +27,10 @@ export function setupSearchPresets(form, {capture, apply}) {
   const save=root.querySelector('[data-preset-save]'),name=root.querySelector('#preset-name'),status=root.querySelector('[role=status]');
   const fixedSection=form.querySelector('.fixed-saved-searches'),fixedList=form.querySelector('.fixed-query-shortcuts');
   let rows=[],selected='',epoch=0,operation=0,revision=0,active=false;
-  function syncFixed() {fixedSection.hidden=form.elements.date_mode.value!=='fixed' || !fixedList.childElementCount;}
+  function syncFixed() {fixedSection.hidden=form.elements.trip_type?.value==='oneway' || form.elements.date_mode.value!=='fixed' || !fixedList.childElementCount;}
   function render() {
     list.innerHTML=rows.length?presetCards(rows,selected):`<p class="preset-empty">${tr('暂无保存的组合','No saved searches')}</p>`;
-    fixedList.innerHTML=rows.filter(row=>row.config.date_mode==='fixed' && !row.config.date_pairs).map(row=>`<button type="button" data-preset="${escape(row.id)}" aria-pressed="${row.id===selected}">${escape(row.name || tr('往返','Return'))} · ${escape(row.config.start.slice(5))}–${escape(row.config.end.slice(5))}</button>`).join('');
+    fixedList.innerHTML=rows.filter(row=>row.config.trip_type!=='oneway' && row.config.date_mode==='fixed' && !row.config.date_pairs).map(row=>`<button type="button" data-preset="${escape(row.id)}" aria-pressed="${row.id===selected}">${escape(row.name || tr('往返','Return'))} · ${escape(row.config.start.slice(5))}–${escape(row.config.end.slice(5))}</button>`).join('');
     syncFixed();
   }
   async function load() {

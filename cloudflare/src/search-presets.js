@@ -5,6 +5,8 @@ export function snapshot(data) {
   ensure(data && typeof data==='object' && !Array.isArray(data),'请检查要保存的查询组合。');
   const c=validate(data,true);
   const result=Object.fromEntries(['start','end','date_mode','adults','budget','max_stops','max_duration_hours','nights','weekdays'].map(key=>[key,c[key]]));
+  if(c.trip_type==='oneway') result.trip_type='oneway';
+  if(c.currency!=='HKD') result.currency=c.currency;
   result.origins=c.origin_selections.map(row=>row.id).sort();
   result.destinations=c.destination_selections.map(row=>row.id).sort();
   if(c.date_pairs) result.date_pairs=c.date_pairs;

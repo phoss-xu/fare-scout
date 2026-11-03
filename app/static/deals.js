@@ -3,7 +3,7 @@ import {searchStatus} from './deal-progress.js';
 import {captureSearch,restoreSearch} from './search-form.js';
 import {setupSearchPresets} from './search-presets.js';
 import {setupOfferViews} from './offer-views.js';
-import {subscribePreferences} from './preferences.js';
+import {getPreferences,subscribePreferences} from './preferences.js';
 import {subscribeCurrency} from './currency.js';
 import {tr} from './i18n.js';
 import {amount} from './format.js';
@@ -55,9 +55,9 @@ export function setupDeals(openWatch) {
     const choices=destinationChoices(result.offers,day);
     if(!choices.some(c=>c.key===destination)) destination='';
     const offers=sortedOffers(result.offers, form.elements.result_sort.value, day).filter(o=>!destination || (o.destination_id || o.outbound.to)===destination);
-    offerViews.render(offers, result.offers, result.config.adults);
+    offerViews.render(offers, result.offers, result.config.adults,false,{...result.config,checked_at:result.checked_at});
     const rail=panel.querySelector('#deal-destinations');
-    rail.innerHTML='<button type="button" data-deal-destination="" aria-pressed="'+String(!destination)+tr("\">所有目的地</button>","\">All destinations</button>")+choices.map(c=>`<button type="button" data-deal-destination="${escape(c.key)}" aria-pressed="${c.key===destination}"><span>${escape(c.name)}</span><strong>${amount(c.price)}</strong></button>`).join('');
+    rail.innerHTML='<button type="button" data-deal-destination="" aria-pressed="'+String(!destination)+tr("\">所有目的地</button>","\">All destinations</button>")+choices.map(c=>`<button type="button" data-deal-destination="${escape(c.key)}" aria-pressed="${c.key===destination}"><span>${escape(c.name)}</span><strong>${amount(c.price,result.config.currency)}</strong></button>`).join('');
     panel.querySelectorAll('[data-deal-day]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dealDay === day)));
   }
   panel.querySelector('#deal-anywhere').addEventListener('click', () => {
@@ -98,7 +98,7 @@ export function setupDeals(openWatch) {
     renderedOffers=signature;
     if(day && !sampledDays(data.offers).some(([date])=>date===day)) day='';
     controls.hidden=false;panel.querySelector('#deal-sort').hidden=false;
-    panel.querySelector('#deal-days').innerHTML=`<button type="button" data-deal-day="" aria-pressed="${!day}">${tr('全部日期','All dates')}</button>`+sampledDays(data.offers).map(([date,price])=>`<button type="button" data-deal-day="${date}" aria-pressed="${date===day}">${date.slice(5)}<strong>${amount(price)}</strong></button>`).join('');
+    panel.querySelector('#deal-days').innerHTML=`<button type="button" data-deal-day="" aria-pressed="${!day}">${tr('全部日期','All dates')}</button>`+sampledDays(data.offers).map(([date,price])=>`<button type="button" data-deal-day="${date}" aria-pressed="${date===day}">${date.slice(5)}<strong>${amount(price,data.config.currency)}</strong></button>`).join('');
     render();
   }
   const poller=visibilityPoll(poll,{delay:()=>pollDelay});
@@ -139,16 +139,17 @@ export function setupDeals(openWatch) {
     if(result) {
       status.textContent=searchStatus(result);
       if(result.status==='running' && !result.offers.length) return;
-      panel.querySelector('#deal-days').innerHTML=`<button type="button" data-deal-day="" aria-pressed="${!day}">${tr('全部日期','All dates')}</button>`+sampledDays(result.offers).map(([date,value])=>`<button type="button" data-deal-day="${date}" aria-pressed="${date===day}">${date.slice(5)}<strong>${amount(value)}</strong></button>`).join('');
+      panel.querySelector('#deal-days').innerHTML=`<button type="button" data-deal-day="" aria-pressed="${!day}">${tr('全部日期','All dates')}</button>`+sampledDays(result.offers).map(([date,value])=>`<button type="button" data-deal-day="${date}" aria-pressed="${date===day}">${date.slice(5)}<strong>${amount(value,result.config.currency)}</strong></button>`).join('');
       render();
     } else if(!button.disabled) {results.innerHTML=discoveryPlaceholder();status.textContent='';}
   }
+  document.addEventListener('locationnameschange',renderDisplayPreferences);
   subscribePreferences(renderDisplayPreferences);subscribeCurrency(renderDisplayPreferences);
   return {applyPreferences(c) {
     const key=JSON.stringify([c.origins,c.adults,c.budget]);
     if(edited || key===preferenceKey) return;
     preferenceKey=key;
-    form.elements.adults.value=c.adults;form.elements.budget.value=c.budget || '';
+    form.elements.adults.value=c.adults;form.elements.budget.value=(c.currency || 'HKD')===getPreferences().currency?(c.budget || ''):'';
     origin.setValues(c.origins).catch(error=>{status.textContent=error.message;});
     form.dispatchEvent(new Event('journey:locations'));
   },reset(active) {

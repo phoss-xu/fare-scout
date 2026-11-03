@@ -6,7 +6,7 @@ export class SourceError extends Error {
 }
 const fmt = value => value.slice(8,10)+'/'+value.slice(5,7)+'/'+value.slice(0,4);
 export function argumentsFor(c,j,discovery) {
-  const args={flyFrom:resolve(j.origin_id).code,flyTo:j.location_id?resolve(j.location_id).code:'anywhere',departureDate:fmt(discovery?c.start:j.departure),currency:'HKD',adults:c.adults,cabinClass:'M',sort:'price',allow_self_transfer:false};
+  const args={flyFrom:resolve(j.origin_id).code,flyTo:j.location_id?resolve(j.location_id).code:'anywhere',departureDate:fmt(discovery?c.start:j.departure),currency:c.currency || 'HKD',locale:c.locale || 'zh-CN',adults:c.adults,cabinClass:'M',sort:'price',allow_self_transfer:false};
   if(c.max_stops>=0) args.max_sector_stopovers=c.max_stops;
   if(discovery) {
     Object.assign(args,{departureDateTo:fmt(c.end),nights_in_dst_from:c.min_nights,nights_in_dst_to:c.max_nights,one_for_city:!c.daily && (!c.nights || c.nights.length===c.max_nights-c.min_nights+1)});
@@ -20,6 +20,10 @@ export function argumentsFor(c,j,discovery) {
   } else {
     args.returnDate=fmt(j.arrival);
     if(c.mode==='weekend') Object.assign(args,{returnDate:fmt(plusDays(j.arrival,-1)),returnDateTo:fmt(j.arrival),dtime_from:0,dtime_to:5,ret_atime_from:0,ret_atime_to:5});
+  }
+  if(c.trip_type==='oneway') {
+    for(const key of ['returnDate','returnDateTo','nights_in_dst_from','nights_in_dst_to']) delete args[key];
+    args.one_for_city=true;
   }
   return args;
 }
@@ -62,16 +66,17 @@ export async function search(c,j,discovery=false) {
       }
     }
     if(data?.error || !Array.isArray(data?.itineraries)) throw new SourceError('result_shape');
+    if(data.currency && data.currency!==(c.currency || 'HKD')) throw new SourceError('currency_mismatch');
     const offers=new Map();
     for(const offer of data.itineraries) {
       if(!offer || typeof offer!=='object') continue;
       if(!(discovery?accepts(offer,c,j):matches(offer,c,j))) continue;
       const travel=c.daily?suitable(offer,c,j.window):null;
       if(c.daily && (!travel || ['CN','HK','MO'].includes(resolve('airport:'+offer.outbound.to).country_code))) continue;
-      let key=routeKey(c,j,offer),row=offer;
+      let key=discovery?'':routeKey(c,j,offer),row={...offer,currency:c.currency || 'HKD'};
       if(discovery) {
         const airport=resolve('airport:'+offer.outbound.to);key=c.daily?key:airport.city_code || airport.code;
-        row={...offer,destination_name:label(airport.code),destination_country:airport.country_name,...(travel?{travel}:{} )};
+        row={...offer,currency:c.currency || 'HKD',destination_name:label(airport.code),destination_country:airport.country_name,...(travel?{travel}:{} )};
       }
       if(!offers.has(key) || offer.price<offers.get(key).price) offers.set(key,row);
     }

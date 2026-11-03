@@ -108,3 +108,31 @@ test('selected disjoint weekends create exact tasks and keep a quote for each we
   const jobs=(await h.db.prepare('SELECT job FROM search_tasks WHERE run_id=?').bind(r.data.id).all()).results;
   assert.deepEqual(jobs.map(j=>JSON.parse(j.job).window.start).sort(),pairs.map(p=>p.start));
 });
+test('one-way discovery passes through source, D1 queue and saved form without return legs or alerts',async t=>{
+  const one=offer();delete one.inbound;
+  const upstream={offers:[one]},h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source(upstream)});t.after(()=>h.close());
+  const a=await register(h),value=config({currency:'CNY',trip_type:'oneway',date_mode:'fixed',nights:[]});
+  const saved=await request(h,'/api/search-presets',{config:value},a);
+  assert.equal(saved.status,200);const restored=saved.data.presets[0].config;
+  assert.equal(restored.currency,'CNY');assert.equal(restored.trip_type,'oneway');assert.equal(restored.start,restored.end);
+  const task=await request(h,'/api/deals',restored,a);assert.equal(task.status,202);
+  const result=await waitFor(async()=>{const r=await request(h,'/api/deals/'+task.data.id,undefined,a);return r.data.status==='done'?r.data:null;});
+  assert.equal(result.offers.length,1);assert.equal(result.offers[0].inbound,undefined);assert.equal(result.offers[0].currency,'CNY');assert.equal(upstream.args.currency,'CNY');
+  for(const key of ['returnDate','nights_in_dst_from','nights_in_dst_to']) assert.equal(key in upstream.args,false);
+  const state=(await request(h,'/api/state',undefined,a)).data;
+  assert.equal(state.observations.length,0);assert.equal(state.alerts.length,0);
+});
+
+test('one-way watch keeps outbound-only observations and isolated price-drop alerts',async t=>{
+  const flight=offer(1200);delete flight.inbound;const upstream={offers:[flight]};
+  const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source(upstream)});t.after(()=>h.close());
+  const a=await register(h),id=await watch(h,a,{trip_type:'oneway',budget:0});
+  await check(h,a,id);
+  let state=(await request(h,'/api/state',undefined,a)).data;
+  assert.equal(state.observations.length,1);assert.equal(state.observations[0].offer.inbound,undefined);assert.equal(state.alerts.length,0);
+  assert.ok(!('returnDate' in upstream.args));
+  upstream.offers=[{...flight,price:1000}];await check(h,a,id);
+  state=(await request(h,'/api/state',undefined,a)).data;
+  assert.equal(state.alerts.length,1);assert.equal(state.alerts[0].reason,'drop');
+  assert.deepEqual(JSON.parse(state.observations[0].route_key).slice(2,4),['','']);
+});

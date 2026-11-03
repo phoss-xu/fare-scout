@@ -1,7 +1,8 @@
-import * as searchPresets from './search-presets.js';
 import {removedOffers} from './observation-history.js';
 import {alertPage} from './alert-pages.js';
 import {cleanSourceCache} from './source-cache.js';
+import * as trips from './trips.js';
+import * as searchPresets from './search-presets.js';
 import {ApiError,ensure,report} from './db.js';
 import {json,data,asset} from './http.js';
 import {current,requireUser,authenticate} from './auth.js';
@@ -26,7 +27,9 @@ async function api(request,env,ctx) {
   const url=new URL(request.url),path=url.pathname,db=env.DB;
   if(request.method==='GET') {
     if(path==='/api/auth/session') return json({...await current(request,db)||{user:null},auth_mode:env.AUTH_MODE||'password'});
+    if(path.startsWith('/api/shared-trips/')) return json(await trips.shared(db,path.slice('/api/shared-trips/'.length)));
     const user=await requireUser(request,db);
+    if(path==='/api/trips') return json(await trips.listed(db,user.id));
     if(path==='/api/removed-offers') return json(await removedOffers(db,user.id,url.searchParams.get('before')));
     if(path==='/api/alerts') return json(await alertPage(db,user.id,url.searchParams.get('before')));
     if(path==='/api/state') return json(await store.state(env,user));
@@ -48,6 +51,8 @@ async function api(request,env,ctx) {
     if(path.startsWith('/api/auth/passkey/')) { const auth=await passkeyAuth(request,env,path,body);return json(auth.body,200,auth.cookie); }
     if(AUTH.has(path)) { const auth=await authenticate(request,env,path,body);return json(auth.body,200,auth.cookie); }
     const user=await requireUser(request,db,true);
+    if(path==='/api/trips') return json(body.action==='remove'?await trips.remove(db,user.id,body.key):await trips.save(db,user.id,body));
+    if(path==='/api/shared-trips') return json(await trips.share(db,user.id,body),201);
     if(path==='/api/search-presets') return json(body.action==='remove'?await searchPresets.remove(db,user.id,body.id):await searchPresets.save(db,user.id,body));
     if(path==='/api/location-history') return json(await remember(db,user.id,body));
     if(path==='/api/daily') { await saveDaily(db,user.id,body);return json({message:'每日推荐设置已保存。'}); }
@@ -85,7 +90,10 @@ async function api(request,env,ctx) {
 }
 export default {
   async fetch(request,env,ctx) {
-    try { return new URL(request.url).pathname.startsWith('/api/')?await api(request,env,ctx):await asset(request,env); }
+    try {
+      const path=new URL(request.url).pathname;
+      return path.startsWith('/api/')?await api(request,env,ctx):await asset(request,env);
+    }
     catch(error) {
       if(error instanceof ApiError) return json({error:error.message},error.status);
       report(error,'API failed');

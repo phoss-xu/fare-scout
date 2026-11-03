@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from . import accounts, auth_http, deal_jobs, location_groups, location_history, locations, mail_config, mail_delivery, presenter, scheduler, store, worker, removals, search_presets
+from . import accounts, auth_http, deal_jobs, location_groups, location_history, locations, mail_config, mail_delivery, presenter, scheduler, store, worker, removals, search_presets, trips
 from .domain import jobs, today, validate
 
 STATIC = Path(__file__).with_name("static")
@@ -34,11 +34,16 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == "/api/auth/session":
             return self.send(200, auth_http.current(self) or {"user": None})
-        if path in ("/api/state", "/api/locations", "/api/location-history", "/api/search-presets") or path.startswith('/api/deals/'):
+        if path.startswith('/api/shared-trips/'):
+            result = trips.shared(path.rsplit('/', 1)[-1])
+            return self.send(200, result) if result else self.send(404, {'error': '分享不存在或已失效。'})
+        if path in ("/api/trips", "/api/state", "/api/locations", "/api/location-history", "/api/search-presets") or path.startswith('/api/deals/'):
             try:
                 user = auth_http.require(self)
             except accounts.AuthError as exc:
                 return self.send(exc.status, {"error": str(exc)})
+            if path == '/api/trips':
+                return self.send(200, trips.listed(user['id']))
             if path == "/api/state":
                 return self.send(200, presenter.state(user))
             if path == '/api/search-presets':
@@ -67,7 +72,11 @@ class Handler(BaseHTTPRequestHandler):
                  "/locations.js": ("locations.js", "text/javascript"), "/locations.css": ("locations.css", "text/css"),
                  "/location_history.js": ("location_history.js", "text/javascript"),
                  "/deals.js": ("deals.js", "text/javascript"), "/deal-progress.js": ("deal-progress.js", "text/javascript"), "/deal_views.js": ("deal_views.js", "text/javascript"),
-                 "/deals.css": ("deals.css", "text/css"),
+                 "/deals.css": ("deals.css", "text/css"), "/result-frame.css": ("result-frame.css", "text/css"),
+                 "/boarding-itinerary.js": ("boarding-itinerary.js", "text/javascript"),
+                 "/boarding-itinerary.css": ("boarding-itinerary.css", "text/css"),
+                 "/location-names.js": ("location-names.js", "text/javascript"),
+                 "/location-names.json": ("location-names.json", "application/json"),
                  "/departure.css": ("departure.css", "text/css"),
                  "/search-panels.css": ("search-panels.css", "text/css"),
                  "/holidays.js": ("holidays.js", "text/javascript"), "/holidays.css": ("holidays.css", "text/css"),
@@ -82,8 +91,8 @@ class Handler(BaseHTTPRequestHandler):
                  "/date-editor.css": ("date-editor.css", "text/css"),
                  "/date-editor-polish.css": ("date-editor-polish.css", "text/css"),
                  "/travel-dates.js": ("travel-dates.js", "text/javascript"),
-                 "/search-form.js": ("search-form.js", "text/javascript"),
                  "/search-presets.js": ("search-presets.js", "text/javascript"),
+                 "/search-form.js": ("search-form.js", "text/javascript"),
                  "/search-presets.css": ("search-presets.css", "text/css"),
                  "/landscape-data.js": ("landscape-data.js", "text/javascript"),
                  "/landscape-rotation.js": ("landscape-rotation.js", "text/javascript"),
@@ -103,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
                  "/daily.css": ("daily.css", "text/css"),
                  "/automation.css": ("automation.css", "text/css"),
                  "/style.css": ("style.css", "text/css")}
-        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("polling", "history-panel", "landscape-provider", "landscape-actions", "email-settings", "preferences", "exchange-rates", "currency", "i18n", "settings")})
+        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("landscape-provider", "landscape-actions", "email-settings", "preferences", "exchange-rates", "currency", "i18n", "settings")})
         files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("polling", "history-panel", "offer-views", "route-map", "route-map-chart", "route-projection", "route-basemap", "route-bubbles", "route-card-views")})
         files.update({f"/vendor/{name}": (f"vendor/{name}", "text/javascript") for name in ("maplibre-gl.mjs", "maplibre-gl-shared.mjs", "maplibre-gl-worker.mjs")})
         files["/vendor/maplibre-gl.css"] = ("vendor/maplibre-gl.css", "text/css")
@@ -111,6 +120,10 @@ class Handler(BaseHTTPRequestHandler):
         for photo in (STATIC / "assets/destinations").glob("*"):
             if photo.suffix in (".jpg", ".png", ".webp"):
                 files[f"/assets/destinations/{photo.name}"] = (f"assets/destinations/{photo.name}", {".jpg":"image/jpeg", ".png":"image/png", ".webp":"image/webp"}[photo.suffix])
+        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("trip-snapshot", "trip-state", "trip-actions", "trip-dialogs", "trip-sharing", "shared-trip", "boarding-itinerary")})
+        files["/boarding-itinerary.css"] = ("boarding-itinerary.css", "text/css")
+        files["/trip-actions.css"] = ("trip-actions.css", "text/css")
+        files["/share.html"] = ("share.html", "text/html")
         files["/route-map.css"] = ("route-map.css", "text/css")
         files["/offer-views.css"] = ("offer-views.css", "text/css")
         files["/route-airports.json"] = ("route-airports.json", "application/json")
@@ -142,6 +155,10 @@ class Handler(BaseHTTPRequestHandler):
                 return
             user = auth_http.require(self, write=True)
             user_id = user["id"]
+            if self.path == '/api/trips':
+                return self.send(200, trips.remove(user_id, data.get('key')) if data.get('action') == 'remove' else trips.save(user_id, data))
+            if self.path == '/api/shared-trips':
+                return self.send(201, trips.share(user_id, data))
             if self.path == '/api/search-presets':
                 result = search_presets.remove(user_id, data.get('id')) if data.get('action') == 'remove' else search_presets.save(user_id, data)
                 return self.send(200, result)

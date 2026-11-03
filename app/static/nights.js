@@ -8,7 +8,7 @@ export function setupNights(form) {
   function render() {
     const values=selectedNights(form);
     form.querySelector('#night-value').textContent=nightsLabel(values);
-    boxes[0].setCustomValidity(form.elements.date_mode.value!=='range' || values.length ? '' : tr('请至少选择一个停留晚数。','Select at least one stay length.'));
+    boxes[0].setCustomValidity(form.elements.trip_type?.value==='oneway' || form.elements.date_mode.value!=='range' || values.length ? '' : tr('请至少选择一个停留晚数。','Select at least one stay length.'));
   }
   form.addEventListener('change',render);
   document.addEventListener('languagechange',render);

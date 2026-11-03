@@ -23,10 +23,10 @@ export async function mailStatus(env,recipient,userId) {
 export class WaitingForVerification extends Error {constructor(){super('waiting_verification');this.name='WaitingForVerification';}}
 // External delivery is confined to this adapter; local acceptance leaves MAIL_ENABLED=false.
 export async function sendEmail(env,alert,recipient,beforeSend) {
-  const c=JSON.parse(alert.config || '{}'),route=alert.route_key?JSON.parse(alert.route_key):[];
-  const previous=alert.previous_price==null?'首次采样进入预算。':`上次有效报价：HK$${alert.previous_price}`;
-  await sendText(env,recipient,`Fare Scout · ${alert.destination} · HK$${alert.price}`,
-    `${route[0] || c.origin || ''} → ${alert.destination}\n出发日期：${alert.departure}\n${c.mode==='weekend'?'返程抵达日期':'返程起飞日期'}：${alert.arrival}\n${c.adults || 1} 位成人 · 经济舱 · 往返总价 HK$${alert.price}\n${previous}\n采样时间：${alert.created_at}\n核价链接：${alert.booking_url||'暂无'}\n报价可能变化，有限结果不代表完整市场最低价。可在网页暂停提醒。`,
+  const c=JSON.parse(alert.config || '{}'),unit=c.currency && c.currency!=='HKD'?c.currency+' ':'HK$',route=alert.route_key?JSON.parse(alert.route_key):[];
+  const previous=alert.previous_price==null?'首次采样进入预算。':`上次有效报价：${unit}${alert.previous_price}`;
+  await sendText(env,recipient,`Fare Scout · ${alert.destination} · ${unit}${alert.price}`,
+    `${route[0] || c.origin || ''} → ${alert.destination}\n出发日期：${alert.departure}${c.trip_type==='oneway'?'':`\n${c.mode==='weekend'?'返程抵达日期':'返程起飞日期'}：${alert.arrival}`}\n${c.adults || 1} 位成人 · 经济舱 · ${c.trip_type==='oneway'?'单程':'往返'}总价 ${unit}${alert.price}\n${previous}\n采样时间：${alert.created_at}\n核价链接：${alert.booking_url||'暂无'}\n报价可能变化，有限结果不代表完整市场最低价。可在网页暂停提醒。`,
     'fare-scout-'+alert.id+'-'+alert.created_at,alert.owner_id,beforeSend);
 }
 export async function sendText(env,recipient,subject,text,key,userId,beforeSend) {

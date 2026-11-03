@@ -1,3 +1,4 @@
+import {locationName,carrierLabel} from './location-names.js';
 import {tr} from './i18n.js';
 import {escape} from './format.js';
 
@@ -21,7 +22,7 @@ function endpoint(leg, side) {
   const list = segments(leg);
   const segment = side === 'from' ? list[0] : list.at(-1);
   const parts = localParts(side === 'from' ? leg.departureTime : leg.arrivalTime);
-  return `<div class="flight-endpoint"><time>${parts.clock}</time><span class="flight-date">${parts.date}</span><strong>${text(leg[side], tr("机场代码暂缺","Airport code unavailable"))}</strong><span class="airport-name">${text(segment?.[`${side}Name`], tr("机场名称暂缺","Airport name unavailable"))}</span></div>`;
+  return `<div class="flight-endpoint"><time>${parts.clock}</time><span class="flight-date">${parts.date}</span><strong>${text(leg[side], tr("机场代码暂缺","Airport code unavailable"))}</strong><span class="airport-name">${text(locationName(leg[side],'airport',segment?.[`${side}Name`]), tr("机场名称暂缺","Airport name unavailable"))}</span></div>`;
 }
 
 function stopLabel(leg) {
@@ -30,7 +31,7 @@ function stopLabel(leg) {
 
 function carrier(leg) {
   const list = segments(leg);
-  return [...new Set(list.map(s => [s.carrierName || s.carrier, s.flightNumber].filter(v => typeof v === 'string' && v.trim()).map(v => escape(v)).join(' · ')).filter(Boolean))].join(' / ') || tr("航空公司与航班号暂缺","Airline and flight number unavailable");
+  return [...new Set(list.map(s => [carrierLabel(s), s.flightNumber].filter(v => typeof v === 'string' && v.trim()).map(v => escape(v)).join(' · ')).filter(Boolean))].join(' / ') || tr("航空公司与航班号暂缺","Airline and flight number unavailable");
 }
 
 function legSummary(leg, title) {
@@ -47,13 +48,13 @@ export function baggageItems(baggage) {
 }
 
 function airport(segment, side) {
-  const location = [segment[`${side}City`], segment[`${side}Country`]].filter(v => typeof v === 'string' && v.trim()).map(v => escape(v)).join(' / ');
-  return `<strong>${text(segment[side], tr("代码暂缺","Code unavailable"))} · ${text(segment[`${side}Name`], tr("机场名称暂缺","Airport name unavailable"))}</strong>${location ? `<span>${location}</span>` : ''}`;
+  const location = [locationName(segment[side],'city',segment[`${side}City`]), segment[`${side}Country`]].filter(v => typeof v === 'string' && v.trim()).map(v => escape(v)).join(' / ');
+  return `<strong>${text(segment[side], tr("代码暂缺","Code unavailable"))} · ${text(locationName(segment[side],'airport',segment[`${side}Name`]), tr("机场名称暂缺","Airport name unavailable"))}</strong>${location ? `<span>${location}</span>` : ''}`;
 }
 
 function segmentView(segment, index) {
   const departure = localParts(segment.departureTime), arrival = localParts(segment.arrivalTime);
-  return `${tr("<div class=\"segment\"><div class=\"segment-heading\"><strong>航段 ","<div class=\"segment\"><div class=\"segment-heading\"><strong>Segment ")}${index + 1}</strong><span>${text(segment.carrierName || segment.carrier, tr("航空公司暂缺","Airline unavailable"))} · ${text(segment.flightNumber, tr("航班号暂缺","Flight number unavailable"))}</span></div><div class="segment-airport">${airport(segment, 'from')}<time>${departure.date} ${departure.clock}${tr(" 起飞</time></div><div class=\"segment-duration\">飞行 "," departure</time></div><div class=\"segment-duration\">Flight ")}${duration(segment.durationSeconds)} · ${text(segment.cabinClass, tr("舱位暂缺","Cabin unavailable"))}</div><div class="segment-airport">${airport(segment, 'to')}<time>${arrival.date} ${arrival.clock}${tr(" 抵达</time></div></div>"," arrival</time></div></div>")}`;
+  return `${tr("<div class=\"segment\"><div class=\"segment-heading\"><strong>航段 ","<div class=\"segment\"><div class=\"segment-heading\"><strong>Segment ")}${index + 1}</strong><span>${text(carrierLabel(segment), tr("航空公司暂缺","Airline unavailable"))} · ${text(segment.flightNumber, tr("航班号暂缺","Flight number unavailable"))}</span></div><div class="segment-airport">${airport(segment, 'from')}<time>${departure.date} ${departure.clock}${tr(" 起飞</time></div><div class=\"segment-duration\">飞行 "," departure</time></div><div class=\"segment-duration\">Flight ")}${duration(segment.durationSeconds)} · ${text(segment.cabinClass, tr("舱位暂缺","Cabin unavailable"))}</div><div class="segment-airport">${airport(segment, 'to')}<time>${arrival.date} ${arrival.clock}${tr(" 抵达</time></div></div>"," arrival</time></div></div>")}`;
 }
 
 function civilTime(value) {
@@ -75,5 +76,5 @@ function legDetails(leg, title) {
 
 export function flightDetails(offer) {
   const bags = baggageItems(offer.baggage).map(item => `<span>${item}</span>`).join('');
-  return `${tr("<div class=\"flight-overview\"><p class=\"flight-local-note\">机场当地时间 · 总时长含中转</p>","<div class=\"flight-overview\"><p class=\"flight-local-note\">Airport local time · Duration includes transfers</p>")}${legSummary(offer.outbound, tr("去程","Outbound"))}${legSummary(offer.inbound, tr("返程","Inbound"))}${tr("<div class=\"baggage-summary\"><strong>报价行李信息</strong><div class=\"baggage-items\">","<div class=\"baggage-summary\"><strong>Quoted baggage allowance</strong><div class=\"baggage-items\">")}${bags}${tr("</div><p class=\"baggage-note\">重量、尺寸及每人额度需核价确认</p></div></div><details class=\"flight-expanded\"><summary>航段详情 <span aria-hidden=\"true\">＋</span></summary><div class=\"flight-expanded-body\">","</div><p class=\"baggage-note\">Confirm baggage weight, dimensions and per-person allowance when booking</p></div></div><details class=\"flight-expanded\"><summary>Segment details <span aria-hidden=\"true\">＋</span></summary><div class=\"flight-expanded-body\">")}${legDetails(offer.outbound, tr("去程航段","Outbound segments"))}${legDetails(offer.inbound, tr("返程航段","Inbound segments"))}</div></details>`;
+  return `${tr("<div class=\"flight-overview\"><p class=\"flight-local-note\">机场当地时间 · 总时长含中转</p>","<div class=\"flight-overview\"><p class=\"flight-local-note\">Airport local time · Duration includes transfers</p>")}${legSummary(offer.outbound, tr("去程","Outbound"))}${offer.inbound?legSummary(offer.inbound, tr("返程","Inbound")):""}${tr("<div class=\"baggage-summary\"><strong>报价行李信息</strong><div class=\"baggage-items\">","<div class=\"baggage-summary\"><strong>Quoted baggage allowance</strong><div class=\"baggage-items\">")}${bags}${tr("</div><p class=\"baggage-note\">重量、尺寸及每人额度需核价确认</p></div></div><details class=\"flight-expanded\"><summary>航段详情 <span aria-hidden=\"true\">＋</span></summary><div class=\"flight-expanded-body\">","</div><p class=\"baggage-note\">Confirm baggage weight, dimensions and per-person allowance when booking</p></div></div><details class=\"flight-expanded\"><summary>Segment details <span aria-hidden=\"true\">＋</span></summary><div class=\"flight-expanded-body\">")}${legDetails(offer.outbound, tr("去程航段","Outbound segments"))}${offer.inbound?legDetails(offer.inbound, tr("返程航段","Inbound segments")):""}</div></details>`;
 }

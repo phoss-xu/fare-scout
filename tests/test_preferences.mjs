@@ -40,12 +40,19 @@ test('display conversion preserves source prices, original amount, date and Engl
   localStorage.setItem('fare-scout:exchange-rates',JSON.stringify({fetchedAt:realNow,rows:rows.map(row=>({...row,date}))}));
   setPreferences({language:'en',currency:'USD'});await ensureRates();
   assert.deepEqual(displayAmount(800),{code:'USD',date,converted:true,amount:'100'});
-  assert.match(price(800),/≈ USD/);assert.match(price(800),/Original HK\$800/);assert.match(price(800),new RegExp(date));
+  assert.match(price(800),/≈ USD/);assert.match(price(800),/Source quote HKD 800/);assert.match(price(800),new RegExp(date));
   const leg={from:'HKG',to:'SIN',departureTime:'2026-11-07T01:00:00',arrivalTime:'2026-11-07T05:00:00',durationSeconds:14400,stops:0};
   const offer={price:800,bookingUrl:'https://example.test/booking',outbound:leg,inbound:{...leg,from:'SIN',to:'HKG',departureTime:'2026-11-09T01:00:00',arrivalTime:'2026-11-09T05:00:00'}};
   const html=dealCards([offer],[offer],1);
   assert.match(html,/USD/);assert.match(html,/Check price/);assert.equal(offer.price,800);
   setPreferences({currency:'JPY'});assert.equal(displayAmount(800).amount,'16,000');
   setPreferences({currency:'CNY'});assert.equal(displayAmount(800).code,'HKD');
-  setPreferences({currency:'HKD',language:'zh-CN'});assert.doesNotMatch(price(800),/≈|Original/);
+  setPreferences({currency:'HKD',language:'zh-CN'});assert.doesNotMatch(price(800),/≈|Source quote/);
+});
+test('native selected currency is never converted twice and Chinese currency labels avoid raw codes',()=>{
+  setPreferences({language:'zh-CN',currency:'CNY'});
+  assert.deepEqual(displayAmount(599,'CNY'),{code:'CNY',date:null,converted:false,amount:'599'});
+  assert.match(price(599,'CNY'),/人民币/);assert.doesNotMatch(price(599,'CNY'),/≈|HKD|HK\$|CNY|参考汇率/);
+  setPreferences({currency:'EUR'});
+  assert.equal(displayAmount(599,'CNY').code,'CNY');
 });

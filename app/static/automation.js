@@ -1,4 +1,5 @@
 import {tr} from './i18n.js';
+import {currencyLabel} from './currency.js';
 import {price} from './format.js';
 import {request} from './api.js';
 import {renderEmail,setupEmail} from './email-settings.js';
@@ -26,8 +27,8 @@ export function renderAutomation(state) {
   $('#alerts').innerHTML = alerts.map(a => {
     const w = state.watches.find(w => w.id === a.watch_id);
     const route = a.route_key ? JSON.parse(a.route_key) : [];
-    const drop = a.previous_price == null ? '' : `${tr("降价 HK$","Price drop HK$")}${money(a.previous_price - a.price)}`;
-    return `<article class="card alert-card ${a.read_at ? '' : 'unread'}"><div class="card-top"><span class="badge">${a.reason === 'budget' ? tr("进入你的预算","Within your budget") : tr("发现降价","Price drop")}${a.read_at ? tr(" · 已读"," · Read") : tr(" · 未读"," · Unread")}</span><span class="muted">${time(a.created_at)}</span></div><h3>${escape(route[0] || w.origin)} <span class="arrow">↗</span> ${escape(destinations[a.destination])}</h3><p class="trip-dates">${a.departure} — ${a.arrival}${w.mode === 'weekend' ? tr(" 返程抵达"," return arrival") : tr(" 返程起飞"," return departure")}</p><div class="price">${price(a.price)}<span> / ${w.adults}${tr(" 人往返</span></div><p class=\"muted\">"," travellers, return</span></div><p class=\"muted\">")}${drop || tr("首次采样已在预算内","First observed fare is within budget")}</p><p class="muted">${delivery[a.email_status] || tr("邮件尚未排队","Email not queued yet")}${tr("</p><div class=\"card-bottom\"><span class=\"muted\">预订前核价</span>","</p><div class=\"card-bottom\"><span class=\"muted\">Confirm price before booking</span>")}${link(a.booking_url)}</div></article>`;
+    const drop = a.previous_price == null ? '' : `${tr('降价 ','Price drop ')+currencyLabel(w.currency || 'HKD')} ${money(a.previous_price - a.price)}`;
+    return `<article class="card alert-card ${a.read_at ? '' : 'unread'}"><div class="card-top"><span class="badge">${a.reason === 'budget' ? tr("进入你的预算","Within your budget") : tr("发现降价","Price drop")}${a.read_at ? tr(" · 已读"," · Read") : tr(" · 未读"," · Unread")}</span><span class="muted">${time(a.created_at)}</span></div><h3>${escape(route[0] || w.origin)} <span class="arrow">↗</span> ${escape(destinations[a.destination])}</h3><p class="trip-dates">${a.departure}${w.trip_type==='oneway'?'':' — '+a.arrival}${w.trip_type==='oneway'?tr(' 单程',' One-way'):w.mode === 'weekend' ? tr(" 返程抵达"," return arrival") : tr(" 返程起飞"," return departure")}</p><div class="price">${price(a.price,w.currency)}<span> / ${w.adults}${w.trip_type==='oneway'?tr(" 人单程</span></div><p class=\"muted\">"," travellers, one-way</span></div><p class=\"muted\">"):tr(" 人往返</span></div><p class=\"muted\">"," travellers, return</span></div><p class=\"muted\">")}${drop || tr("首次采样已在预算内","First observed fare is within budget")}</p><p class="muted">${delivery[a.email_status] || tr("邮件尚未排队","Email not queued yet")}${tr("</p><div class=\"card-bottom\"><span class=\"muted\">预订前核价</span>","</p><div class=\"card-bottom\"><span class=\"muted\">Confirm price before booking</span>")}${link(a.booking_url)}</div></article>`;
   }).join('') || tr("<div class=\"empty\"><span class=\"empty-icon\">↘</span><h3>暂无提醒</h3></div>","<div class=\"empty\"><span class=\"empty-icon\">↘</span><h3>No alerts yet</h3></div>");
   if((olderCursor===undefined?state.alert_page?.next_before:olderCursor)) $('#alerts').insertAdjacentHTML('beforeend',`<button type="button" class="small-btn" data-alerts-more>${tr('加载更早的提醒','Load earlier alerts')}</button>`);
 }
@@ -55,6 +56,7 @@ export function setupAutomation(getState, refresh, toast) {
     form.elements.interval_hours.value = w.interval_hours;
     form.elements.min_drop.value = w.min_drop;
     $('#settings-error').textContent = '';
+    form.elements.min_drop.closest('label').firstChild.textContent=tr('至少降价 · ','Minimum drop · ')+currencyLabel(w.currency || 'HKD');
     $('#settings-dialog').showModal();
   });
   $('#settings-form').addEventListener('submit', async event => {
