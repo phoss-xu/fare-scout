@@ -1,3 +1,4 @@
+import {setupRouteDetail} from './route-detail.js';
 import {tr} from './i18n.js';
 import {dealCards} from './deal_views.js';
 import {mountRouteMap} from './route-map.js';
@@ -10,6 +11,7 @@ function savedMode() {
 /** Own presentation only; callers retain filtering, quote indexes and watch actions. */
 export function setupOfferViews(container) {
   let mode=savedMode(),data,disposeMap=()=>{};
+  const detail=setupRouteDetail(container,()=>data);
   const toolbar=document.createElement('div');toolbar.className='offer-view-toolbar';toolbar.hidden=true;
   const frame=container.parentElement.querySelector('.result-frame');
   if(frame) frame.append(toolbar);
@@ -22,7 +24,7 @@ export function setupOfferViews(container) {
     if(!data) return;
     if(mode==='map' && data.offers.length) {
       disposeMap=mountRouteMap(container,data);
-    } else container.innerHTML=dealCards(data.offers,data.all,data.adults,data.recommendation,data.context);
+    } else container.innerHTML=dealCards(data.offers,data.all,data.adults,data.recommendation,{...data.context,routeDetail:true});
   }
   document.addEventListener('locationnameschange',render);
   toolbar.addEventListener('click',event=>{
@@ -32,7 +34,7 @@ export function setupOfferViews(container) {
     render();toolbar.querySelector(`[data-offer-view="${mode}"]`).focus();
   });
   return {
-    render(offers,all,adults,recommendation=false,context={}){data={offers,all,adults,recommendation,context};render();},
-    clear(){disposeMap();disposeMap=()=>{};data=undefined;toolbar.hidden=true;delete container.dataset.offerView;}
+    render(offers,all,adults,recommendation=false,context={}){detail.close();data={offers,all,adults,recommendation,context};render();},
+    clear(){detail.close();disposeMap();disposeMap=()=>{};data=undefined;toolbar.hidden=true;delete container.dataset.offerView;}
   };
 }

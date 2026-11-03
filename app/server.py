@@ -120,8 +120,9 @@ class Handler(BaseHTTPRequestHandler):
         for photo in (STATIC / "assets/destinations").glob("*"):
             if photo.suffix in (".jpg", ".png", ".webp"):
                 files[f"/assets/destinations/{photo.name}"] = (f"assets/destinations/{photo.name}", {".jpg":"image/jpeg", ".png":"image/png", ".webp":"image/webp"}[photo.suffix])
-        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("trip-snapshot", "trip-state", "trip-actions", "trip-dialogs", "trip-sharing", "shared-trip", "boarding-itinerary")})
+        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("trip-snapshot", "trip-state", "trip-actions", "trip-dialogs", "trip-sharing", "shared-trip", "boarding-itinerary", "route-detail", "route-detail-model", "route-detail-views", "route-detail-search", "result-comparison")})
         files["/boarding-itinerary.css"] = ("boarding-itinerary.css", "text/css")
+        files["/route-detail.css"] = ("route-detail.css", "text/css")
         files["/trip-actions.css"] = ("trip-actions.css", "text/css")
         files["/share.html"] = ("share.html", "text/html")
         files["/route-map.css"] = ("route-map.css", "text/css")

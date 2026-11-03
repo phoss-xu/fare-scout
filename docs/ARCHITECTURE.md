@@ -200,3 +200,9 @@ Workers 静态资源优先直出，安全响应头由 `static/_headers` 维护�
 - 固定日期监控新增 `trip_type=oneway`：源适配器不传返程参数，过滤与价格身份将单程和往返分开，通知总价文案区分行程类型；现有往返与周末配置继续兼容。机场不同的开口往返仍需从城市/地区监控入口自行配置。
 
 本地地点名称由 `scripts/build_cloudflare_data.py` 从同一地点目录生成 `static/location-names.json`，`location-names.js` 提供中英城市/机场名称和常见航司的标准代码对应中文名称；加载后重绘结果、地图、收藏及公开分享。目录未收录的名称保留数据源名称或机场代码，不猜译。中文金额单位通过 `currencyLabel` 显示中文币名。
+
+## 航线详情与方案比较（2026-11-03，本地待验收）
+
+搜特价／每日推荐的登机牌和卡片由 `offer-views.js → route-detail.js` 打开详情面板；`route-detail-model.js` 按实际去返程机场及报价币种归组，`route-detail-views.js` 展示日期组合、完整报价方案、当地时间与中转、所选航段／行李和核价入口。手机为全屏面板，桌面为双栏；去返程始终选择数据源的完整组合。
+
+`route-detail-search.js → POST /api/deals` 复用已有账号隔离队列与轮询。新增可选 `comparison:true` 仅接受单组机场与固定日期，沿用人数、报价币种及中转／时长条件，不设发现预算上限。Python `deal_source.py` 和 Workers `provider.js` 此时传 `one_for_city:false`，按完整去返航程去重保留最低报价；Workers `runs.js` 同样保留不同航班组合，普通发现与监控聚合规则不变。补查更新该日期组合及其查询时间，失败／空结果保留旧报价并明确提示；关闭或切换日期后忽略迟到响应。补查不创建监控、价格采样、提醒或邮件，无新增数据库迁移。

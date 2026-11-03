@@ -136,3 +136,19 @@ test('one-way watch keeps outbound-only observations and isolated price-drop ale
   assert.equal(state.alerts.length,1);assert.equal(state.alerts[0].reason,'drop');
   assert.deepEqual(JSON.parse(state.observations[0].route_key).slice(2,4),['','']);
 });
+test('route comparison keeps distinct flights through source and D1 result aggregation without alerts',async t=>{
+  const first=offer(1000),later=offer(1200);later.outbound.departureTime=later.outbound.departureTime.slice(0,10)+'T18:00:00';
+  const upstream={offers:[first,later,offer(1600)]};
+  const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source(upstream)});t.after(()=>h.close());
+  const session=await register(h);
+  const r=await request(h,'/api/deals',config({date_mode:'fixed',comparison:true,budget:0}),session);
+  assert.equal(r.status,202,JSON.stringify(r.data));
+  const result=await waitFor(async()=>{const p=await request(h,'/api/deals/'+r.data.id,undefined,session);return p.data.status==='done'?p.data:null;});
+  assert.equal(upstream.args.one_for_city,false);assert.deepEqual(result.offers.map(o=>o.price),[1000,1200]);
+  assert.equal(result.config.comparison,true);
+  const state=(await request(h,'/api/state',undefined,session)).data;
+  assert.equal(state.observations.length,0);assert.equal(state.alerts.length,0);assert.equal(state.watches.length,0);
+  for(const extra of [{destinations:[]},{date_mode:'range'},{destinations:['country:JP']}]) {
+    assert.equal((await request(h,'/api/deals',config({date_mode:'fixed',comparison:true,...extra}),session)).status,400);
+  }
+});

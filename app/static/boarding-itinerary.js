@@ -1,6 +1,6 @@
 import {locationName,carrierLabel} from './location-names.js';
 import {tr} from './i18n.js';
-import {escape} from './format.js';
+import {escape,flightDate} from './format.js';
 import {duration} from './flights.js';
 
 function place(leg,side,fallback) {
@@ -9,7 +9,7 @@ function place(leg,side,fallback) {
 }
 function moment(value,airport,action) {
   const parts=typeof value==='string'?value.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/):null;
-  return `<div class="boarding-moment"><time>${escape(parts?.[2] || tr('时间暂缺','Time unavailable'))}</time><span>${escape(parts?.[1] || '')}</span><small>${escape(airport)} · ${action}</small></div>`;
+  return `<div class="boarding-moment"><time>${escape(parts?.[2] || tr('时间暂缺','Time unavailable'))}</time><span>${escape(flightDate(parts?.[1]))}</span><small>${escape(airport)} · ${action}</small></div>`;
 }
 function legRow(leg,returning=false) {
   const name=returning?tr('返程','Inbound'):tr('去程','Outbound');

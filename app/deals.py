@@ -63,7 +63,11 @@ def validate(data):
             raise ValueError('所选周末与日期范围不一致，请重新选择。')
         if len(origins)*max(1,len(scopes))*len(date_pairs)>120:
             raise ValueError('所选周末及地点超过 120 组查询，请缩小范围。')
-    return dict(base, locale=data.get('locale') if data.get('locale') in ('zh-CN','en') else 'zh-CN', **({'date_pairs':date_pairs} if date_pairs is not None else {}), origin_locations=origins, origin_selections=origin_rows, destination_selections=destination_rows, destination_locations=scopes, destinations=[r['code'] for r in scopes],
+    comparison = data.get('comparison') is True
+    if comparison and (date_mode != 'fixed' or date_pairs is not None or len(origins) != 1 or len(scopes) != 1
+                       or origins[0]['kind'] != 'airport' or scopes[0]['kind'] != 'airport'):
+        raise ValueError('航线方案比较请选择一组机场与固定日期。')
+    return dict(base, **({'comparison':True} if comparison else {}), locale=data.get('locale') if data.get('locale') in ('zh-CN','en') else 'zh-CN', **({'date_pairs':date_pairs} if date_pairs is not None else {}), origin_locations=origins, origin_selections=origin_rows, destination_selections=destination_rows, destination_locations=scopes, destinations=[r['code'] for r in scopes],
                 min_nights=low, max_nights=high, nights=nights, date_mode=date_mode, trip_type=trip_type,
                 weekdays=sorted(set(weekdays)) if date_mode == 'range' else [])
 

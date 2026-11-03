@@ -1,5 +1,6 @@
 """One discovery request; transport and returned flight filtering stay at this boundary."""
 import math
+import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from . import locations
@@ -30,6 +31,8 @@ def query(config, origin, scope, kiwi_factory, accepts):
         args['price_to'] = math.floor(config['budget'])
     if config['weekdays']:
         args['fly_days'] = ','.join(str((day+1) % 7) for day in config['weekdays'])
+    if config.get('comparison'):
+        args['one_for_city'] = False
     kiwi = kiwi_factory()
     kiwi.call(1, 'initialize', {'protocolVersion':'2025-06-18', 'capabilities':{},
                               'clientInfo':{'name':'fare-scout', 'version':'0.1'}})
@@ -40,7 +43,7 @@ def query(config, origin, scope, kiwi_factory, accepts):
         airport = locations.resolve('airport:' + offer['outbound']['to'])
         offer = dict(offer, currency=config['currency'], destination_name=locations.label(airport['code']),
                      destination_country=airport['country_name'])
-        key = airport['city_code'] or airport['code']
+        key = json.dumps([offer['outbound'], offer.get('inbound')], sort_keys=True) if config.get('comparison') else airport['city_code'] or airport['code']
         if key not in results or offer['price'] < results[key]['price']:
             results[key] = offer
     return results

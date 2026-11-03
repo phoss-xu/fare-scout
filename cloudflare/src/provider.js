@@ -25,6 +25,7 @@ export function argumentsFor(c,j,discovery) {
     for(const key of ['returnDate','returnDateTo','nights_in_dst_from','nights_in_dst_to']) delete args[key];
     args.one_for_city=true;
   }
+  if(discovery && c.comparison) args.one_for_city=false;
   return args;
 }
 async function bodyLimited(response) {
@@ -75,7 +76,7 @@ export async function search(c,j,discovery=false) {
       if(c.daily && (!travel || ['CN','HK','MO'].includes(resolve('airport:'+offer.outbound.to).country_code))) continue;
       let key=discovery?'':routeKey(c,j,offer),row={...offer,currency:c.currency || 'HKD'};
       if(discovery) {
-        const airport=resolve('airport:'+offer.outbound.to);key=c.daily?key:airport.city_code || airport.code;
+        const airport=resolve('airport:'+offer.outbound.to);key=c.comparison?JSON.stringify([offer.outbound,offer.inbound || null]):c.daily?key:airport.city_code || airport.code;
         row={...offer,currency:c.currency || 'HKD',destination_name:label(airport.code),destination_country:airport.country_name,...(travel?{travel}:{} )};
       }
       if(!offers.has(key) || offer.price<offers.get(key).price) offers.set(key,row);

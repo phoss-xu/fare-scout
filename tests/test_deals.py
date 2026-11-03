@@ -48,6 +48,19 @@ class DealTests(unittest.TestCase):
         self.assertIn('departureDateTo',args)
         self.assertTrue(args['one_for_city'])
 
+    def test_route_comparison_preserves_distinct_flights_and_rejects_broad_scopes(self):
+        watch=search_config(date_mode='fixed',destinations=['airport:SIN'],comparison=True)
+        flight=offer(watch,dict(departure=watch['start'],arrival=watch['end']))
+        later=deepcopy(flight);later['outbound']['departureTime']=watch['start']+'T18:00:00';later['price']=2100
+        duplicate=deepcopy(flight);duplicate['price']=2500
+        with patch.object(deals.Kiwi,'call'), patch.object(deals.Kiwi,'query',return_value=[flight,later,duplicate]) as query:
+            result=deals.search(watch)
+        self.assertEqual([o['price'] for o in result['offers']],[1900,2100])
+        self.assertFalse(query.call_args.args[0]['one_for_city'])
+        for extra in ({'destinations':[]},{'date_mode':'range'},{'destinations':['country:JP']}):
+            with self.subTest(extra=extra),self.assertRaises(ValueError):
+                search_config(**({'date_mode':'fixed','destinations':['airport:SIN'],'comparison':True} | extra))
+
     def test_weekday_conversion_and_failures_are_not_empty_success(self):
         watch=search_config(weekdays=[0,6])
         with patch.object(deals.Kiwi,'call'), patch.object(deals.Kiwi,'query',return_value=[]) as query:

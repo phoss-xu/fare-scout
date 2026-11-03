@@ -1,6 +1,6 @@
 import {locationName,carrierLabel} from './location-names.js';
 import {tr} from './i18n.js';
-import {escape} from './format.js';
+import {escape,flightDate} from './format.js';
 
 const text = (value, fallback) => typeof value === 'string' && value.trim() ? escape(value) : fallback;
 const segments = leg => Array.isArray(leg?.segments) ? leg.segments.filter(s => s && typeof s === 'object') : [];
@@ -15,7 +15,7 @@ export function duration(seconds) {
 
 function localParts(value) {
   const match = typeof value === 'string' && value.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
-  return match ? {date:match[1], clock:match[2]} : {date:tr("日期暂缺","Date unavailable"), clock:tr("时间暂缺","Time unavailable")};
+  return match ? {date:flightDate(match[1]), clock:match[2]} : {date:tr("日期暂缺","Date unavailable"), clock:tr("时间暂缺","Time unavailable")};
 }
 
 function endpoint(leg, side) {

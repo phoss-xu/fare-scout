@@ -62,6 +62,10 @@ export function validate(d, discovery = false) {
       ensure(start===config.date_pairs[0].start && end===config.date_pairs.at(-1).end,'所选周末与日期范围不一致，请重新选择。');
       ensure(os.length*Math.max(1,ds.length)*config.date_pairs.length<=120,'所选周末及地点超过 120 组查询，请缩小范围。');
     }
+    if(d.comparison===true) {
+      ensure(date_mode==='fixed' && !config.date_pairs && os.length===1 && ds.length===1 && os[0].kind==='airport' && ds[0].kind==='airport','航线方案比较请选择一组机场与固定日期。');
+      config.comparison=true;
+    }
     Object.assign(config,{locale:['zh-CN','en'].includes(d.locale)?d.locale:'zh-CN',trip_type,date_mode,nights,min_nights,max_nights,weekdays:date_mode==='fixed'?[]:[...new Set(weekdays)].sort()});
   }
   return config;

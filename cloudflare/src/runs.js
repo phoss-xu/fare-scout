@@ -39,7 +39,7 @@ export async function dealResult(db,id,userId) {
   const config=JSON.parse(row.config),best=new Map();
   const checked=tasks.filter(t=>t.status==='done' && t.source_checked_at).map(t=>t.source_checked_at).sort();
   for(const task of tasks) for(const o of JSON.parse(task.offers||'[]')) {
-    const airport=resolve('airport:'+o.outbound.to),key=(airport.city_code || airport.code)+(config.date_pairs?'|'+o.outbound.departureTime.slice(0,10)+'|'+o.inbound.departureTime.slice(0,10):'');
+    const airport=resolve('airport:'+o.outbound.to),key=config.comparison?JSON.stringify([o.outbound,o.inbound || null]):(airport.city_code || airport.code)+(config.date_pairs?'|'+o.outbound.departureTime.slice(0,10)+'|'+o.inbound.departureTime.slice(0,10):'');
     if(!best.has(key)||o.price<best.get(key).price) best.set(key,o);
   }
   return {id,status:row.status,config:JSON.parse(row.config),completed:tasks.filter(t=>['done','error','cancelled'].includes(t.status)).length,total:row.total,

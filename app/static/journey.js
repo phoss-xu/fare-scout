@@ -3,6 +3,7 @@ import {currencyLabel} from './currency.js';
 import {selectedWeekends} from './travel-dates.js';
 import {selectedNights,nightsLabel} from './nights.js';
 import {tr} from './i18n.js';
+import {flightDate} from './format.js';
 import {setupLandscape} from './landscape.js';
 /** Progressive travel controls alongside automatically selected static photography. */
 export function setupJourney(form, panel) {
@@ -46,8 +47,8 @@ export function setupJourney(form, panel) {
     const date = start ? new Date(`${start}T12:00:00`) : null;
     panel.querySelector('#journey-month').textContent = date ? tr(`${date.getMonth()+1}月`,new Intl.DateTimeFormat('en', {month:'short'}).format(date).toUpperCase()) : tr('日期','DATE');
     panel.querySelector('#journey-day').textContent = date ? String(date.getDate()).padStart(2, '0') : '＋';
-    panel.querySelector('#journey-date-value').textContent = start && end ? tr(`${start.slice(5).replace('-', '月')}日 — ${end.slice(5).replace('-', '月')}日`,`${start.slice(5)} — ${end.slice(5)}`) : tr("选一段空闲","Choose some time away");
-    if(oneWay && fixed) panel.querySelector('#journey-date-value').textContent=start?tr(`${start.slice(5).replace('-', '月')}日`,start):tr('选择出发日期','Choose departure date');
+    panel.querySelector('#journey-date-value').textContent = start && end ? `${flightDate(start,true)} — ${flightDate(end,true)}` : tr("选一段空闲","Choose some time away");
+    if(oneWay && fixed) panel.querySelector('#journey-date-value').textContent=start?flightDate(start,true):tr('选择出发日期','Choose departure date');
     if(weekendMode) {
       const pairs=selectedWeekends(form);
       panel.querySelector('#journey-date-value').textContent=pairs.length ? pairs.map(p=>`${p.start.slice(5)}–${p.end.slice(5)}`).join(' · ') : tr('请选择周末','Choose weekends');
