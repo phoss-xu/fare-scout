@@ -6,11 +6,22 @@ import path from 'node:path';
 export async function harness(options={}) {
   const dir=await mkdtemp(path.join(tmpdir(),'fare-worker-test-'));
   const result=await build({entryPoints:['cloudflare/src/index.js'],bundle:true,format:'esm',platform:'browser',write:false});
-  const mf=new Miniflare({...convertV4MiniflareOptions({name:'fare-scout',modules:true,script:result.outputFiles[0].text,compatibilityDate:'2026-11-02',compatibilityFlags:['nodejs_compat'],
+  const converted=convertV4MiniflareOptions({name:'fare-scout',modules:true,script:result.outputFiles[0].text,compatibilityDate:'2026-11-02',compatibilityFlags:['nodejs_compat'],
     d1Databases:['DB'],d1Persist:options.persist || path.join(dir,'d1'),
     assets:{directory:path.resolve('app/static'),binding:'ASSETS',run_worker_first:true,routerConfig:{has_user_worker:true}},
     bindings:{QUERY_ENABLED:'false',MAIL_ENABLED:'false',...options.bindings},
-    outboundService:options.outbound || (()=>{throw new Error('Unexpected external request in local test');})}),resourcePersistencePath:options.persist || path.join(dir,'resources')});
+    ...(options.mockEmail?{serviceBindings:{EMAIL:'email-capture'}}:{}),
+    outboundService:options.outbound || (()=>{throw new Error('Unexpected external request in local test');})});
+  if(options.nativeEmail) converted.workers[0].config.env.EMAIL={type:'send-email'};
+  const capture=convertV4MiniflareOptions({name:'email-capture',modules:true,compatibilityDate:'2026-11-02',
+    script:`import {WorkerEntrypoint} from 'cloudflare:workers';
+      export default class extends WorkerEntrypoint {
+        async send(message) {
+          const r=await fetch('https://email-capture.test/send',{method:'POST',body:JSON.stringify(message)});
+          if(!r.ok) throw new Error('simulated_email_failure');return r.json();
+        }
+      }`,outboundService:options.outbound}).workers[0];
+  const mf=new Miniflare({...(options.mockEmail?{...converted,workers:[...converted.workers,capture]}:converted),resourcePersistencePath:options.persist || path.join(dir,'resources')});
   try {
   const db=await mf.getD1Database('DB');
   if(!options.skipMigrations) for(const name of (await readdir('cloudflare/migrations')).sort()) {

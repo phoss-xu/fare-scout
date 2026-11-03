@@ -1,8 +1,13 @@
 # Copy to .dev.vars for local work. No remote resources are used by npm run dev.
 # Explicitly enable only when testing a real Kiwi lookup; local tests mock the source.
 QUERY_ENABLED="false"
-# Keep disabled during development acceptance. Production uses Resend HTTPS API.
+# Keep disabled during development acceptance: verification requests also send real email.
 MAIL_ENABLED="false"
+MAIL_PROVIDER="cloudflare"
+# Account-scoped token: Email Routing Addresses Write only; never put it in source or chat.
+CF_EMAIL_ACCOUNT_ID=""
+CF_EMAIL_API_TOKEN=""
+# Optional legacy provider: MAIL_PROVIDER="resend"
 RESEND_API_KEY=""
 MAIL_FROM=""
 

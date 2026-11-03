@@ -31,7 +31,7 @@ export async function remove(db,kind,id,userId,restore) {
       ['UPDATE schedules SET auto_enabled=0,alerts_enabled=0 WHERE watch_id=?',[id]],
       ["UPDATE search_tasks SET status='cancelled',lease_token=NULL,lease_until=NULL WHERE run_id IN (SELECT id FROM search_runs WHERE watch_id=? AND status='running')",[id]],
       ["UPDATE search_runs SET status='cancelled',finished_at=? WHERE watch_id=? AND status='running'",[now(),id]],
-      ["UPDATE email_outbox SET status='cancelled',lease_token=NULL WHERE alert_id IN (SELECT id FROM alerts WHERE watch_id=?) AND status IN ('pending','retry','waiting_config','sending')",[id]]);
+      ["UPDATE email_outbox SET status='cancelled',lease_token=NULL WHERE alert_id IN (SELECT id FROM alerts WHERE watch_id=?) AND status IN ('pending','retry','waiting_config','waiting_verification','sending')",[id]]);
     await batch(db,changes);
   } else {
     const changed=await run(db,`UPDATE observations SET dismissed_at=? WHERE id=? AND status='ok' AND watch_id IN
@@ -57,5 +57,5 @@ export async function state(env,user) {
   for(const w of watches) { codes.add(w.origin);for(const d of w.destinations) codes.add(d); }
   for(const o of observations) { codes.add(o.destination);for(const leg of [o.offer?.outbound,o.offer?.inbound]) if(leg) { codes.add(leg.from);codes.add(leg.to); } }
   return {watches:watches.filter(w=>!w.deleted_at),deleted_watches:watches.filter(w=>w.deleted_at),observations,alerts,
-    daily:await dailyState(db,user.id),query_enabled:env.QUERY_ENABLED==='true',email:mailStatus(env,user.notification_email),user,today:today(),location_stats:stats(),destinations:Object.fromEntries([...codes].filter(Boolean).map(c=>[c,label(c)]))};
+    daily:await dailyState(db,user.id),query_enabled:env.QUERY_ENABLED==='true',email:await mailStatus(env,user.notification_email,user.id),user,today:today(),location_stats:stats(),destinations:Object.fromEntries([...codes].filter(Boolean).map(c=>[c,label(c)]))};
 }

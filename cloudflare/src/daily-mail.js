@@ -1,5 +1,5 @@
 import {all,first,run,now} from './db.js';
-import {ready,sendText} from './mail.js';
+import {ready,sendText,WaitingForVerification} from './mail.js';
 
 export function editionText(e) {
   const c=JSON.parse(e.config),offers=JSON.parse(e.offers);
@@ -17,23 +17,29 @@ export async function deliverDaily(env) {
   const db=env.DB,timestamp=now();
   const rows=await all(db,`SELECT e.*,r.config,p.enabled FROM daily_editions e JOIN search_runs r ON r.id=e.run_id
     JOIN daily_preferences p ON p.user_id=e.user_id WHERE e.status IN ('ready','error') AND e.scheduled_at<=?
-    AND ((e.mail_status IN ('pending','retry','waiting_config') AND e.next_attempt<=?) OR (e.mail_status='sending' AND e.lease_until<=?))
-    ORDER BY e.scheduled_at LIMIT 3`,[timestamp,timestamp,timestamp]);
+    AND ((e.mail_status IN ('pending','retry','waiting_config','waiting_verification') AND e.next_attempt<=?) OR (e.mail_status='sending' AND e.lease_until<=?))
+    ORDER BY e.next_attempt,e.scheduled_at LIMIT 3`,[timestamp,timestamp,timestamp]);
   for(const e of rows) {
     const status=!e.enabled?'cancelled':Date.now()-Date.parse(e.scheduled_at)>86400000?'skipped':!ready(env)?'waiting_config':null;
     if(status) {await run(db,"UPDATE daily_editions SET mail_status=? WHERE id=? AND mail_status<>'sent'",[status,e.id]);continue;}
     const token=crypto.randomUUID();
     const claim=await first(db,`UPDATE daily_editions SET mail_status='sending',lease_token=?,lease_until=? WHERE id=?
-      AND (mail_status IN ('pending','retry','waiting_config') OR (mail_status='sending' AND lease_until<=?)) RETURNING id`,[token,new Date(Date.now()+90000).toISOString(),e.id,timestamp]);
+      AND (mail_status IN ('pending','retry','waiting_config','waiting_verification') OR (mail_status='sending' AND lease_until<=?)) RETURNING id`,[token,new Date(Date.now()+90000).toISOString(),e.id,timestamp]);
     if(!claim) continue;
     const active=await first(db,`SELECT u.notification_email FROM users u JOIN daily_preferences p ON p.user_id=u.id JOIN daily_editions e ON e.user_id=u.id
       WHERE e.id=? AND e.lease_token=? AND p.enabled=1`,[e.id,token]);
     if(!active) continue;
     try {
-      await sendText(env,active.notification_email,`Fare Scout · ${e.day} 每日机票推荐`,editionText(e),'fare-daily-'+e.id);
+      await sendText(env,active.notification_email,`Fare Scout · ${e.day} 每日机票推荐`,editionText(e),'fare-daily-'+e.id,e.user_id,async()=>!!await first(db,`SELECT e.id FROM daily_editions e JOIN daily_preferences p ON p.user_id=e.user_id
+        JOIN users u ON u.id=e.user_id WHERE e.id=? AND e.lease_token=? AND e.mail_status='sending' AND p.enabled=1 AND u.notification_email=?`,
+        [e.id,token,active.notification_email]));
       await run(db,"UPDATE daily_editions SET mail_status='sent',sent_at=?,attempts=attempts+1,lease_token=NULL WHERE id=? AND lease_token=?",[now(),e.id,token]);
     } catch(error) {
       console.warn('Daily delivery failed',e.id,/^mail_http_\d+$/.test(error.message)?error.message:error.name);
+      if(error instanceof WaitingForVerification) {
+        await run(db,"UPDATE daily_editions SET mail_status='waiting_verification',next_attempt=?,lease_token=NULL WHERE id=? AND lease_token=?",
+          [new Date(Date.now()+60000).toISOString(),e.id,token]);continue;
+      }
       const attempt=e.attempts+1;
       await run(db,'UPDATE daily_editions SET mail_status=?,attempts=?,next_attempt=?,lease_token=NULL WHERE id=? AND lease_token=?',
         [attempt>=5?'failed':'retry',attempt,new Date(Date.now()+Math.min(60,2**attempt)*60000).toISOString(),e.id,token]);

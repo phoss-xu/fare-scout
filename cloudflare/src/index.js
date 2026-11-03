@@ -8,7 +8,9 @@ import {recent,remember} from './history.js';
 import {validate,jobs,today} from './domain.js';
 import {enqueueWatch,enqueueDeal,dealResult,schedule} from './runs.js';
 import {drain} from './tasks.js';
-import {deliver} from './mail.js';
+import {deliver,mailStatus} from './mail.js';
+import {verifyAction} from './email-verification.js';
+import {confirmConsent} from './email-consent.js';
 import {saveDaily,dailyState,dailyTick} from './daily.js';
 import {deliverDaily} from './daily-mail.js';
 const AUTH=new Set(['/api/auth/register','/api/auth/login','/api/auth/activate','/api/auth/logout']);
@@ -45,6 +47,11 @@ async function api(request,env,ctx) {
     }
     if(path==='/api/watches') { const id=await store.create(db,validate(body),user.id);continueWork(ctx,env);return json({id},201); }
     if(path==='/api/alerts/read') { await store.markRead(db,user.id,body.through_id);return json({message:'提醒已标为已读。'}); }
+    if(path==='/api/email/verify' || path==='/api/email/check') {
+      await verifyAction(env,user.id,path.endsWith('/check')?'check':'start');
+      return json({email:await mailStatus(env,user.notification_email,user.id)});
+    }
+    if(path==='/api/email/confirm') {await confirmConsent(env,user.id,body.token);return json({message:'已确认接收机票提醒。'});}
     if(path==='/api/email') { await store.recipient(db,user.id,body.recipient);return json({message:'收件邮箱已保存。'}); }
     const match=/^\/api\/(watches|offers)\/(\d+)\/(delete|restore|settings|check)$/.exec(path);
     if(match) {

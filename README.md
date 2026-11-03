@@ -4,7 +4,7 @@
 
 ## Workers Free + D1（2026-11-02）
 
-已部署：https://fare-scout.phosssuki.workers.dev 。使用 Passkey（指纹/面容/设备 PIN）登录；运行于 Workers Free，采用空库，不迁移旧数据，邮件发送关闭。
+已部署：https://fare-scout.phosssuki.workers.dev 。使用 Passkey（指纹/面容/设备 PIN）登录；运行于 Workers Free，首次上线从空库开始，现有账号与记录持续保留。Cloudflare 邮件已启用，用户须验证收件邮箱并确认接收。
 
 ```bash
 npm ci
@@ -21,9 +21,8 @@ npm run dev
 图片成功解码后才缓存；单张失败自动尝试其他图片，全部失败保留当前风景（首次为默认竹林）。右上角半透明圆形按钮可立即换一张，加载中旋转并防止重复点击。
 支持本浏览器收藏、查看来源及当前尺寸下载。图集为项目维护的精选目录，非 Unsplash 实时全库搜索；已随 ccc50db 部署。
 
-新增本地待验收「每日推荐」：香港/深圳出发，按周末、节假日和请假天数发现机票，
-可设北京时间推送、预算及凌晨往返优先；独立于降价提醒。仅 Workers 版提供，尚未部署，
-邮件仍关闭。日历口径、查询覆盖和本地 Cron 验收见 [docs/DAILY.md](docs/DAILY.md)。
+已上线「每日推荐」：香港/深圳出发，按周末、节假日和请假天数发现机票，
+可设北京时间推送、预算及凌晨往返优先；独立于降价提醒。仅 Workers 版提供，邮件自助验证与原生发信已上线；真实定时推荐仍待连续运行验收。日历口径、查询覆盖和本地 Cron 验收见 [docs/DAILY.md](docs/DAILY.md)。
 
 右侧已整合为统一「设置」：语言（简体中文 / English）、九种报价显示货币、外观，以及当前账号的收件邮箱、推荐和监控设置入口。
 换算价格保留港币原价及参考汇率日期；预算、降价门槛与邮件仍使用 HKD。语言、货币、外观保存在当前浏览器，账号偏好仍保存在账号，已随 ccc50db 部署。
@@ -125,3 +124,5 @@ python prototype/weekend_watch.py --weeks 1 --destination SIN
 ```
 
 脚本默认把 `weekend_watch.db` 写在 `prototype/` 目录；数据库文件属于本地采样数据，不应提交到版本库。
+
+Cloudflare 邮件自助验证与接收确认已正式上线，真实确认邮件收件已验收。配置与限制见 [docs/CLOUDFLARE_EMAIL.md](docs/CLOUDFLARE_EMAIL.md)。

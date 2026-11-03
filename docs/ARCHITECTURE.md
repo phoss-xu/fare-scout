@@ -10,7 +10,7 @@
 `daily_preferences` 与 `daily_editions` 保存按账号配置、北京时间计划、报价和投递快照。
 每日与手动搜特价共用持久化查询队列但独立运行；每日结果不进入监控价格历史。
 前端 `static/daily.js / daily.css` 在搜特价的发现结果区接入简报及偏好弹窗，复用 `deal_views.js` 卡片与监控草稿；Python 版隐藏每日入口。口径与验证见 [DAILY.md](DAILY.md)。
-邮件通过独立 HTTPS 适配器发送，当前关闭。云端使用 Passkey（WebAuthn），五分钟单次挑战绑定 Cookie、固定 Origin/RP、要求设备验证；D1 只保存公钥与计数器，登录后复用会话/CSRF。
+邮件新增 Cloudflare 原生 EMAIL 绑定，控制面适配器负责目标邮箱验证；D1 缓存云端验证状态，并保存每个用户独立的接收确认。原 Resend HTTPS 适配器保留。线上邮件已启用，真实确认邮件已完成收件验收，详见 [Cloudflare 邮件接入](CLOUDFLARE_EMAIL.md)。云端使用 Passkey（WebAuthn），五分钟单次挑战绑定 Cookie、固定 Origin/RP、要求设备验证；D1 只保存公钥与计数器，登录后复用会话/CSRF。
 本地 Python 密码版保留，前端根据 auth_mode 切换入口；云端密码接口关闭。
 
 本地 `npm run db:local && npm run dev`，地址 http://localhost:8787；数据库位于 `.wrangler/`。

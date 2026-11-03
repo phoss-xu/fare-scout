@@ -27,10 +27,13 @@
     ]
   },
   "vars": {
-    "MAIL_ENABLED": "false",
+    "MAIL_ENABLED": "true",
     "QUERY_ENABLED": "true",
     "AUTH_MODE": "passkey",
-    "PASSKEY_ORIGIN": "https://fare-scout.phosssuki.workers.dev"
+    "PASSKEY_ORIGIN": "https://fare-scout.phosssuki.workers.dev",
+    "MAIL_PROVIDER": "cloudflare",
+    "MAIL_FROM": "notifications@phosssuki.edu.kg",
+    "CF_EMAIL_ACCOUNT_ID": "7b33669e944449263a4dd3f911ea7dc6"
   },
   "observability": {
     "enabled": true,
@@ -38,5 +41,13 @@
       "enabled": true
     }
   },
-  "account_id": "7b33669e944449263a4dd3f911ea7dc6"
+  "account_id": "7b33669e944449263a4dd3f911ea7dc6",
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": [
+        "notifications@phosssuki.edu.kg"
+      ]
+    }
+  ]
 }

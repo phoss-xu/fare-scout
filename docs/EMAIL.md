@@ -1,5 +1,7 @@
 # 邮件提醒配置与验收
 
+本文下面为保留的 Python SMTP 服务。Workers 新增 Cloudflare 免费目标邮箱验证与原生发信接入，参见 [CLOUDFLARE_EMAIL.md](CLOUDFLARE_EMAIL.md)；Cloudflare 正式发信已启用，真实确认邮件收件已验收。
+
 自动查价和网页提醒不依赖邮件配置。收件邮箱可在网页「提醒中心」修改，分别保存在当前用户账号下。
 发信凭据从项目根目录 `.env` 或进程环境变量读取；环境变量优先。`.env` 已忽略，不应提交。
 `.env.example` 提供字段说明，不包含真实凭据。

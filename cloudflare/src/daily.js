@@ -28,9 +28,9 @@ export async function saveDaily(db,userId,data) {
   const day=new Date(Date.parse(due)+8*3600000).toISOString().slice(0,10);
   const changedTime=existing && JSON.parse(existing.config).push_time!==c.push_time;
   await batch(db,[['INSERT INTO daily_preferences(user_id,config,enabled,next_due,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET config=excluded.config,enabled=excluded.enabled,next_due=excluded.next_due,updated_at=excluded.updated_at',[userId,JSON.stringify(c),Number(c.enabled),due,now()]],
-    ["UPDATE daily_editions SET mail_status='cancelled',lease_token=NULL WHERE user_id=? AND mail_status IN ('pending','waiting_config','retry','sending') AND ?=0",[userId,Number(c.enabled)]],
-    ["UPDATE daily_editions SET scheduled_at=?,next_attempt=? WHERE user_id=? AND day=? AND mail_status IN ('pending','waiting_config','retry') AND ?=1",[due,due,userId,day,Number(!!changedTime)]],
-    ["UPDATE daily_editions SET mail_status='cancelled',lease_token=NULL WHERE user_id=? AND day<>? AND mail_status IN ('pending','waiting_config','retry') AND ?=1",[userId,day,Number(!!changedTime)]]]);
+    ["UPDATE daily_editions SET mail_status='cancelled',lease_token=NULL WHERE user_id=? AND mail_status IN ('pending','waiting_config','waiting_verification','retry','sending') AND ?=0",[userId,Number(c.enabled)]],
+    ["UPDATE daily_editions SET scheduled_at=?,next_attempt=? WHERE user_id=? AND day=? AND mail_status IN ('pending','waiting_config','waiting_verification','retry') AND ?=1",[due,due,userId,day,Number(!!changedTime)]],
+    ["UPDATE daily_editions SET mail_status='cancelled',lease_token=NULL WHERE user_id=? AND day<>? AND mail_status IN ('pending','waiting_config','waiting_verification','retry') AND ?=1",[userId,day,Number(!!changedTime)]]]);
 }
 export async function dailyState(db,userId) {
   const p=await first(db,'SELECT * FROM daily_preferences WHERE user_id=?',[userId]);

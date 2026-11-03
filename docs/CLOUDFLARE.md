@@ -1,8 +1,8 @@
 # Cloudflare Workers Free + D1
 
-线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `fdbf9996-d72b-4a05-9b86-db6695499814`（代码 `ccc50db`）。已按用户授权发布到 Workers Free，使用 Passkey 登录；未开通 Paid，未迁移旧数据，邮件发送关闭。
+线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `940b46ab-250e-4ab6-bcc5-93c0c50d6fea`（在 `ccc50db` 基础上新增邮件功能，邮件代码尚未提交）。已按用户授权发布到 Workers Free，使用 Passkey 登录；未开通 Paid，未迁移旧本地数据，Cloudflare 邮件发送已启用，按用户验证与接收确认状态投递。
 
-D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。六项迁移已应用，现有正式账号持续保留。首次上线时仅清理过独立合成验收账号；后续更新不再初始化或清空业务数据，原 SQLite 与旧本地 D1 均保留。
+D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。七项迁移已应用，现有正式账号持续保留。首次上线时仅清理过独立合成验收账号；后续更新不再初始化或清空业务数据，原 SQLite 与旧本地 D1 均保留。
 
 ## 本地运行
 
@@ -45,7 +45,7 @@ npm run dev
 - `runs.js` / `tasks.js`：D1 中保存搜索和逐组任务，90 秒租约及随机令牌限制领取和迟到写入；监控每轮最多 12 组，特价最多 120 组。
 - `provider.js`：独立 Kiwi JSON/SSE 适配器，整组超时 22 秒，临时失败最多 3 次；失败与无匹配分别记录。超过单组 100 个已筛选实际行程时显式报错，不静默截断。
 - `migrations/`：应用表、持久队列、事务提醒触发器及 Passkey 公钥/挑战。样本、提醒和发信队列同事务写入，删除监控使在途任务令牌失效。
-- `mail.js`：Resend HTTPS 适配器，需启用开关、发件邮箱与 Secret 后才能发送；真实投递尚未验收，不上传旧 SMTP 凭据。
+- `mail.js`：原 Resend HTTPS 适配器保留；已上线 Cloudflare 原生发信、邮箱验证与用户接收确认，详见 [CLOUDFLARE_EMAIL.md](CLOUDFLARE_EMAIL.md)。真实确认邮件已由用户收件并确认；每日推荐和降价提醒的实际定时投递待运行验收。
 
 已捕获一次线上 Cron：outcome=ok，CPU 5ms、wall 1393ms、无异常（当时空库，没有监控查询）；这区分了计算与等待时间，不代表所有未来负载。
 
