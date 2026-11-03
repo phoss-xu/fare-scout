@@ -783,3 +783,11 @@
 - 登录表单加入默认勾选的「在此设备保持登录 30 天（不保存密码）」。只保存 HttpOnly 会话 Cookie，不把密码写入本地存储；取消勾选时维持 7 天。密码与 Passkey 登录都遵循此选项，注册界面不显示。
 - Python 与 Workers 同步调整 Cookie Max-Age 和数据库会话到期时间；退出仍立即撤销会话。已有会话不受影响，时长从下一次登录开始生效。
 - 本地登录页面已实际打开并确认复选框默认勾选、排版正常；隔离行程预览恢复登录，http://127.0.0.1:8878 仍运行。Python HTTP 鉴权 9 项、Workers 密码/Passkey 鉴权 5 项通过；git diff --check 通过。没有保存密码、触碰生产账号或部署。
+
+## 2026-11-03 · b4c86ca 正式部署
+
+- 用户授权提交、推送工作区全部改动并发布一版。提交 `b4c86ca`（管理后台、30 天保持登录及本轮相关实现）；`main` 上此前 5 个未推送提交也一并送达 `origin/main`。Workers `fare-scout` 版本 `3cf0e7e9-74bb-4c06-b580-7c4e42d66eab`，部署消息 `b4c86ca: admin dashboard and remembered login`，100% 流量。
+- Wrangler dry-run 打包 4.18 MB（gzip 788 KB），正常完成；`--keep-vars` 保留仪表盘变量和现有资源绑定。完成后实际打开线上站点检查页面加载。
+- 正式 D1 `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477` 顺序应用 0008–0011，Wrangler 复核无待应用迁移。部署前/后用户 4、Passkey 4、会话 6、监控 2；收藏/分享表为空，`current_observations` 新表回填 21 条当前批次副本；完整历史未删除。
+- 前端 66 项、Python 80 项、完整 Workers/D1 测试套件通过；`npm run build` dry-run、`git diff --check` 通过。登录保持选项在本地浏览器确认默认勾选；密码不保存，Cloudflare 的管理员账号名单未在本次写入或扩权。
+- 没有初始化/清空 D1、导入本地数据、主动查价、创建生产报价/监控或手动发送用户通知。部署前后既有生产设置与账号记录保留。

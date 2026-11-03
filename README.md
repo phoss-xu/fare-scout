@@ -2,7 +2,7 @@
 
 面向出国游的低价机票发现与价格监控。用户可以选择具体日期、日期范围、节假日或周期性出行时段，也可以选择一个或多个目的地。这个目录记录了 2026-11-01 前的产品讨论和查价实验，是后续开发的起点。
 
-## Workers Free + D1（2026-11-02）
+## Workers Free + D1（2026-11-03 更新）
 
 已部署：https://fare-scout.phosssuki.workers.dev 。使用 Passkey（指纹/面容/设备 PIN）登录；运行于 Workers Free，首次上线从空库开始，现有账号与记录持续保留。Cloudflare 邮件已启用，用户须验证收件邮箱并确认接收。
 
@@ -18,7 +18,7 @@ npm run dev
 运行方式、Passkey、验证边界及发布步骤见 [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md)。
 
 Workers 版新增只读管理后台：登录后访问 `/admin`，查看用户、查价任务、两类邮件队列和调度心跳。
-服务端 `ADMIN_USER_IDS` 配置可访问的已有账号 ID；生产环境默认关闭，配置后才开放。配置、数据口径与面试讲解见 [docs/ADMIN.md](docs/ADMIN.md)。
+服务端 `ADMIN_USER_IDS` 配置可访问的已有账号 ID；变量缺失或为空时拒绝访问。配置、数据口径与面试讲解见 [docs/ADMIN.md](docs/ADMIN.md)。
 
 登录页默认勾选「在此设备保持登录 30 天」；仅延长 HttpOnly 会话，不保存密码。取消勾选时保持 7 天。
 

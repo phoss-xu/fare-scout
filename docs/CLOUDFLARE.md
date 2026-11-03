@@ -1,8 +1,8 @@
 # Cloudflare Workers Free + D1
 
-线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `940b46ab-250e-4ab6-bcc5-93c0c50d6fea`（在 `ccc50db` 基础上新增邮件功能，邮件代码尚未提交）。已按用户授权发布到 Workers Free，使用 Passkey 登录；未开通 Paid，未迁移旧本地数据，Cloudflare 邮件发送已启用，按用户验证与接收确认状态投递。
+线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `3cf0e7e9-74bb-4c06-b580-7c4e42d66eab`（代码提交 `b4c86ca`，2026-11-03）。Workers Free，Passkey 登录；未开通 Paid，未迁移旧本地数据，Cloudflare 邮件发送已启用，按用户验证与接收确认状态投递。
 
-D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。七项迁移已应用，现有正式账号持续保留。首次上线时仅清理过独立合成验收账号；后续更新不再初始化或清空业务数据，原 SQLite 与旧本地 D1 均保留。
+D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。`0001`–`0011` 共十一项迁移已应用，Wrangler 确认没有待应用迁移。部署前后用户 4、Passkey 4、会话 6、监控 2；行程收藏/分享表为空，新批次副本表有 21 条记录。后续更新不初始化或清空业务数据，原 SQLite 与旧本地 D1 均保留。
 
 ## 本地运行
 
@@ -127,7 +127,15 @@ Cloudflare 官方 19 个 skills 已安装至 `~/.agents/skills/`；Codex 的 Clo
 - 发布前 38 项前端、37 项 Workers、67 项 Python 检查及 dry-run 通过。发布后 15 项公开资源哈希一致，Passkey 模式、未登录 401 保护正常。
 - 发布前后用户 3、Passkey 3、会话 5、监控/采样/提醒 0、邮箱目标/接收确认各 1；线上浏览器确认手动换图、设置折叠、邮箱已验证和 390px 手机布局，控制台无 error。未重做设备认证、主动查价或邮件发送验收。
 
-## 2026-11-03 本地性能优化（未部署）
+## 2026-11-03 登录、管理后台与完整工作区更新
+
+- 用户授权将本地所有改动提交并推送：`b4c86ca`；分支 `main` 的 5 个既有未推送提交也一并推送到 `origin/main`。
+- Workers 版本：`3cf0e7e9-74bb-4c06-b580-7c4e42d66eab`，部署消息 `b4c86ca: admin dashboard and remembered login`。通过 `--keep-vars` 保留仪表盘变量；已有 EMAIL/D1/静态资源/每分钟 Cron 继续使用同一绑定。
+- 正式 D1 依序应用 `0008_search_presets.sql`、`0009_performance.sql`、`0010_admin.sql`、`0011_trips.sql`。Wrangler 随迁移备份，完成后显示没有待应用迁移。
+- 部署前后用户 4、Passkey 4、会话 6、监控 2。新收藏与分享表为空；`current_observations` 迁移回填 21 条当前批次副本，完整历史仍保留。
+- 前端 66 项、Python 80 项、完整 Workers/D1 套件及 `npm run build` dry-run 通过。部署后通过浏览器实际打开线上站点；没有代替用户创建报价、发送邮件或授予新的管理权限。`ADMIN_USER_IDS` 没有写入代码配置，此次未变更已存在的仪表盘值；空值仍由服务端默认拒绝。
+
+## 2026-11-03 本地性能优化验收数据（不代表线上负载）
 
 - `assets.run_worker_first` 仅匹配 `/api/*` 与 `/setup`，其余资源采用原生静态分发。`app/static/_headers` 保留 CSP、Referrer-Policy 与 nosniff。未指纹化文件保留原生 `max-age=0, must-revalidate` 和 ETag，避免长期缓存旧模块；API 继续 `no-store`。
 - 登录后的空闲状态刷新间隔从 4 秒改为 30 秒，监控运行时为 4 秒、失败后为 60 秒；隐藏标签暂停，重新显示立即刷新。特价进度有变化时 1.5 秒刷新，无变化逐步延长到最多 8 秒，不重叠发出请求。
@@ -147,4 +155,4 @@ Cloudflare 官方 19 个 skills 已安装至 `~/.agents/skills/`；Codex 的 Clo
 | 50 | 139ms | 208ms | 100/100 HTTP 200 |
 | 100 | 268ms | 283ms | 100/100 HTTP 200 |
 
-这些是本机 workerd + 本地 D1 的短时状态读取结果，不包含真实数据源、邮件、设备 Passkey 或 Cloudflare 网络、CPU 与配额约束，不表示线上承载上限。浏览器已检查登录、监控最新批次、100→200 条历史翻页、390px 无横向溢出和查询关闭提示。尚未部署，后续发布须按项目约定获得授权，并先应用待发布的增量迁移。
+这些是本机 workerd + 本地 D1 的短时状态读取结果，不包含真实数据源、邮件、设备 Passkey 或 Cloudflare 网络、CPU 与配额约束，不表示线上承载上限。浏览器已检查登录、监控最新批次、100→200 条历史翻页、390px 无横向溢出和查询关闭提示。性能代码随本节上方的 `b4c86ca` 部署；这里的本地基准不替代线上容量测量。
