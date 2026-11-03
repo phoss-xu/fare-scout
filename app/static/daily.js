@@ -1,3 +1,4 @@
+import {setupOfferViews} from './offer-views.js';
 import {getPreferences} from './preferences.js';
 import {tr} from './i18n.js';
 import {openSettings} from './settings.js';
@@ -12,6 +13,7 @@ export function dailyCards(offers,adults) {
 }
 
 export function setupDaily(refresh,toast,openWatch,applyPreferences) {
+  const offerViews=setupOfferViews($('#daily-offers'));
   const form=$('#daily-form');let dirty=false,initialized=false,epoch=0,enabled=false,edition;
   function selectView(name) {
     $('#daily-content').hidden=name!=='daily';$('#search-content').hidden=name!=='search';
@@ -42,7 +44,7 @@ export function setupDaily(refresh,toast,openWatch,applyPreferences) {
     finally {if(generation===epoch) button.disabled=false;}
   });
   return {
-    reset(){epoch++;dirty=false;initialized=false;enabled=false;edition=undefined;form.reset();form.querySelector('[type=submit]').disabled=false;$('#daily-error').textContent='';$('#daily-offers').replaceChildren();$('#daily-status').textContent='';$('#daily-settings-open').hidden=true;$('#discovery-views').hidden=true;selectView('search');},
+    reset(){offerViews.clear();epoch++;dirty=false;initialized=false;enabled=false;edition=undefined;form.reset();form.querySelector('[type=submit]').disabled=false;$('#daily-error').textContent='';$('#daily-offers').replaceChildren();$('#daily-status').textContent='';$('#daily-settings-open').hidden=true;$('#discovery-views').hidden=true;selectView('search');},
     render(state) {
       $('#daily-settings-open').hidden=!state.daily;$('#discovery-views').hidden=!state.daily;
       if(!state.daily) return;
@@ -66,7 +68,8 @@ export function setupDaily(refresh,toast,openWatch,applyPreferences) {
         `${e.day} · ${e.status==='error'?tr("本轮查询失败","This round failed"):e.offers.length?`${e.offers.length}${tr(" 个目的地"," destinations")}`:tr("本次无匹配","No matches in these results")} · ${e.failures}/${e.total}${tr(" 组失败 · 最近查询 "," failed groups · Last checked ")}${time(e.checked_at)} · ${delivery[e.mail_status] || ''}`;
       const view=e?.status==='error'?'error':e?.status==='preparing'?'preparing':e?'empty':'initial';
       const copy={initial:[tr("暂无推荐","No recommendations yet"),''],empty:[tr("本次无匹配行程","No matching itinerary in these results"),tr("无匹配不代表无票","No match does not mean no flights")],error:[tr("查询失败","Check failed"),tr("数据源暂不可用，请重试","Flight data unavailable · Retry")],preparing:[tr("查价中…","Checking…"),'']}[view];
-      $('#daily-offers').innerHTML=e?.status==='ready' && e.offers.length?dailyCards(e.offers,e.config.adults):`<div class="discovery-empty"><div><h3>${copy[0]}</h3>${copy[1]?`<p>${copy[1]}</p>`:''}</div><div class="empty-route" aria-hidden="true"><span>周末</span><img src="/assets/airplane-tilt.svg" alt=""><span>远方</span></div></div>`;
+      if(e?.status==='ready' && e.offers.length) offerViews.render(e.offers,e.offers,e.config.adults,true);
+      else {offerViews.clear();$('#daily-offers').innerHTML=`<div class="discovery-empty"><div><h3>${copy[0]}</h3>${copy[1]?`<p>${copy[1]}</p>`:''}</div><div class="empty-route" aria-hidden="true"><span>周末</span><img src="/assets/airplane-tilt.svg" alt=""><span>远方</span></div></div>`;}
     }
   };
 }

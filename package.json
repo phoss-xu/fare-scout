@@ -8,15 +8,17 @@
     "build": "wrangler deploy --dry-run --outdir dist",
     "test:workers": "node --test cloudflare/tests/*.test.mjs",
     "test:frontend": "node --test tests/*.mjs",
-    "predev": "python3 scripts/build_cloudflare_data.py && npm run assets:passkeys",
-    "prebuild": "python3 scripts/build_cloudflare_data.py && npm run assets:passkeys",
+    "predev": "python3 scripts/build_cloudflare_data.py && npm run assets:passkeys && npm run assets:maps",
+    "prebuild": "python3 scripts/build_cloudflare_data.py && npm run assets:passkeys && npm run assets:maps",
     "test:source": "node cloudflare/tests/live-source.mjs",
-    "assets:passkeys": "node scripts/build_passkeys.mjs"
+    "assets:passkeys": "node scripts/build_passkeys.mjs",
+    "assets:maps": "node scripts/build_maps.mjs"
   },
   "dependencies": {
     "@noble/hashes": "^2.4.0",
     "@simplewebauthn/browser": "^14.0.0",
-    "@simplewebauthn/server": "^14.0.3"
+    "@simplewebauthn/server": "^14.0.3",
+    "maplibre-gl": "6.16.0"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

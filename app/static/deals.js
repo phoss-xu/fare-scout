@@ -2,6 +2,7 @@ import {visibilityPoll} from './polling.js';
 import {searchStatus} from './deal-progress.js';
 import {captureSearch,restoreSearch} from './search-form.js';
 import {setupSearchPresets} from './search-presets.js';
+import {setupOfferViews} from './offer-views.js';
 import {subscribePreferences} from './preferences.js';
 import {subscribeCurrency} from './currency.js';
 import {tr} from './i18n.js';
@@ -9,7 +10,7 @@ import {amount} from './format.js';
 import {request} from './api.js';
 import {picker} from './locations.js';
 import {escape,money} from './format.js';
-import {dealCards, destinationChoices, discoveryPlaceholder, sampledDays, sortedOffers,watchDraft} from './deal_views.js';
+import {destinationChoices, discoveryPlaceholder, sampledDays, sortedOffers,watchDraft} from './deal_views.js';
 import {setupHolidays} from './holidays.js';
 import {setupSearchLayout} from './ui.js';
 import {setupNights} from './nights.js';
@@ -45,6 +46,7 @@ export function setupDeals(openWatch) {
     apply:async (config,isCurrent)=>{holidays.clear();await restoreSearch(form,origin,destinations,config,isCurrent);}});
   const status = panel.querySelector('#deal-status'), results = panel.querySelector('#deal-results');
   const controls = panel.querySelector('#deal-result-controls'), button = form.querySelector('[type=submit]');
+  const offerViews=setupOfferViews(results);
   let epoch=0, activeSearch, pollDelay=1500, progress, result, renderedOffers, day='',destination='',edited=false,preferenceKey;
   form.addEventListener('input',()=>edited=true);
   form.addEventListener('change',()=>edited=true);
@@ -53,7 +55,7 @@ export function setupDeals(openWatch) {
     const choices=destinationChoices(result.offers,day);
     if(!choices.some(c=>c.key===destination)) destination='';
     const offers=sortedOffers(result.offers, form.elements.result_sort.value, day).filter(o=>!destination || (o.destination_id || o.outbound.to)===destination);
-    results.innerHTML=dealCards(offers,result.offers,result.config.adults);
+    offerViews.render(offers, result.offers, result.config.adults);
     const rail=panel.querySelector('#deal-destinations');
     rail.innerHTML='<button type="button" data-deal-destination="" aria-pressed="'+String(!destination)+tr("\">所有目的地</button>","\">All destinations</button>")+choices.map(c=>`<button type="button" data-deal-destination="${escape(c.key)}" aria-pressed="${c.key===destination}"><span>${escape(c.name)}</span><strong>${amount(c.price)}</strong></button>`).join('');
     panel.querySelectorAll('[data-deal-day]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dealDay === day)));
@@ -124,7 +126,7 @@ export function setupDeals(openWatch) {
   }
   form.addEventListener('submit',async event => {
     event.preventDefault(); const version=++epoch; poller.stop(); button.disabled=true;
-     controls.hidden=true; panel.querySelector('#deal-sort').hidden=true; results.innerHTML=discoveryPlaceholder('loading'); results.setAttribute('aria-busy','true'); result=undefined;renderedOffers=undefined;day='';destination=''; status.textContent=tr("搜索中…","Searching…");
+    offerViews.clear(); controls.hidden=true; panel.querySelector('#deal-sort').hidden=true; results.innerHTML=discoveryPlaceholder('loading'); results.setAttribute('aria-busy','true'); result=undefined;renderedOffers=undefined;day='';destination=''; status.textContent=tr("搜索中…","Searching…");
     try {
       const data=captureSearch(form,origin,destinations);
       const task = await request('/api/deals',data);
@@ -150,7 +152,7 @@ export function setupDeals(openWatch) {
     origin.setValues(c.origins).catch(error=>{status.textContent=error.message;});
     form.dispatchEvent(new Event('journey:locations'));
   },reset(active) {
-    epoch+=1;poller.stop();activeSearch=undefined;form.reset();origin.clear();destinations.clear();result=undefined;renderedOffers=undefined;day='';destination='';edited=false;preferenceKey=undefined;
+    offerViews.clear();epoch+=1;poller.stop();activeSearch=undefined;form.reset();origin.clear();destinations.clear();result=undefined;renderedOffers=undefined;day='';destination='';edited=false;preferenceKey=undefined;
     holidays.reset(active);
     layout.reset();
     nights.reset();

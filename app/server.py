@@ -24,7 +24,7 @@ class Handler(BaseHTTPRequestHandler):
         if cookie:
             self.send_header("Set-Cookie", cookie)
         self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://images.unsplash.com; connect-src 'self' https://api.frankfurter.dev https://images.unsplash.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
+        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://images.unsplash.com https://tiles.openfreemap.org; connect-src 'self' https://api.frankfurter.dev https://images.unsplash.com https://tiles.openfreemap.org; worker-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
         self.end_headers()
         self.wfile.write(content)
 
@@ -104,6 +104,16 @@ class Handler(BaseHTTPRequestHandler):
                  "/automation.css": ("automation.css", "text/css"),
                  "/style.css": ("style.css", "text/css")}
         files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("polling", "history-panel", "landscape-provider", "landscape-actions", "email-settings", "preferences", "exchange-rates", "currency", "i18n", "settings")})
+        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("polling", "history-panel", "offer-views", "route-map", "route-map-chart", "route-projection", "route-basemap", "route-bubbles", "route-card-views")})
+        files.update({f"/vendor/{name}": (f"vendor/{name}", "text/javascript") for name in ("maplibre-gl.mjs", "maplibre-gl-shared.mjs", "maplibre-gl-worker.mjs")})
+        files["/vendor/maplibre-gl.css"] = ("vendor/maplibre-gl.css", "text/css")
+        files["/destination-photos.json"] = ("destination-photos.json", "application/json")
+        for photo in (STATIC / "assets/destinations").glob("*"):
+            if photo.suffix in (".jpg", ".png", ".webp"):
+                files[f"/assets/destinations/{photo.name}"] = (f"assets/destinations/{photo.name}", {".jpg":"image/jpeg", ".png":"image/png", ".webp":"image/webp"}[photo.suffix])
+        files["/route-map.css"] = ("route-map.css", "text/css")
+        files["/offer-views.css"] = ("offer-views.css", "text/css")
+        files["/route-airports.json"] = ("route-airports.json", "application/json")
         files.update({f"/assets/places/{name}.jpg": (f"assets/places/{name}.jpg", "image/jpeg") for name in ("beach", "forest", "rice", "city", "sculpture", "harbour", "harbour.thumb", "beach.thumb", "forest.thumb", "rice.thumb", "city.thumb", "sculpture.thumb")})
         files.update({f"/assets/manrope-{weight}.ttf": (f"assets/manrope-{weight}.ttf", "font/ttf") for weight in (400, 500, 600, 700)})
         files["/assets/fare-scout-serif-vf.woff2"] = ("assets/fare-scout-serif-vf.woff2", "font/woff2")

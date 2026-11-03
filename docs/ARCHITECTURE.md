@@ -168,3 +168,11 @@ Workers 静态资源优先直出，安全响应头由 `static/_headers` 维护�
 `tasks → source-cache → provider` 为发现查询共享完全相同条件的短期结果，以 D1 租约合并在途请求；监控采样保持新鲜查询。源错误、空结果与缓存来源时间分别保留。
 普通状态读取不启动后台工作；创建自动监控显式入队，搜索提交/进度请求协助处理，Cron 持续接续队列、每日推荐与邮件。跨请求保留现有四路源查询上限。
 验证及并发测试口径见 `CLOUDFLARE.md` 的本地性能章节。
+
+### 机票结果展示（2026-11-03，本地待验收）
+
+`static/offer-views.js` 为搜特价与每日推荐共享展示控制器，在原筛选与报价索引之上切换登机牌列表、紧凑卡片、航线地图；展示偏好保存在浏览器。`deal_views.js` 继续统一报价、航班详情与监控草稿，外层增加行李件数。`offer-views.css` 集中三种视图和移动端样式，取消首条报价独占整行。
+
+`route-map.js → route-map-chart.js → route-basemap.js` 在首次进入地图时加载同源 MapLibre GL JS 6.16.0 和 OpenFreeMap Liberty 底图。`route-airports.json` 只含机场坐标，约 222 KB；浏览器直接访问 `tiles.openfreemap.org` 获取样式、地形、矢量瓦片和字体，不传递账号或报价。渲染器与 worker 由 `npm run assets:maps` 从锁定依赖复制到同源 vendor 目录，开发和构建前自动执行。Python、Workers 与静态响应头同步允许该地图域及同源 worker，保留供应商署名。
+
+`route-bubbles.js` 按地图投影后的像素位置避让单行价格气泡，优先低价和当前选择；密集目的地以小圆点或数字聚合，只有选中的航线显示橙色连线。地图提供原生缩放、拖动与全览，航线仅为机场间示意。左侧目的地卡片保留地点、往返日期、双程时长、价格及行李件数；手机将侧栏移到地图下方。`route-card-views.js` 读取同源图片目录与来源记录，缺图时显示机场占位。日期切换、航班详情和创建监控继续使用原始报价索引。缺坐标或底图加载失败仍保留报价；重试地图不清除查询结果。数据、图片来源与许可见 `app/static/assets/MAP-SOURCES.md`。

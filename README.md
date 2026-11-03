@@ -130,3 +130,7 @@ python prototype/weekend_watch.py --weeks 1 --destination SIN
 脚本默认把 `weekend_watch.db` 写在 `prototype/` 目录；数据库文件属于本地采样数据，不应提交到版本库。
 
 Cloudflare 邮件自助验证与接收确认已正式上线，真实确认邮件收件已验收。配置与限制见 [docs/CLOUDFLARE_EMAIL.md](docs/CLOUDFLARE_EMAIL.md)。
+
+### 本地航线地图
+
+地图采用 MapLibre GL JS 与 OpenFreeMap Liberty，目的地图片与紧凑价格气泡配合侧栏浏览，手机侧栏位于地图下方。`npm install` 后运行开发或构建命令会自动准备地图 vendor 文件；单独运行 Python 服务前可执行 `npm run assets:maps`。地图瓦片需要浏览器联网，加载失败可重试，报价侧栏仍可使用。数据与图片许可见 `app/static/assets/MAP-SOURCES.md`。

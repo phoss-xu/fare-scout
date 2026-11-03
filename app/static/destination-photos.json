@@ -1,0 +1,74 @@
+{
+  "DAD": {
+    "city": "Da Nang",
+    "author": "Khoi Tran",
+    "source": "https://unsplash.com/photos/nAanDX0XMHQ",
+    "path": "/assets/destinations/DAD.jpg",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "downloaded": "2026-11-03"
+  },
+  "KHH": {
+    "city": "Kaohsiung",
+    "author": "Johnson Hung",
+    "source": "https://unsplash.com/photos/yCXuiHfJQXI",
+    "path": "/assets/destinations/KHH.jpg",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "downloaded": "2026-11-03"
+  },
+  "HAN": {
+    "city": "Hanoi",
+    "author": "Quang Nguyen Vinh",
+    "source": "https://unsplash.com/photos/tGcIGuJMO4s",
+    "path": "/assets/destinations/HAN.jpg",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "downloaded": "2026-11-03"
+  },
+  "HKG": {
+    "city": "Hong Kong",
+    "author": "Henry Lai",
+    "source": "https://unsplash.com/photos/PM8uNu5RTIw",
+    "path": "/assets/places/harbour.thumb.jpg",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "downloaded": "2026-11-03"
+  },
+  "SIN": {
+    "city": "Singapore",
+    "author": "Zhu Hongzhi",
+    "source": "https://unsplash.com/photos/EtjLtPUbqbs",
+    "path": "/assets/places/sculpture.thumb.jpg",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "downloaded": "2026-11-03"
+  },
+  "HND": {
+    "city": "Tokyo",
+    "author": "Marek Okon",
+    "source": "https://unsplash.com/photos/2m6wr8qMiio",
+    "path": "/assets/places/city.thumb.jpg",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "downloaded": "2026-11-03"
+  },
+  "NRT": {
+    "city": "Tokyo",
+    "author": "Marek Okon",
+    "source": "https://unsplash.com/photos/2m6wr8qMiio",
+    "path": "/assets/places/city.thumb.jpg",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "downloaded": "2026-11-03"
+  },
+  "DPS": {
+    "city": "Bali",
+    "author": "Armand Mckenzie",
+    "source": "https://unsplash.com/photos/oR9jNPOKlU8",
+    "path": "/assets/places/rice.thumb.jpg",
+    "license": "Unsplash License",
+    "license_url": "https://unsplash.com/license",
+    "downloaded": "2026-11-03"
+  }
+}
