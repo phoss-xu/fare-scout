@@ -8,7 +8,7 @@ import {escape,money} from './format.js';
 import {dealCards, destinationChoices, discoveryPlaceholder, resultSummary, sampledDays, sortedOffers,watchDraft} from './deal_views.js';
 import {setupHolidays} from './holidays.js';
 import {setupSearchLayout} from './ui.js';
-import {setupNights} from './nights.js';
+import {selectedNights,setupNights} from './nights.js';
 import {setupJourney} from './journey.js';
 
 export function setupDeals(openWatch) {
@@ -58,6 +58,7 @@ export function setupDeals(openWatch) {
   panel.addEventListener('click', async event => {
     const preset = event.target.closest('[data-deal-range]');
     if (preset) {
+      form.elements.date_mode.value='range';
       const start = new Date(), end = new Date(); end.setDate(end.getDate()+Number(preset.dataset.dealRange));
       form.elements.start.value=fmt(start); form.elements.end.value=fmt(end);
       form.elements.end.dispatchEvent(new Event('change',{bubbles:true}));
@@ -102,7 +103,7 @@ export function setupDeals(openWatch) {
       if (!origin.values().length) throw new Error(tr("请选择出发地。","Choose a departure location."));
       const to=form.elements.anywhere.checked ? [] : destinations.values();
       if (!form.elements.anywhere.checked && !to.length) throw new Error(tr("请选择目的地，或勾选不限目的地。","Choose a destination or select Anywhere."));
-      const data={...Object.fromEntries(new FormData(form)),origins:origin.values(),destinations:to,
+      const data={...Object.fromEntries(new FormData(form)),nights:selectedNights(form),origins:origin.values(),destinations:to,
         weekdays:[...form.querySelectorAll('[name=weekday]:checked')].map(e => Number(e.value))};
       const task = await request('/api/deals',data);
       if (version === epoch) poll(task.id,version);

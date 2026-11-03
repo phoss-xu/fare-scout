@@ -9,7 +9,11 @@ export function argumentsFor(c,j,discovery) {
   const args={flyFrom:resolve(j.origin_id).code,flyTo:j.location_id?resolve(j.location_id).code:'anywhere',departureDate:fmt(discovery?c.start:j.departure),currency:'HKD',adults:c.adults,cabinClass:'M',sort:'price',allow_self_transfer:false};
   if(c.max_stops>=0) args.max_sector_stopovers=c.max_stops;
   if(discovery) {
-    Object.assign(args,{departureDateTo:fmt(c.end),nights_in_dst_from:c.min_nights,nights_in_dst_to:c.max_nights,one_for_city:!c.daily});
+    Object.assign(args,{departureDateTo:fmt(c.end),nights_in_dst_from:c.min_nights,nights_in_dst_to:c.max_nights,one_for_city:!c.daily && (!c.nights || c.nights.length===c.max_nights-c.min_nights+1)});
+    if(c.date_mode==='fixed') {
+      delete args.departureDateTo;delete args.nights_in_dst_from;delete args.nights_in_dst_to;
+      args.returnDate=fmt(c.end);args.one_for_city=true;
+    }
     if(c.budget) args.price_to=Math.floor(c.budget);
     if(c.weekdays.length) args.fly_days=c.weekdays.map(d=>(d+1)%7).join(',');
     if(c.daily && j.window?.red_eye) Object.assign(args,{dtime_from:0,dtime_to:5,ret_atime_from:0,ret_atime_to:5});

@@ -16,6 +16,7 @@ export function yearFor(data, today) {
 export function applyHoliday(form, holiday, today, kind) {
   const range=holidayRange(holiday,today);
   if (!range) throw new Error(tr("该假期已结束","This holiday has ended"));
+  if (kind === 'deals' && form.elements.date_mode) { form.elements.date_mode.value='range'; form.elements.date_mode.dispatchEvent(new Event('change',{bubbles:true})); }
   if (kind === 'watch') { form.elements.mode.value='fixed'; form.elements.mode.dispatchEvent(new Event('change')); }
   form.elements.start.value=range.start; form.elements.end.value=range.end;
   for (const name of ['start','end']) form.elements[name].dispatchEvent(new Event('change',{bubbles:true}));

@@ -56,6 +56,31 @@ class DealTests(unittest.TestCase):
         with patch.object(deals.Kiwi,'call',side_effect=TimeoutError('test')), self.assertLogs():
             self.assertEqual(deals.search(watch)['failures'],1)
 
+    def test_fixed_dates_use_exact_return_and_ignore_flexible_filters(self):
+        watch=search_config(date_mode='fixed', nights=[], weekdays=[0])
+        flight=offer(watch,dict(departure=watch['start'],arrival=watch['end']))
+        with patch.object(deals.Kiwi,'call'), patch.object(deals.Kiwi,'query',return_value=[flight]) as query:
+            self.assertEqual(len(deals.search(watch)['offers']),1)
+        args=query.call_args.args[0]
+        self.assertIn('returnDate',args)
+        for key in ('departureDateTo','nights_in_dst_from','fly_days'):
+            self.assertNotIn(key,args)
+        bad=deepcopy(flight);bad['inbound']['departureTime']=watch['start']+'T12:00:00'
+        self.assertFalse(deals.accepts(bad,watch,None))
+
+    def test_sparse_nights_reject_gaps_and_invalid_selections(self):
+        watch=search_config(nights=[2,4,10,2])
+        self.assertEqual(watch['nights'],[2,4,10])
+        flight=offer(watch,dict(departure=watch['start'],arrival=watch['end']))
+        flight['inbound']['departureTime']=watch['start']+'T12:00:00'
+        from datetime import date, timedelta
+        for nights in (2,3,4):
+            flight['inbound']['departureTime']=(date.fromisoformat(flight['outbound']['arrivalTime'][:10])+timedelta(days=nights)).isoformat()+'T12:00:00'
+            self.assertEqual(deals.accepts(flight,watch,None),nights in (2,4))
+        for nights in (None,[],[0],[11],['2'],[True],[2.5]):
+            with self.subTest(nights=nights),self.assertRaises(ValueError):
+                search_config(nights=nights)
+
     def test_tasks_are_account_isolated_and_reject_duplicate_running_search(self):
         with patch.object(deal_jobs,'TASKS',{}), patch.object(deal_jobs.POOL,'submit'):
             identity=deal_jobs.start(1,search_config())

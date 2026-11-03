@@ -8,6 +8,9 @@ from .provider import Kiwi
 
 
 def validate(data):
+    date_mode = data.get('date_mode', 'range')
+    if date_mode not in ('range', 'fixed'):
+        raise ValueError('请选择固定往返或灵活日期。')
     raw = data.get('destinations', [])
     if not isinstance(raw, list) or len(raw) > 100:
         raise ValueError('每次最多选择 100 个目的地范围，也可以选择不限目的地。')
@@ -30,10 +33,15 @@ def validate(data):
         raise ValueError('请检查地点、出发日期范围、人数、预算和筛选条件。') from None
     if start < today() or end < start or (end-start).days > 180 or end > today()+timedelta(days=365):
         raise ValueError('请选择未来一年内的出发时间，单次日期跨度不超过 180 天。')
-    if not 1 <= low <= high <= 30:
-        raise ValueError('目的地停留晚数须为 1–30，最少不能大于最多。')
+    nights = data.get('nights', list(range(low, high + 1)) if 1 <= low <= high <= 10 else []) if date_mode == 'range' else []
+    if date_mode == 'range' and (not isinstance(nights, list) or not nights or
+                                any(type(n) is not int or not 1 <= n <= 10 for n in nights)):
+        raise ValueError('请勾选 1–10 晚中的至少一项。')
+    nights = sorted(set(nights))
+    low, high = (min(nights), max(nights)) if nights else (0, 0)
     return dict(base, origin_locations=origins, origin_selections=origin_rows, destination_selections=destination_rows, destination_locations=scopes, destinations=[r['code'] for r in scopes],
-                min_nights=low, max_nights=high, weekdays=sorted(set(weekdays)))
+                min_nights=low, max_nights=high, nights=nights, date_mode=date_mode,
+                weekdays=sorted(set(weekdays)) if date_mode == 'range' else [])
 
 
 def accepts(offer, config, scope, origin=None):
@@ -42,11 +50,15 @@ def accepts(offer, config, scope, origin=None):
         dep = datetime.fromisoformat(out['departureTime']).date()
         arrival = datetime.fromisoformat(out['arrivalTime']).date()
         ret = datetime.fromisoformat(back['departureTime']).date()
+        fixed = config.get('date_mode') == 'fixed'
+        if fixed and (dep.isoformat() != config['start'] or ret.isoformat() != config['end']):
+            return False
         if not config['start'] <= dep.isoformat() <= config['end']:
             return False
         if config['weekdays'] and dep.weekday() not in config['weekdays']:
             return False
-        if not config['min_nights'] <= (ret-arrival).days <= config['max_nights']:
+        if not fixed and (not config['min_nights'] <= (ret-arrival).days <= config['max_nights'] or
+                          ('nights' in config and (ret-arrival).days not in config['nights'])):
             return False
         if not math.isfinite(offer['price']) or (config['budget'] and offer['price'] > config['budget']):
             return False
@@ -67,7 +79,12 @@ def search(config, progress=lambda *_: None):
                     departureDate=fmt(config['start']), departureDateTo=fmt(config['end']),
                     nights_in_dst_from=config['min_nights'], nights_in_dst_to=config['max_nights'],
                     adults=config['adults'], currency='HKD', cabinClass='M', sort='price',
-                    one_for_city=True, allow_self_transfer=False)
+                    one_for_city=len(config.get('nights', [])) == config['max_nights']-config['min_nights']+1, allow_self_transfer=False)
+        if config.get('date_mode') == 'fixed':
+            for key in ('departureDateTo', 'nights_in_dst_from', 'nights_in_dst_to'):
+                args.pop(key)
+            args['returnDate'] = fmt(config['end'])
+            args['one_for_city'] = True
         if config['max_stops'] >= 0:
             args['max_sector_stopovers'] = config['max_stops']
         if config['budget']:

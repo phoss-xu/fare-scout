@@ -32,12 +32,17 @@ export function validate(d, discovery = false) {
   ensure(budget>=0 && budget<=1000000 && max_duration_hours>=0 && max_duration_hours<=72 && [-1,0,1,2,3].includes(max_stops), '请检查预算、每程最长时长或中转次数。');
   const config = {origin:os[0].code,origin_location:os[0],origin_locations:os,destination_locations:ds,origin_selections,destination_selections,destinations:ds.map(r=>r.code),start,end,mode,adults,weeks,budget,max_duration_hours,max_stops,currency:'HKD',cabin:'M',...policy(d)};
   if (discovery) {
-    const min_nights=number(d.min_nights,2),max_nights=number(d.max_nights,5),weekdays=d.weekdays ?? [];
+    const date_mode=d.date_mode ?? 'range';
+    ensure(['range','fixed'].includes(date_mode), '请选择固定往返或灵活日期。');
+    let min_nights=number(d.min_nights,2),max_nights=number(d.max_nights,5),weekdays=d.weekdays ?? [];
     ensure(os.length*Math.max(1,ds.length)<=120, '这次选择超过 120 组出发地与目的地组合，请缩小范围。');
     ensure(end<=plusDays(start,180) && end<=plusDays(today(),365), '请选择未来一年内的出发时间，单次日期跨度不超过 180 天。');
-    ensure(Number.isInteger(min_nights) && Number.isInteger(max_nights) && min_nights>=1 && max_nights<=30 && min_nights<=max_nights, '目的地停留晚数须为 1–30，最少不能大于最多。');
+    const selected=d.nights !== undefined ? d.nights : (Number.isInteger(min_nights) && Number.isInteger(max_nights) && min_nights>=1 && max_nights<=10 && min_nights<=max_nights ? Array.from({length:max_nights-min_nights+1},(_,i)=>min_nights+i) : []);
+    ensure(date_mode==='fixed' || (Array.isArray(selected) && selected.length>0 && selected.every(n=>Number.isInteger(n)&&n>=1&&n<=10)), '请勾选 1–10 晚中的至少一项。');
+    const nights=date_mode==='fixed'?[]:[...new Set(selected)].sort((a,b)=>a-b);
+    min_nights=nights.length?Math.min(...nights):0;max_nights=nights.length?Math.max(...nights):0;
     ensure(Array.isArray(weekdays) && weekdays.every(n=>Number.isInteger(n)&&n>=0&&n<7), '请检查出发星期。');
-    Object.assign(config,{min_nights,max_nights,weekdays:[...new Set(weekdays)].sort()});
+    Object.assign(config,{date_mode,nights,min_nights,max_nights,weekdays:date_mode==='fixed'?[]:[...new Set(weekdays)].sort()});
   }
   return config;
 }
@@ -62,7 +67,9 @@ export function accepts(offer,c,j) {
   const out=offer.outbound,back=offer.inbound;
   if (!out || !back || !localTime(out.arrivalTime)) return false;
   const dep=out.departureTime?.slice(0,10),ret=back.departureTime?.slice(0,10),nights=(Date.parse(ret)-Date.parse(out.arrivalTime.slice(0,10)))/86400000;
-  if (!(dep>=c.start && dep<=c.end) || (c.weekdays.length && !c.weekdays.includes(weekday(dep))) || !(nights>=c.min_nights && nights<=c.max_nights) || (c.budget && offer.price>c.budget)) return false;
+  if (c.date_mode==='fixed') {
+    if(dep!==c.start || ret!==c.end || (c.budget && offer.price>c.budget)) return false;
+  } else if (!(dep>=c.start && dep<=c.end) || (c.weekdays.length && !c.weekdays.includes(weekday(dep))) || !(nights>=c.min_nights && nights<=c.max_nights) || (c.nights && !c.nights.includes(nights)) || (c.budget && offer.price>c.budget)) return false;
   try { return matches(offer,c,{...j,location_id:j.location_id || 'airport:'+out.to,departure:dep,arrival:ret}); } catch { return false; }
 }
 export const routeKey = (c,j,o) => JSON.stringify([o.outbound.from,o.outbound.to,o.inbound.from,o.inbound.to,o.outbound.departureTime.slice(0,10),o.inbound.departureTime.slice(0,10),o.inbound.arrivalTime.slice(0,10)]);

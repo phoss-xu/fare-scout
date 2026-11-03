@@ -41,7 +41,7 @@ export async function dailyState(db,userId) {
 }
 async function enqueueDaily(db,p) {
   const pref=JSON.parse(p.config),day=new Date(Date.parse(p.next_due)+8*3600000).toISOString().slice(0,10);
-  const c={...validate({...pref,destinations:[],start:plusDays(today(),1),end:plusDays(today(),84),min_nights:1,max_nights:14,max_duration_hours:8,max_stops:1},true),...pref,daily:true};
+  const c={...validate({...pref,destinations:[],start:plusDays(today(),1),end:plusDays(today(),84),min_nights:1,max_nights:10,max_duration_hours:8,max_stops:1},true),...pref,nights:undefined,daily:true};
   const windows=travelWindows(c,today()),tasks=windows.flatMap(window=>c.origin_locations.map(o=>({origin_id:o.id,location_id:null,window})));
   const id=crypto.randomUUID(),timestamp=now(),edition=crypto.randomUUID();
   await batch(db,[

@@ -33,7 +33,7 @@ Python 3.9+ 标准库本地服务，SQLite 持久化，原生 HTML/CSS/JavaScrip
 - `schema.py`：可重复执行的数据库升级；`store.py` 保留持久化操作。
 - `domain.py`：结构化监控校验、地点范围与日期任务展开、航线和时间筛选。
 - `location_groups.py`：编辑精选和区域浏览，通过规范地点 ID 生成分类；免签是带护照口径、日期和官方来源的精选。维护规则见 `docs/LOCATION_DISCOVERY.md`。
-- `static/location_browser.js` / `location_browser.css`：各入口共享的分类浏览；输入始终全局搜索。`static/nights.js` / `nights.css`：双滑块停留范围。
+- `static/location_browser.js` / `location_browser.css`：各入口共享的分类浏览；输入始终全局搜索。`static/nights.js` / `nights.css`：1–10 晚复选框与空选校验，灵活日期按所选晚数过滤；搜特价的 `date_mode` 区分固定往返与日期范围，两种后端共用前端表单协议。
 - `locations.py` / `data/locations.json`：全球地点查询、类型与机场归属；`scripts/update_locations.py` 更新目录。
 - `journeys.py` / `observations.py`：实际行程比较口径与整批采样事务；`presenter.py` 组合用户状态和地点标签。
 - `static/locations.js` / `locations.css`：出发地单选、目的地混合多选与搜索。
