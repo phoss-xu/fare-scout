@@ -41,18 +41,18 @@ export async function loadLandscapeImage(photo) {
   } finally {clearTimeout(timer);}
 }
 /** Try alternate curated photos on failure; retain one successfully loaded photo per hour. */
-export async function fetchLandscape({loadImage=loadLandscapeImage,storage,now=Date.now(),random=()=>crypto.getRandomValues(new Uint32Array(1))[0]}={}) {
+export async function fetchLandscape({loadImage=loadLandscapeImage,storage,now=Date.now(),random=()=>crypto.getRandomValues(new Uint32Array(1))[0],force=false,excludeId}={}) {
   let previous;
   try {
     storage ??= globalThis.localStorage;
     previous=JSON.parse(storage.getItem(CACHE_KEY));
   } catch(error) {console.info('Landscape cache unavailable',error.name);}
   const failures=[];
-  if(validPhoto(previous?.photo) && now>=previous.at && now-previous.at<REFRESH_MS) {
+  if(!force && previous?.photo?.id!==excludeId && validPhoto(previous?.photo) && now>=previous.at && now-previous.at<REFRESH_MS) {
     try {await loadImage(previous.photo);return previous.photo;}
     catch(error) {failures.push(error);}
   }
-  const candidates=remoteLandscapes.filter(photo=>photo.id!==previous?.photo?.id);
+  const candidates=remoteLandscapes.filter(photo=>photo.id!==previous?.photo?.id && photo.id!==excludeId);
   const offset=random()%candidates.length;
   for(let i=0;i<Math.min(3,candidates.length);i++) {
     const photo=candidates[(offset+i)%candidates.length];

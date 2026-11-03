@@ -6,7 +6,13 @@ const $=s=>document.querySelector(s);
 export function openSettings(focus) {
   const dialog=$('#appearance-dialog');
   if(!dialog.open) $('#appearance-open').click();
-  if(focus) {$(focus).scrollIntoView({block:'center'});$(focus).focus();}
+  if(focus) {
+    const target=$(focus);
+    for(let parent=target.parentElement;parent && parent!==dialog;parent=parent.parentElement) {
+      if(parent.tagName==='DETAILS') parent.open=true;
+    }
+    target.scrollIntoView({block:'center'});target.focus();
+  }
 }
 export function renderSettings(state) {
   $('#settings-account').hidden=!state?.user;
@@ -15,7 +21,8 @@ export function renderSettings(state) {
 export function setupSettings() {
   function render() {
     const p=getPreferences(),exchange=exchangeState();
-    $('#settings-language').value=p.language;$('#settings-currency').value=p.currency;
+    document.querySelectorAll('[name=settings_language]').forEach(input=>input.checked=input.value===p.language);
+    $('#settings-currency').value=p.currency;
     $('#settings-motion').checked=getAppearance().motion;
     $('#currency-status').textContent=p.currency==='HKD'?tr('港币原价','Original HKD quotes'):
       exchange.rate?tr(`参考汇率 ${exchange.date} · ${p.currency}`,`Reference rate dated ${exchange.date}; displaying ${p.currency}.`):
@@ -23,7 +30,7 @@ export function setupSettings() {
       tr('汇率不可用 · 显示港币原价','Rates unavailable · Showing HKD');
     $('#currency-retry').hidden=p.currency==='HKD' || exchange.status==='loading' || Boolean(exchange.rate);
   }
-  $('#settings-language').addEventListener('change',e=>setPreferences({language:e.target.value}));
+  document.querySelectorAll('[name=settings_language]').forEach(input=>input.addEventListener('change',e=>setPreferences({language:e.target.value})));
   $('#settings-currency').addEventListener('change',e=>{setPreferences({currency:e.target.value});ensureRates();});
   $('#settings-motion').addEventListener('change',e=>setAppearance({motion:e.target.checked}));
   $('#currency-retry').addEventListener('click',()=>ensureRates());

@@ -13,15 +13,15 @@
 #deals-panel .atlas-copy h1{font:500 clamp(40px,4.3vw,60px)/1.25 var(--family);letter-spacing:-2px;color:var(--scene-ink);text-shadow:none;margin:0 0 18px;white-space:nowrap;text-wrap:initial}
 #deals-panel .atlas-copy h1>span{color:var(--scene-accent)}
 .getaway-lead{color:var(--scene-muted);font-size:13px;line-height:1.9;margin:0}
-.getaway-start{display:inline-flex;gap:30px;align-items:center;margin-top:18px;padding:8px 0;border-bottom:1px solid #f7f4e966;font-size:11px;color:var(--scene-ink)}
+.getaway-start{display:inline-flex;gap:30px;align-items:center;margin-top:18px;padding:8px 0;border:0;text-decoration:none;font-size:11px;color:var(--scene-ink)}
 .getaway-start>span{font-size:23px;line-height:1}
-.atlas-caption{align-self:end;justify-self:end;width:100%;max-width:295px;border-top:1px solid #f7f4e966;padding:20px 0 14px;margin-bottom:32px;text-shadow:0 1px 15px #152a25}
+.atlas-caption{align-self:end;justify-self:end;width:100%;max-width:295px;border-top:0;padding:20px 0 14px;margin-bottom:32px;text-shadow:0 1px 15px #152a25}
 .caption-index{font-size:8px;letter-spacing:1px;color:var(--scene-muted)}
 #deals-panel .atlas-location{color:var(--scene-ink);font-size:10px;letter-spacing:2px;margin:20px 0 8px}
 #deals-panel #atlas-title{font:400 clamp(29px,3.5vw,46px)/1.15 var(--display-family);letter-spacing:-1px;margin:0 0 8px;overflow-wrap:anywhere;color:var(--scene-ink)}
 #deals-panel #atlas-name{font:400 14px/1.6 var(--family);letter-spacing:2px;color:var(--scene-ink)}
 #deals-panel .atlas-description{font-size:11px;line-height:1.8;color:var(--scene-muted);max-width:25em;margin:10px 0;text-shadow:none}
-#deals-panel .atlas-bottom{border-top:1px solid #f7f4e933;padding-top:14px;gap:14px}
+#deals-panel .atlas-bottom{border-top:0;padding-top:14px;gap:14px}
 #deals-panel .atlas-tools{max-width:65%;gap:14px}
 #deals-panel .atlas-tools a{color:var(--scene-muted);font-size:9px}
 #deals-panel .atlas-actions button{background:#152a2550;border-color:#f7f4e966;color:var(--scene-ink);border-radius:2px;min-height:40px;font-size:10px}
@@ -169,3 +169,14 @@
  #deals-panel .discovery-empty p{font-size:11px}
  #deals-panel .discovery-steps{font-size:9px;gap:12px;flex-wrap:wrap}
 }
+
+/* A light glass control over the photograph. */
+.atlas-refresh-tools{display:flex;align-items:center;gap:14px;flex:none}
+.atlas-refresh{display:grid;place-items:center;width:44px;height:44px;flex:none;padding:0;border:1px solid #ffffff55;border-radius:50%;background:#ffffff18;backdrop-filter:blur(12px);color:var(--scene-ink);box-shadow:0 3px 12px #00000012;cursor:pointer}
+.atlas-refresh:hover:not(:disabled){background:#ffffff30;border-color:#ffffff99}
+.atlas-refresh svg{width:20px;height:20px;transition:transform .3s}
+.atlas-refresh:hover:not(:disabled) svg{transform:rotate(45deg)}
+.atlas-refresh[aria-busy=true] svg{animation:scenery-spin 1s linear infinite}
+.atlas-refresh:disabled{opacity:.7;cursor:wait}
+@keyframes scenery-spin{to{transform:rotate(360deg)}}
+@media(max-width:760px){.atlas-refresh-tools{gap:8px}#deals-panel .atlas-topline{align-items:center}.atlas-refresh-tools .atlas-refresh-note{max-width:70px}}

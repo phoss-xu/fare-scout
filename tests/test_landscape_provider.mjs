@@ -41,3 +41,21 @@ test('existing favourites survive and new Unsplash photos can be liked independe
  assert.equal(readLikes(store)[0].id,photo.id);assert.equal(toggleLike(photo,store),false);assert.deepEqual(readLikes(store),[]);
  assert.throws(()=>toggleLike(photo,{getItem:()=>null,setItem:()=>{throw new Error('quota');}}),/quota/);
 });
+test('manual refresh bypasses the hourly cache, excludes the visible photo and saves the new one',async()=>{
+ const store=storage(),loadImage=async()=>{};
+ const first=await fetchLandscape({storage:store,now:100,random:()=>0,loadImage});
+ const attempts=[];
+ const next=await fetchLandscape({storage:store,now:101,force:true,excludeId:first.id,random:()=>0,loadImage:async p=>attempts.push(p.id)});
+ assert.notEqual(next.id,first.id);assert.deepEqual(attempts,[next.id]);
+ assert.equal((await fetchLandscape({storage:store,now:102,loadImage})).id,next.id);
+ // The visible photo must also be excluded if another tab changed the cache.
+ const third=await fetchLandscape({storage:store,now:103,force:true,excludeId:first.id,random:()=>0,loadImage});
+ assert.notEqual(third.id,first.id);assert.notEqual(third.id,next.id);
+});
+test('a failed manual refresh preserves the last good cache for a later visit',async()=>{
+ const store=storage();
+ const first=await fetchLandscape({storage:store,now:100,random:()=>0,loadImage:async()=>{}});
+ const before=store.getItem('fare-scout:landscape:feed:v2');
+ await assert.rejects(fetchLandscape({storage:store,now:101,force:true,excludeId:first.id,loadImage:async()=>{throw new Error('offline');}}),AggregateError);
+ assert.equal(store.getItem('fare-scout:landscape:feed:v2'),before);
+});

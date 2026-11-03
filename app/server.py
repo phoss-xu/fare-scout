@@ -84,6 +84,7 @@ class Handler(BaseHTTPRequestHandler):
                  "/theme-init.js": ("theme-init.js", "text/javascript"),
                  "/themes.css": ("themes.css", "text/css"),
                  "/appearance.css": ("appearance.css", "text/css"),
+                 "/settings.css": ("settings.css", "text/css"),
                  "/assets/coast-dawn.jpg": ("assets/coast-dawn.jpg", "image/jpeg"),
                  "/nights.js": ("nights.js", "text/javascript"), "/nights.css": ("nights.css", "text/css"),
                  "/location_browser.js": ("location_browser.js", "text/javascript"),

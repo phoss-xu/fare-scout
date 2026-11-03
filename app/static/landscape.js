@@ -7,6 +7,7 @@ export function setupLandscape(panel) {
   const scene = panel.querySelector('.atlas-scene'), photo = scene.querySelector('.atlas-photo');
   const error = scene.querySelector('#atlas-image-error'), note = scene.querySelector('.atlas-refresh-note');
   const backdrop = setupWorldBackdrop(), actions = setupLandscapeActions(scene);
+  const refreshButton=scene.querySelector('#atlas-refresh');
   let attemptedAt = 0, pending = false, timer, currentPlace=defaultLandscape;
   function render(place) {
     currentPlace=place;
@@ -24,23 +25,26 @@ export function setupLandscape(panel) {
     license.href = place.licenseUrl; license.textContent = place.license;
     actions.setPhoto(place);
   }
-  async function refresh() {
-    clearTimeout(timer);
+  async function refresh({force=false}={}) {
     if (pending) return;
-    if (!document.hidden && Date.now() - attemptedAt >= REFRESH_MS) {
+    clearTimeout(timer);
+    if (!document.hidden && (force || Date.now() - attemptedAt >= REFRESH_MS)) {
       pending = true; attemptedAt = Date.now();
+      refreshButton.disabled=true;refreshButton.setAttribute('aria-busy','true');
+      note.textContent=tr('加载新风景…','Loading scenery…');
       try {
-        const place = await fetchLandscape();
+        const place = await fetchLandscape({force,excludeId:force?currentPlace.id:undefined});
         render(place); error.hidden = true; note.textContent = tr("每小时更新","Updated hourly");
       } catch (cause) {
         console.warn('Landscape refresh failed', {error:cause.name, message:cause.message});
-        render(defaultLandscape); error.hidden = false;
+        error.hidden = false;
         error.textContent = tr("新风景加载失败，稍后重试。","Could not load new scenery. Try again later.");
-        note.textContent = tr("默认风景 · 岚山竹林","Default scenery · Arashiyama Bamboo Grove");
-      } finally { pending = false; }
+        note.textContent = tr('保留当前风景','Keeping current scenery');
+      } finally { pending = false;refreshButton.disabled=false;refreshButton.setAttribute('aria-busy','false'); }
     }
     timer = setTimeout(refresh, document.hidden ? REFRESH_MS : Math.max(1000, attemptedAt + REFRESH_MS - Date.now()));
   }
+  refreshButton.addEventListener('click',()=>refresh({force:true}));
   photo.addEventListener('error', () => {
     if (scene.dataset.place === defaultLandscape.id) { error.hidden = false; error.textContent = tr("图片未载入，可查看原图。","Image unavailable. View the original photo."); return; }
     render(defaultLandscape); error.hidden = false; error.textContent = tr("图片加载失败，已用默认风景。","Image unavailable. Showing the default scenery.");
@@ -48,8 +52,11 @@ export function setupLandscape(panel) {
   });
   document.addEventListener('languagechange',()=>{
     render(currentPlace);
-    note.textContent=currentPlace.id==='forest'?tr('默认风景 · 岚山竹林','Default scenery · Arashiyama Bamboo Grove'):tr('每小时更新','Updated hourly');
-    if(!error.hidden) error.textContent=tr('新风景加载失败，稍后重试。','Could not load new scenery. Try again later.');
+    note.textContent=pending?tr('加载新风景…','Loading scenery…'):currentPlace.id==='forest'?tr('默认风景 · 岚山竹林','Default scenery · Arashiyama Bamboo Grove'):tr('每小时更新','Updated hourly');
+    if(!error.hidden) {
+      error.textContent=tr('新风景加载失败，稍后重试。','Could not load new scenery. Try again later.');
+      if(!pending) note.textContent=tr('保留当前风景','Keeping current scenery');
+    }
   });
   render(defaultLandscape); refresh();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
