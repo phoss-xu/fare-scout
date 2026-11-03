@@ -81,6 +81,26 @@ class DealTests(unittest.TestCase):
             with self.subTest(nights=nights),self.assertRaises(ValueError):
                 search_config(nights=nights)
 
+    def test_disjoint_weekends_query_each_pair_and_keep_same_city(self):
+        from datetime import date, timedelta
+        start=date.fromisoformat(search_config()['start'])
+        first=start+timedelta(days=(5-start.weekday())%7)
+        pairs=[dict(start=(first+timedelta(days=n)).isoformat(),end=(first+timedelta(days=n+1)).isoformat()) for n in (0,14)]
+        watch=search_config(start=pairs[0]['start'],end=pairs[-1]['end'],date_mode='fixed',date_pairs=pairs)
+        flights=[offer(watch,dict(departure=p['start'],arrival=p['end'])) for p in pairs]
+        with patch.object(deals.Kiwi,'call'),patch.object(deals.Kiwi,'query',side_effect=[[flights[0]],[flights[1]]]) as query:
+            result=deals.search(watch)
+        self.assertEqual(result['total'],2)
+        self.assertEqual(len(result['offers']),2)
+        self.assertEqual(query.call_count,2)
+        self.assertTrue(all('returnDate' in call.args[0] and 'departureDateTo' not in call.args[0] for call in query.call_args_list))
+        self.assertTrue(all(deals.accepts(f,watch,None) for f in flights))
+        bad=deepcopy(flights[0]);bad['inbound']['departureTime']=pairs[-1]['end']+'T12:00:00'
+        self.assertFalse(deals.accepts(bad,watch,None))
+        for invalid in ([],None,[{}],pairs*3,[dict(start=pairs[0]['start'],end=pairs[-1]['end'])]):
+            with self.subTest(invalid=invalid),self.assertRaises(ValueError):
+                search_config(start=pairs[0]['start'],end=pairs[-1]['end'],date_mode='fixed',date_pairs=invalid)
+
     def test_tasks_are_account_isolated_and_reject_duplicate_running_search(self):
         with patch.object(deal_jobs,'TASKS',{}), patch.object(deal_jobs.POOL,'submit'):
             identity=deal_jobs.start(1,search_config())

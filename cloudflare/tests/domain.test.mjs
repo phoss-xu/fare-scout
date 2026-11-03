@@ -48,3 +48,16 @@ test('provider sends fixed return dates or night bounds without filling sparse g
   assert.equal(sparse.nights_in_dst_from,2);assert.equal(sparse.nights_in_dst_to,10);
   assert.equal(sparse.one_for_city,false);
 });
+
+test('weekend pair validation agrees across runtimes and rejects empty or mismatched dates',()=>{
+  const start=domain.plusDays(future(20),(5-domain.weekday(future(20))+7)%7);
+  const pairs=[{start,end:domain.plusDays(start,1)},{start:domain.plusDays(start,14),end:domain.plusDays(start,15)}];
+  const value=config({date_mode:'fixed',start:pairs[0].start,end:pairs[1].end,date_pairs:pairs});
+  const actual=domain.validate(value,true);
+  const expected=JSON.parse(execFileSync('python3',['-c','import json,sys;from app.deals import validate;print(json.dumps(validate(json.loads(sys.argv[1])),ensure_ascii=False))',JSON.stringify(value)],{encoding:'utf8'}));
+  assert.deepEqual(actual,expected);
+  const wrongWindow=offer();wrongWindow.outbound.departureTime=pairs[1].start+'T10:00:00';wrongWindow.outbound.arrivalTime=pairs[1].start+'T14:00:00';wrongWindow.inbound.departureTime=pairs[1].end+'T16:00:00';wrongWindow.inbound.arrivalTime=pairs[1].end+'T20:00:00';
+  assert.equal(domain.accepts(wrongWindow,actual,{origin_id:'airport:HKG',location_id:'airport:SIN',window:pairs[0]}),false);
+  for(const date_pairs of [[],null,[{}],pairs.concat(pairs,pairs),[{start,end:pairs[1].end}]]) assert.throws(()=>domain.validate({...value,date_pairs},true));
+  assert.throws(()=>domain.validate({...value,date_mode:'range'},true));
+});

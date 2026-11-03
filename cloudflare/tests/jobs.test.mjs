@@ -78,3 +78,33 @@ test('delete during an in-flight source request fences late observations and ale
   assert.equal((await h.db.prepare('SELECT COUNT(*) n FROM observations').first()).n,0);
   assert.equal((await h.db.prepare('SELECT COUNT(*) n FROM alerts').first()).n,0);
 });
+
+test('selected disjoint weekends create exact tasks and keep a quote for each weekend in the same city',async t=>{
+  const {future}=await import('./fixtures.mjs');
+  const first=new Date(future(20)+'T12:00:00Z');first.setUTCDate(first.getUTCDate()+(6-first.getUTCDay()+7)%7);
+  const shift=n=>new Date(first.getTime()+n*86400000).toISOString().slice(0,10);
+  const pairs=[{start:shift(0),end:shift(1)},{start:shift(14),end:shift(15)}];
+  const calls=[];
+  const outbound=async request=>{
+    const body=await request.json();
+    if(body.method==='initialize') return Response.json({jsonrpc:'2.0',id:body.id,result:{}});
+    const args=body.params.arguments;calls.push(args);
+    const iso=value=>value.split('/').reverse().join('-');
+    const o=offer();
+    o.outbound.departureTime=iso(args.departureDate)+'T10:00:00';o.outbound.arrivalTime=iso(args.departureDate)+'T14:00:00';
+    o.inbound.departureTime=iso(args.returnDate)+'T16:00:00';o.inbound.arrivalTime=iso(args.returnDate)+'T20:00:00';
+    return Response.json({jsonrpc:'2.0',id:body.id,result:{structuredContent:{itineraries:[o]}}});
+  };
+  const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound});t.after(()=>h.close());
+  const session=await register(h);
+  const r=await request(h,'/api/deals',config({date_mode:'fixed',date_pairs:pairs,start:pairs[0].start,end:pairs[1].end}),session);
+  assert.equal(r.status,202,JSON.stringify(r.data));
+  const result=await waitFor(async()=>{
+    const response=await request(h,`/api/deals/${r.data.id}`,undefined,session);return response.data.status==='done'?response.data:null;
+  });
+  assert.equal(result.total,2);assert.equal(result.offers.length,2);assert.equal(calls.length,2);
+  assert.deepEqual(result.offers.map(o=>o.outbound.departureTime.slice(0,10)).sort(),pairs.map(p=>p.start));
+  assert.ok(calls.every(args=>args.returnDate && !('departureDateTo' in args) && !('nights_in_dst_from' in args)));
+  const jobs=(await h.db.prepare('SELECT job FROM search_tasks WHERE run_id=?').bind(r.data.id).all()).results;
+  assert.deepEqual(jobs.map(j=>JSON.parse(j.job).window.start).sort(),pairs.map(p=>p.start));
+});

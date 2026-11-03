@@ -1,4 +1,7 @@
 import {visibilityPoll} from './polling.js';
+import {searchStatus} from './deal-progress.js';
+import {captureSearch,restoreSearch} from './search-form.js';
+import {setupSearchPresets} from './search-presets.js';
 import {subscribePreferences} from './preferences.js';
 import {subscribeCurrency} from './currency.js';
 import {tr} from './i18n.js';
@@ -6,21 +9,22 @@ import {amount} from './format.js';
 import {request} from './api.js';
 import {picker} from './locations.js';
 import {escape,money} from './format.js';
-import {dealCards, destinationChoices, discoveryPlaceholder, resultSummary, sampledDays, sortedOffers,watchDraft} from './deal_views.js';
+import {dealCards, destinationChoices, discoveryPlaceholder, sampledDays, sortedOffers,watchDraft} from './deal_views.js';
 import {setupHolidays} from './holidays.js';
 import {setupSearchLayout} from './ui.js';
-import {selectedNights,setupNights} from './nights.js';
+import {setupNights} from './nights.js';
+import {setupTravelDates,selectedWeekends} from './travel-dates.js';
 import {setupJourney} from './journey.js';
 
 export function setupDeals(openWatch) {
   const form = document.querySelector('#deals-form'), panel = document.querySelector('#deals-panel');
   const scopeNote=document.createElement('p');scopeNote.className='form-hint';scopeNote.setAttribute('role','status');form.append(scopeNote);
   function summarizeScopes() {
-    const count=origin.expandedCount()*(form.elements.anywhere.checked?1:destinations.expandedCount());
+    const count=origin.expandedCount()*(form.elements.anywhere.checked?1:destinations.expandedCount())*(form.elements.date_mode.value==='weekends'?selectedWeekends(form).length:1);
     scopeNote.textContent=count>1?`${count}${tr(" 组查询 · 上限 120 组"," query groups · Limit: 120")}`:'';
     form.dispatchEvent(new Event('journey:locations'));
   }
-  form.elements.anywhere.addEventListener('change',summarizeScopes);
+  form.addEventListener('change',summarizeScopes);
   const origin = picker(panel.querySelector('#deal-origin'), true, summarizeScopes, {editableSelection:true,label:'出发地'});
   const destinations = picker(panel.querySelector('#deal-destination'), true, () => {
     if(destinations.values().length && form.elements.anywhere.checked){
@@ -36,9 +40,12 @@ export function setupDeals(openWatch) {
   const layout = setupSearchLayout(form, panel);
   const nights = setupNights(form);
   const journey = setupJourney(form, panel);
+  const travelDates = setupTravelDates(form);
+  const presets = setupSearchPresets(form, {capture:()=>captureSearch(form,origin,destinations),
+    apply:async (config,isCurrent)=>{holidays.clear();await restoreSearch(form,origin,destinations,config,isCurrent);}});
   const status = panel.querySelector('#deal-status'), results = panel.querySelector('#deal-results');
   const controls = panel.querySelector('#deal-result-controls'), button = form.querySelector('[type=submit]');
-  let epoch=0, activeSearch, pollDelay=1500, progress, result, day='',destination='',edited=false,preferenceKey;
+  let epoch=0, activeSearch, pollDelay=1500, progress, result, renderedOffers, day='',destination='',edited=false,preferenceKey;
   form.addEventListener('input',()=>edited=true);
   form.addEventListener('change',()=>edited=true);
   const fmt = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
@@ -46,7 +53,7 @@ export function setupDeals(openWatch) {
     const choices=destinationChoices(result.offers,day);
     if(!choices.some(c=>c.key===destination)) destination='';
     const offers=sortedOffers(result.offers, form.elements.result_sort.value, day).filter(o=>!destination || (o.destination_id || o.outbound.to)===destination);
-    results.innerHTML = dealCards(offers, result.offers, result.config.adults);
+    results.innerHTML=dealCards(offers,result.offers,result.config.adults);
     const rail=panel.querySelector('#deal-destinations');
     rail.innerHTML='<button type="button" data-deal-destination="" aria-pressed="'+String(!destination)+tr("\">所有目的地</button>","\">All destinations</button>")+choices.map(c=>`<button type="button" data-deal-destination="${escape(c.key)}" aria-pressed="${c.key===destination}"><span>${escape(c.name)}</span><strong>${amount(c.price)}</strong></button>`).join('');
     panel.querySelectorAll('[data-deal-day]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dealDay === day)));
@@ -81,6 +88,17 @@ export function setupDeals(openWatch) {
     }
   });
   form.elements.result_sort.addEventListener('change', () => { if (result) render(); });
+  function showResults(data) {
+    result=data;status.textContent=searchStatus(data);
+    if(data.status==='running' && !data.offers.length) return;
+    const signature=JSON.stringify(data.offers);
+    if(signature===renderedOffers) return;
+    renderedOffers=signature;
+    if(day && !sampledDays(data.offers).some(([date])=>date===day)) day='';
+    controls.hidden=false;panel.querySelector('#deal-sort').hidden=false;
+    panel.querySelector('#deal-days').innerHTML=`<button type="button" data-deal-day="" aria-pressed="${!day}">${tr('全部日期','All dates')}</button>`+sampledDays(data.offers).map(([date,price])=>`<button type="button" data-deal-day="${date}" aria-pressed="${date===day}">${date.slice(5)}<strong>${amount(price)}</strong></button>`).join('');
+    render();
+  }
   const poller=visibilityPoll(poll,{delay:()=>pollDelay});
   async function poll() {
     if(!activeSearch) return;
@@ -88,28 +106,27 @@ export function setupDeals(openWatch) {
     try {
       const data = await request(`/api/deals/${id}`);
       if (version !== epoch) return;
-      if (data.status === 'running') {
-        status.textContent=`${tr("查询中 · ","Checking · ")}${data.completed}/${data.total}`;
+      if (data.status === 'error') {
+        poller.stop();button.disabled=false;results.setAttribute('aria-busy','false');
+        status.textContent=tr('数据源连接失败，请稍后重试。','Cannot reach the flight source. Try again later.');results.innerHTML=discoveryPlaceholder('error');return;
+      }
+      showResults(data);
+      if(data.status==='running') {
         const next=JSON.stringify([data.completed,data.total,data.failures]);
         pollDelay=next===progress?Math.min(8000,pollDelay*2):1500;progress=next;return;
       }
-      poller.stop();button.disabled=false; results.setAttribute('aria-busy','false');
-      if (data.status === 'error') { status.textContent=tr("数据源连接失败，请稍后重试。","Cannot reach the flight source. Try again later."); results.innerHTML=discoveryPlaceholder('error'); return; }
-      result=data; day=''; destination=''; status.textContent=resultSummary(data); controls.hidden=false;
-      panel.querySelector('#deal-sort').hidden=false;
-      panel.querySelector('#deal-days').innerHTML=tr("<button type=\"button\" data-deal-day=\"\" aria-pressed=\"true\">全部日期</button>","<button type=\"button\" data-deal-day=\"\" aria-pressed=\"true\">All dates</button>")+sampledDays(data.offers).map(([date,price])=>`<button type="button" data-deal-day="${date}" aria-pressed="false">${date.slice(5)}<strong>${amount(price)}</strong></button>`).join('');
-      render();
-    } catch (error) { if (version === epoch) { poller.stop();button.disabled=false; status.textContent=error.message; results.setAttribute('aria-busy','false'); results.innerHTML=discoveryPlaceholder('error'); } }
+      poller.stop();
+      button.disabled=false;results.setAttribute('aria-busy','false');
+    } catch (error) { if (version === epoch) {
+      poller.stop();button.disabled=false;status.textContent=error.message;results.setAttribute('aria-busy','false');
+      if(!result?.offers?.length) results.innerHTML=discoveryPlaceholder('error');
+    } }
   }
   form.addEventListener('submit',async event => {
     event.preventDefault(); const version=++epoch; poller.stop(); button.disabled=true;
-    controls.hidden=true; panel.querySelector('#deal-sort').hidden=true; results.innerHTML=discoveryPlaceholder('loading'); results.setAttribute('aria-busy','true'); result=undefined; status.textContent=tr("搜索中…","Searching…");
+     controls.hidden=true; panel.querySelector('#deal-sort').hidden=true; results.innerHTML=discoveryPlaceholder('loading'); results.setAttribute('aria-busy','true'); result=undefined;renderedOffers=undefined;day='';destination=''; status.textContent=tr("搜索中…","Searching…");
     try {
-      if (!origin.values().length) throw new Error(tr("请选择出发地。","Choose a departure location."));
-      const to=form.elements.anywhere.checked ? [] : destinations.values();
-      if (!form.elements.anywhere.checked && !to.length) throw new Error(tr("请选择目的地，或勾选不限目的地。","Choose a destination or select Anywhere."));
-      const data={...Object.fromEntries(new FormData(form)),nights:selectedNights(form),origins:origin.values(),destinations:to,
-        weekdays:[...form.querySelectorAll('[name=weekday]:checked')].map(e => Number(e.value))};
+      const data=captureSearch(form,origin,destinations);
       const task = await request('/api/deals',data);
       if (version === epoch) {activeSearch={id:task.id,version};pollDelay=1500;progress=undefined;poller.start();}
     } catch(error) { if (version === epoch) { status.textContent=error.message; button.disabled=false; results.setAttribute('aria-busy','false'); results.innerHTML=discoveryPlaceholder('error'); } }
@@ -118,7 +135,8 @@ export function setupDeals(openWatch) {
     rangeButton.textContent=tr('＋ 免签精选','＋ Visa-free selection');
     summarizeScopes();
     if(result) {
-      status.textContent=resultSummary(result);
+      status.textContent=searchStatus(result);
+      if(result.status==='running' && !result.offers.length) return;
       panel.querySelector('#deal-days').innerHTML=`<button type="button" data-deal-day="" aria-pressed="${!day}">${tr('全部日期','All dates')}</button>`+sampledDays(result.offers).map(([date,value])=>`<button type="button" data-deal-day="${date}" aria-pressed="${date===day}">${date.slice(5)}<strong>${amount(value)}</strong></button>`).join('');
       render();
     } else if(!button.disabled) {results.innerHTML=discoveryPlaceholder();status.textContent='';}
@@ -132,7 +150,7 @@ export function setupDeals(openWatch) {
     origin.setValues(c.origins).catch(error=>{status.textContent=error.message;});
     form.dispatchEvent(new Event('journey:locations'));
   },reset(active) {
-    epoch+=1;poller.stop();activeSearch=undefined;form.reset();origin.clear();destinations.clear();result=undefined;destination='';edited=false;preferenceKey=undefined;
+    epoch+=1;poller.stop();activeSearch=undefined;form.reset();origin.clear();destinations.clear();result=undefined;renderedOffers=undefined;day='';destination='';edited=false;preferenceKey=undefined;
     holidays.reset(active);
     layout.reset();
     nights.reset();
@@ -140,7 +158,9 @@ export function setupDeals(openWatch) {
     const start=new Date(),end=new Date();end.setDate(end.getDate()+30);
     form.elements.start.value=fmt(start);form.elements.end.value=fmt(end);
     form.elements.start.min=form.elements.end.min=fmt(start);
+    travelDates.reset();
     journey.reset();
+    presets.reset(active);
     if(active) origin.setInitial('airport:HKG');
   }};
 }

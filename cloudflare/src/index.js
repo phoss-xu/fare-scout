@@ -1,3 +1,4 @@
+import * as searchPresets from './search-presets.js';
 import {removedOffers} from './observation-history.js';
 import {alertPage} from './alert-pages.js';
 import {cleanSourceCache} from './source-cache.js';
@@ -32,6 +33,7 @@ async function api(request,env,ctx) {
     const history=/^\/api\/watches\/(\d+)\/history$/.exec(path);
     if(history) return json(await store.history(db,Number(history[1]),user.id,url.searchParams.get('before')));
     if(path==='/api/daily') return json(await dailyState(db,user.id));
+    if(path==='/api/search-presets') return json(await searchPresets.listed(db,user.id));
     if(path==='/api/location-history') return json(await recent(db,user.id));
     if(path==='/api/locations') {
       const q=url.searchParams;
@@ -46,6 +48,7 @@ async function api(request,env,ctx) {
     if(path.startsWith('/api/auth/passkey/')) { const auth=await passkeyAuth(request,env,path,body);return json(auth.body,200,auth.cookie); }
     if(AUTH.has(path)) { const auth=await authenticate(request,env,path,body);return json(auth.body,200,auth.cookie); }
     const user=await requireUser(request,db,true);
+    if(path==='/api/search-presets') return json(body.action==='remove'?await searchPresets.remove(db,user.id,body.id):await searchPresets.save(db,user.id,body));
     if(path==='/api/location-history') return json(await remember(db,user.id,body));
     if(path==='/api/daily') { await saveDaily(db,user.id,body);return json({message:'每日推荐设置已保存。'}); }
     if(path==='/api/deals') {

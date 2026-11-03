@@ -16,7 +16,7 @@ export function yearFor(data, today) {
 export function applyHoliday(form, holiday, today, kind) {
   const range=holidayRange(holiday,today);
   if (!range) throw new Error(tr("该假期已结束","This holiday has ended"));
-  if (kind === 'deals' && form.elements.date_mode) { form.elements.date_mode.value='range'; form.elements.date_mode.dispatchEvent(new Event('change',{bubbles:true})); }
+  if (kind === 'deals' && form.elements.date_mode) { form.elements.date_mode.value='range'; }
   if (kind === 'watch') { form.elements.mode.value='fixed'; form.elements.mode.dispatchEvent(new Event('change')); }
   form.elements.start.value=range.start; form.elements.end.value=range.end;
   for (const name of ['start','end']) form.elements[name].dispatchEvent(new Event('change',{bubbles:true}));
@@ -43,7 +43,10 @@ export function setupHolidays(root, form, kind) {
     if(!button || button.disabled) return;
     const row=calendar.years.find(r=>r.year===year), holiday=row.holidays.find(h=>h.id===button.dataset.holiday);
     const range=applyHoliday(form,holiday,today(),kind);
-    if(kind==='deals') form.querySelectorAll('[name=weekday]').forEach(box=>box.checked=false);
+    if(kind==='deals') {
+      form.querySelectorAll('[name=weekday]').forEach(box=>box.checked=false);
+      form.dispatchEvent(new Event('change',{bubbles:true}));
+    }
     selected=holiday.id;render();
     if(trigger) trigger.textContent=`${row.year} ${holiday.name}${row.status==='official'?'':tr(" · 调休待公布"," · Make-up workdays unconfirmed")}`;
     const workdays=holiday.workdays.length ? `${tr(" 补班："," Make-up workdays: ")}${holiday.workdays.map(d=>d.slice(5)).join('、')}。` : '';
@@ -58,7 +61,8 @@ export function setupHolidays(root, form, kind) {
     if(message && calendar) message.textContent=calendar.years.find(r=>r.year===year)?.note || tr("日期已调整","Dates adjusted");
   }
   ['start','end','mode'].forEach(name=>form.elements[name]?.addEventListener('input',clearSelection));
-  form.addEventListener('click',event=>{ if(event.target.closest('[data-deal-range]')) clearSelection(event); });
+  form.addEventListener('change',event=>{ if(event.target.name==='date_mode') clearSelection(event); });
+  form.addEventListener('click',event=>{ if(event.target.closest('[data-deal-range], [data-weekend]')) clearSelection(event); });
   return {async reset(active) {
     alive=active;selected=undefined;const current=++version;root.replaceChildren();
     if(trigger) trigger.textContent=defaultLabel();

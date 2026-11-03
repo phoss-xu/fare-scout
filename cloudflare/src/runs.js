@@ -22,7 +22,8 @@ export async function enqueueWatch(db,id,automatic=false) {
 }
 export async function enqueueDeal(db,c,userId) {
   const identity=crypto.randomUUID(),timestamp=now();
-  const pairs=origins(c).flatMap(o=>(destinations(c).length?destinations(c):[null]).map(d=>({origin_id:o.id,location_id:d?.id || null})));
+  const scopes=origins(c).flatMap(o=>(destinations(c).length?destinations(c):[null]).map(d=>({origin_id:o.id,location_id:d?.id || null})));
+  const pairs=c.date_pairs ? c.date_pairs.flatMap(window=>scopes.map(j=>({...j,window}))) : scopes;
   const output=await batch(db,[
     [`INSERT OR IGNORE INTO search_runs(id,kind,owner_id,config,total,job_count,created_at)
       SELECT ?,'deal',?,?,?,?,? WHERE (SELECT COUNT(*) FROM search_runs WHERE kind='deal' AND status='running' AND json_extract(config,'$.daily') IS NOT 1)<100`,[identity,userId,JSON.stringify(c),pairs.length,pairs.length,timestamp]],
@@ -35,10 +36,10 @@ export async function dealResult(db,id,userId) {
   const row=await first(db,"SELECT * FROM search_runs WHERE id=? AND owner_id=? AND kind='deal'",[id,userId]);
   ensure(row,'这份搜索不存在或已过期，请重新搜索。',404);
   const tasks=await all(db,'SELECT status,offers,source_checked_at,cache_hit FROM search_tasks WHERE run_id=?',[id]);
-  const best=new Map();
+  const config=JSON.parse(row.config),best=new Map();
   const checked=tasks.filter(t=>t.status==='done' && t.source_checked_at).map(t=>t.source_checked_at).sort();
   for(const task of tasks) for(const o of JSON.parse(task.offers||'[]')) {
-    const airport=resolve('airport:'+o.outbound.to),key=airport.city_code || airport.code;
+    const airport=resolve('airport:'+o.outbound.to),key=(airport.city_code || airport.code)+(config.date_pairs?'|'+o.outbound.departureTime.slice(0,10)+'|'+o.inbound.departureTime.slice(0,10):'');
     if(!best.has(key)||o.price<best.get(key).price) best.set(key,o);
   }
   return {id,status:row.status,config:JSON.parse(row.config),completed:tasks.filter(t=>['done','error','cancelled'].includes(t.status)).length,total:row.total,

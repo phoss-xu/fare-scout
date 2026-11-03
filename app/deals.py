@@ -39,7 +39,25 @@ def validate(data):
         raise ValueError('请勾选 1–10 晚中的至少一项。')
     nights = sorted(set(nights))
     low, high = (min(nights), max(nights)) if nights else (0, 0)
-    return dict(base, origin_locations=origins, origin_selections=origin_rows, destination_selections=destination_rows, destination_locations=scopes, destinations=[r['code'] for r in scopes],
+    date_pairs = data.get('date_pairs')
+    if 'date_pairs' in data:
+        if date_mode != 'fixed' or not isinstance(date_pairs, list) or not 1 <= len(date_pairs) <= 4:
+            raise ValueError('请至少选择一个周末，最多选择四个。')
+        normalized = []
+        for pair in date_pairs:
+            try:
+                departure, returning = date.fromisoformat(pair['start']), date.fromisoformat(pair['end'])
+                if departure < today() or returning > today()+timedelta(days=365) or departure.weekday() != 5 or returning != departure+timedelta(days=1):
+                    raise ValueError()
+                normalized.append(dict(start=departure.isoformat(), end=returning.isoformat()))
+            except (KeyError, TypeError, ValueError):
+                raise ValueError('请检查所选周末的往返日期。') from None
+        date_pairs = sorted({p['start']:p for p in normalized}.values(), key=lambda p:p['start'])
+        if start.isoformat() != date_pairs[0]['start'] or end.isoformat() != date_pairs[-1]['end']:
+            raise ValueError('所选周末与日期范围不一致，请重新选择。')
+        if len(origins)*max(1,len(scopes))*len(date_pairs)>120:
+            raise ValueError('所选周末及地点超过 120 组查询，请缩小范围。')
+    return dict(base, **({'date_pairs':date_pairs} if date_pairs is not None else {}), origin_locations=origins, origin_selections=origin_rows, destination_selections=destination_rows, destination_locations=scopes, destinations=[r['code'] for r in scopes],
                 min_nights=low, max_nights=high, nights=nights, date_mode=date_mode,
                 weekdays=sorted(set(weekdays)) if date_mode == 'range' else [])
 
@@ -50,6 +68,10 @@ def accepts(offer, config, scope, origin=None):
         dep = datetime.fromisoformat(out['departureTime']).date()
         arrival = datetime.fromisoformat(out['arrivalTime']).date()
         ret = datetime.fromisoformat(back['departureTime']).date()
+        if config.get('date_pairs'):
+            if not any(dep.isoformat()==p['start'] and ret.isoformat()==p['end'] for p in config['date_pairs']):
+                return False
+            config = config | {'start':dep.isoformat(),'end':ret.isoformat()}
         fixed = config.get('date_mode') == 'fixed'
         if fixed and (dep.isoformat() != config['start'] or ret.isoformat() != config['end']):
             return False
@@ -69,47 +91,33 @@ def accepts(offer, config, scope, origin=None):
         return False
 
 
-def search(config, progress=lambda *_: None):
+def search(config, progress=lambda *_: None, partial=lambda *_: None):
+    from concurrent.futures import as_completed
+    from . import deal_source
     scopes = config['destination_locations'] or [None]
-    results, errors = {}, 0
-    fmt = lambda value: date.fromisoformat(value).strftime('%d/%m/%Y')
-    pairs = [(origin, scope) for origin in location_scopes.origins(config) for scope in scopes]
-    for index, (origin, scope) in enumerate(pairs):
-        args = dict(flyFrom=origin['code'], flyTo=scope['code'] if scope else 'anywhere',
-                    departureDate=fmt(config['start']), departureDateTo=fmt(config['end']),
-                    nights_in_dst_from=config['min_nights'], nights_in_dst_to=config['max_nights'],
-                    adults=config['adults'], currency='HKD', cabinClass='M', sort='price',
-                    one_for_city=len(config.get('nights', [])) == config['max_nights']-config['min_nights']+1, allow_self_transfer=False)
-        if config.get('date_mode') == 'fixed':
-            for key in ('departureDateTo', 'nights_in_dst_from', 'nights_in_dst_to'):
-                args.pop(key)
-            args['returnDate'] = fmt(config['end'])
-            args['one_for_city'] = True
-        if config['max_stops'] >= 0:
-            args['max_sector_stopovers'] = config['max_stops']
-        if config['budget']:
-            args['price_to'] = math.floor(config['budget'])
-        if config['weekdays']:
-            args['fly_days'] = ','.join(str((day+1) % 7) for day in config['weekdays'])
+    windows = [{k:v for k,v in config.items() if k != 'date_pairs'} | pair
+               for pair in config['date_pairs']] if config.get('date_pairs') else [config]
+    tasks = [(window, origin, scope) for window in windows
+             for origin in location_scopes.origins(config) for scope in scopes]
+    pending = {deal_source.POOL.submit(deal_source.query, window, origin, scope, Kiwi, accepts): (window, scope)
+               for window, origin, scope in tasks}
+    results, failures, completed = {}, 0, 0
+    def snapshot():
+        return dict(offers=sorted(results.values(), key=lambda o:o['price']), failures=failures,
+                    completed=completed, total=len(tasks), source='Kiwi',
+                    checked_at=datetime.now().astimezone().isoformat())
+    for future in as_completed(pending):
+        window, scope = pending[future]
         try:
-            kiwi = Kiwi()
-            kiwi.call(1, 'initialize', {'protocolVersion':'2025-06-18', 'capabilities':{},
-                                      'clientInfo':{'name':'fare-scout', 'version':'0.1'}})
-            offers = kiwi.query(args)
-            for offer in offers:
-                if not accepts(offer, config, scope, origin):
-                    continue
-                airport = locations.resolve('airport:' + offer['outbound']['to'])
-                offer = dict(offer, destination_name=locations.label(airport['code']),
-                             destination_country=airport['country_name'])
-                key = airport['city_code'] or airport['code']
+            for city, offer in future.result().items():
+                key = (city, window['start'], window['end']) if config.get('date_pairs') else city
                 if key not in results or offer['price'] < results[key]['price']:
                     results[key] = offer
         except Exception:
             import logging
             logging.exception('Deal source query failed for scope %s', scope['id'] if scope else 'anywhere')
-            errors += 1
-        progress(index+1, len(pairs))
-    return dict(offers=sorted(results.values(), key=lambda o:o['price']), failures=errors,
-                completed=len(pairs), total=len(pairs), source='Kiwi',
-                checked_at=datetime.now().astimezone().isoformat())
+            failures += 1
+        completed += 1
+        progress(completed, len(tasks))
+        partial(snapshot())
+    return snapshot()

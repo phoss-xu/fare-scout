@@ -37,6 +37,10 @@ def initialize(db):
         token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL, expires_at REAL NOT NULL);
       CREATE TABLE IF NOT EXISTS auth_limits (
         key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start REAL NOT NULL);
+      CREATE TABLE IF NOT EXISTS search_presets (
+        id TEXT PRIMARY KEY, user_id INTEGER NOT NULL, name TEXT NOT NULL DEFAULT '',
+        config TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT, UNIQUE(user_id,config));
+      CREATE INDEX IF NOT EXISTS search_presets_owner ON search_presets(user_id,updated_at);
       CREATE TABLE IF NOT EXISTS location_history (
         user_id INTEGER NOT NULL, role TEXT NOT NULL, location_id TEXT NOT NULL,
         selected_at TEXT NOT NULL, PRIMARY KEY(user_id,role,location_id));

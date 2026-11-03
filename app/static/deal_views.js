@@ -57,5 +57,5 @@ export function discoveryPlaceholder(kind='initial') {
   return `<div class="discovery-empty"><div><h3>${copy[0]}</h3>${copy[1]?`<p>${copy[1]}</p>`:''}</div><div class="empty-route" aria-hidden="true"><span>出发</span><img src="/assets/airplane-tilt.svg" alt=""><span>远方</span></div></div>`;
 }
 export function resultSummary(result) {
-  return `${result.offers.length}${tr(" 个目的地 · Kiwi · "," destinations · Kiwi · ")}${time(result.checked_at)}${result.failures ? ` · ${result.failures}${tr(" 组查询失败"," failed groups")}` : ''}`;
+  return `${result.offers.length}${result.config?.date_pairs ? tr(" 组往返报价 · Kiwi · "," return quotes · Kiwi · ") : tr(" 个目的地 · Kiwi · "," destinations · Kiwi · ")}${time(result.checked_at)}${result.failures ? ` · ${result.failures}${tr(" 组查询失败"," failed groups")}` : ''}`;
 }

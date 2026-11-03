@@ -1,0 +1,56 @@
+/* Visual treatment is separate from the shared date shortcuts and their behavior. */
+#deals-panel .date-editor{padding:24px;border-radius:18px;border-color:color-mix(in srgb,var(--ink) 14%,var(--white));box-shadow:0 16px 48px #152a2526}
+.date-editor-heading{gap:16px;margin-bottom:20px}
+.date-editor-heading h3{font:500 21px/1.5 var(--family);letter-spacing:.02em;margin:0}
+.date-editor-heading>span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--date-bg);color:var(--date-ink);font-size:20px;flex:none}
+.date-editor .date-mode{margin:0 0 22px}
+.date-mode legend{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.date-mode-options{gap:6px;padding:5px;border-radius:12px;background:var(--subtle);border:1px solid var(--line)}
+.date-editor .date-mode-options label{position:relative;display:block;padding:0;border:0;border-radius:0;background:none;cursor:pointer;min-width:0}
+.date-editor .date-mode-options input{position:absolute;opacity:0;width:1px;min-height:0;height:1px;padding:0;border:0;inset:50% auto auto 12px}
+.date-mode-options label>span{position:relative;display:flex;flex-direction:column;gap:5px;padding:12px 30px 12px 14px;border:1px solid transparent;border-radius:8px;color:var(--muted);transition:background-color .2s,border-color .2s,color .2s}
+.date-mode-options strong{font-size:14px;font-weight:600;line-height:1.5}
+.date-mode-options small{font-size:10px;line-height:1.6;margin:0}
+.date-mode-options input:checked+span{background:var(--white);border-color:color-mix(in srgb,var(--green) 28%,var(--white));color:var(--ink);box-shadow:0 2px 6px #152a2509}
+.date-mode-options input:checked+span::after{content:'✓';position:absolute;right:12px;top:14px;font:600 13px/1.5 Manrope,sans-serif;color:var(--green)}
+.date-mode-options label:hover>span{color:var(--ink);background:var(--white)}
+.date-mode-options input:focus-visible+span{outline:2px solid var(--green);outline-offset:2px}
+#deals-panel .date-fields{grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr);align-items:center;gap:8px}
+#deals-panel .date-fields label{display:flex;flex-direction:column;gap:8px;min-width:0;margin:0;padding:12px 14px 8px;background:var(--subtle);border:1px solid var(--line);border-radius:12px;transition:border-color .2s,background-color .2s}
+.date-fields label>span{font-size:11px;color:var(--muted)}
+#deals-panel .date-fields input{background:transparent;border:0;border-radius:4px;padding:0;min-height:38px;font:500 17px/1.5 Manrope,var(--family);color:var(--ink);width:100%}
+#deals-panel .date-fields input:focus-visible{outline-offset:2px;outline-width:2px}
+.date-fields input::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer;padding:4px;margin:0;width:15px;height:15px}
+#deals-panel .date-fields label:focus-within{background:var(--white);border-color:var(--green)}
+.date-connector{color:var(--muted);font-size:17px;text-align:center;padding:0}
+.date-editor #deal-date-hint{font-size:11px;line-height:1.8;margin:12px 0 0;color:var(--muted)}
+.date-editor .search-footer{display:flex;margin-top:20px;padding-top:18px;border-top:1px dashed var(--line);gap:16px}
+.date-editor .deal-presets{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.date-editor .deal-presets button{border:1px solid var(--line);border-radius:8px;background:var(--white);font-size:11px;min-height:40px;padding:8px}
+.date-editor .deal-presets button:hover{border-color:var(--green);color:var(--green);background:var(--subtle)}
+.date-editor .deal-presets button[aria-pressed=true]{background:var(--green);border-color:var(--green);color:var(--on-accent)}
+.date-editor .holiday-popover{background:var(--subtle);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.date-editor .holiday-popover>summary{justify-content:space-between;gap:12px;padding:14px 16px;min-height:68px;color:var(--ink)}
+.date-editor .holiday-copy{display:flex;flex-direction:column;gap:5px}
+.date-editor .holiday-copy>[data-holiday-label]{font-size:13px;font-weight:600}
+.date-editor .holiday-copy>small{font-size:10px;line-height:1.6;color:var(--muted)}
+.date-editor .holiday-expand{display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;width:26px;height:26px;flex:none;background:var(--white);font-size:18px;color:var(--green)}
+.date-editor .holiday-popover[open]>summary>.holiday-copy{transform:none}
+.date-editor .holiday-popover>summary:hover{background:var(--surface-soft)}
+.date-editor .holiday-popover>.holiday-picker{border:0;border-top:1px solid var(--line);border-radius:0;margin:0;background:var(--white);padding:16px}
+.date-editor .date-weekdays{margin:20px 0}
+.date-editor .date-weekdays label{border-radius:8px;min-height:48px;gap:7px;background:var(--white)}
+.date-editor .date-weekdays label:has(:checked){background:var(--surface-soft);border-color:var(--green);color:var(--green)}
+.date-editor .date-weekends{border-top:1px dashed var(--line);padding-top:18px;margin-top:20px}
+.date-editor .date-weekends h4{font-size:13px;margin:0 0 5px}
+.date-editor .weekend-options button{border-radius:10px;padding:12px}
+.date-editor .weekend-options button[aria-pressed=true]{border-color:var(--green);background:var(--surface-soft)}
+@media(max-width:760px){
+ #deals-panel .date-editor{padding:18px 14px;background:var(--white);margin-top:14px;border-radius:14px;box-shadow:0 4px 18px #152a2508}
+ .date-editor-heading{margin-bottom:16px;gap:8px}.date-editor-heading h3{font-size:18px}.date-editor-heading>span{width:28px;height:28px;font-size:17px}
+ .date-mode-options{gap:4px;padding:4px}.date-mode-options label>span{padding:10px 22px 10px 9px}.date-mode-options strong{font-size:12px}.date-mode-options small{font-size:9px}.date-mode-options input:checked+span::after{right:7px;top:11px;font-size:11px}
+ #deals-panel .date-fields{grid-template-columns:minmax(0,1fr);gap:10px}#deals-panel .date-fields label{padding:10px 12px 6px;gap:4px}#deals-panel .date-fields input{font-size:17px;min-height:38px}
+ .date-connector{display:none}.date-editor .date-mode{margin-bottom:16px}.date-editor .search-footer{margin-top:16px;padding-top:14px;gap:12px}
+ .date-editor .holiday-popover>summary{padding:12px;min-height:64px}.date-editor .holiday-popover>.holiday-picker{padding:12px}.date-editor .deal-presets{gap:5px}.date-editor .deal-presets button{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){.date-mode-options label>span,#deals-panel .date-fields label{transition:none}}

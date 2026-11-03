@@ -29,5 +29,10 @@ test('shortcut fills only travel dates and changes weekend monitoring to fixed d
  assert.equal(form.elements.end.value,'2027-10-07');assert.equal(form.elements.budget.value,2000);
  form.elements.mode.value='weekend';applyHoliday(form,national,'2026-11-01','deals');
  assert.equal(form.elements.mode.value,'weekend');
+ // Native radio groups expose a value but do not implement dispatchEvent.
+ form.elements.date_mode={value:'fixed'};calls.length=0;
+ applyHoliday(form,national,'2026-11-01','deals');
+ assert.equal(form.elements.date_mode.value,'range');
+ assert.deepEqual(calls,['change','change']);
  assert.throws(()=>applyHoliday(form,calendar.years[0].holidays.at(-1),'2026-11-01','watch'));
 });

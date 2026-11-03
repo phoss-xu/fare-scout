@@ -49,6 +49,11 @@ Python 3.9+ 标准库本地服务，SQLite 持久化，原生 HTML/CSS/JavaScrip
 - `static/holidays.json` / `holidays.js` / `holidays.css`：带年份、来源和正式/参考状态的中国内地假期快捷选择；只填写具体日期，不自动创建任务，维护规则见 `docs/HOLIDAYS.md`。
 - `static/landscape.js` / `landscape-provider.js` / `landscape-actions.js`：每小时从已核对来源的 Unsplash 精选目录加载 CDN 照片，解码成功后缓存；单张失败自动换图，全部失败保留当前图（首次为同源竹林）；圆形刷新按钮绕过小时缓存并排除当前图，解码成功才切换，支持本浏览器收藏与图片下载。摄影来源与许可见 `static/assets/places/CREDITS.md` 及页面逐图链接，与查询条件独立。
 - `static/ui.js`：默认搜特价、工作区导航及键盘交互、展开筛选摘要；视觉规范和资产来源见 `docs/design-docs/UI_REDESIGN.md`。
+- `static/search-presets.js` / `search-presets.css`：用户显式保存的常用查询组合，表单下方全量快捷回填、固定往返面板内日期快捷项；`search-form.js` 共用查询提交与回填字段，保存/回填不发起查价。
+- `search_presets.py` / Workers `search-presets.js`：账号隔离的组合列表、保存和软移除，每人最多 20 项，按规范化查询去重；仅持久化日期/地点/人数/筛选，不保存查询结果、通知或任务状态。SQLite 随初始化增表，D1 需要增量迁移 `0008_search_presets.sql`，本轮未应用远端迁移。
+- `static/travel-dates.js` / `date-editor.css`：日期面板内的出发星期多选与未来四个完整周末多选，周末按北京时间计算。周末搜索以 `date_mode=fixed` 和 `date_pairs` 提交具体往返组合；Python 与 Workers 校验每组周六/周日日期、按组查询并保留同一城市不同周末的报价，总查询上限仍为 120 组。
+- `static/deal-progress.js`：查询未结束时显示完成组数、已返回报价及失败组数；`deals.js` 逐批展示报价，只在报价内容变化时重绘，保留日期/目的地筛选与排序。
+- Workers `tasks.js` 以单条 D1 UPDATE 原子领取任务并限制有效运行租约为 4，跨轮询请求共享；手动查询及当前轮询的搜索优先。HTTP 每次并行一批 4 组，Cron 沿用已提交的批次上限；保留现有超时、重试、租约恢复及迟到写入保护。Python `deal_source.py` 共用 4 个查价线程，`deals.py` 按完成顺序聚合，`deal_jobs.py` 在运行中发布部分报价。
 - `static/deals.js` / `deal_views.js` / `deals.css`：搜特价、已返回日期价格条、排序和转监控草稿；复用地点与航班详情组件。
 - `static/getaway.css`：搜特价风景首屏、跨区搜索条与机会排版；`deal_views.js` 依据已返回报价生成目的地导航和停留展示，`deals.js` 联动日期/目的地筛选，不引入新的查询或通知路径。
 - `static/views.js`：监控、最新机会和采样记录；所有外部字符串转义。

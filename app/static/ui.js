@@ -44,7 +44,7 @@ export function setupSearchLayout(form,panel) {
   form.addEventListener('click',event=>{
     const preset=event.target.closest('[data-deal-range]');
     if(preset) form.querySelectorAll('[data-deal-range]').forEach(button=>button.setAttribute('aria-pressed',String(button===preset)));
-    else if(event.target.closest('[data-holiday]')) form.querySelectorAll('[data-deal-range]').forEach(button=>button.setAttribute('aria-pressed','false'));
+    else if(event.target.closest('[data-holiday], [data-weekend]')) form.querySelectorAll('[data-deal-range]').forEach(button=>button.setAttribute('aria-pressed','false'));
   });
   ['start','end'].forEach(name=>form.elements[name].addEventListener('input',()=>form.querySelectorAll('[data-deal-range]').forEach(button=>button.setAttribute('aria-pressed','false'))));
   return {reset(){sync();form.querySelectorAll('details').forEach(details=>details.open=false);form.querySelectorAll('[data-deal-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.dealRange==='30')));}};

@@ -25,7 +25,7 @@ def start(user_id, data):
             raise ValueError('搜索服务正在忙，请稍后重试。')
         identity = uuid.uuid4().hex
         TASKS[identity] = dict(owner=user_id, created=time.monotonic(), status='running',
-                               completed=0, total=len(config['origin_locations']) * (len(config['destinations']) or 1), config=config)
+                               completed=0, offers=[], failures=0, total=len(config['origin_locations']) * (len(config['destinations']) or 1) * len(config.get('date_pairs', [None])), config=config)
     try:
         POOL.submit(run, identity, config)
     except RuntimeError:
@@ -39,8 +39,11 @@ def run(identity, config):
     def progress(completed, total):
         with LOCK:
             TASKS[identity].update(completed=completed, total=total)
+    def partial(result):
+        with LOCK:
+            TASKS[identity].update(result)
     try:
-        result = deals.search(config, progress)
+        result = deals.search(config, progress, partial)
         with LOCK:
             TASKS[identity].update(result, status='error' if result['failures'] == result['total'] else 'done')
     except Exception:

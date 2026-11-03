@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from . import accounts, auth_http, deal_jobs, location_groups, location_history, locations, mail_config, mail_delivery, presenter, scheduler, store, worker, removals
+from . import accounts, auth_http, deal_jobs, location_groups, location_history, locations, mail_config, mail_delivery, presenter, scheduler, store, worker, removals, search_presets
 from .domain import jobs, today, validate
 
 STATIC = Path(__file__).with_name("static")
@@ -34,13 +34,15 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == "/api/auth/session":
             return self.send(200, auth_http.current(self) or {"user": None})
-        if path in ("/api/state", "/api/locations", "/api/location-history") or path.startswith('/api/deals/'):
+        if path in ("/api/state", "/api/locations", "/api/location-history", "/api/search-presets") or path.startswith('/api/deals/'):
             try:
                 user = auth_http.require(self)
             except accounts.AuthError as exc:
                 return self.send(exc.status, {"error": str(exc)})
             if path == "/api/state":
                 return self.send(200, presenter.state(user))
+            if path == '/api/search-presets':
+                return self.send(200, search_presets.listed(user['id']))
             if path == '/api/location-history':
                 return self.send(200, location_history.recent(user['id']))
             if path.startswith('/api/deals/'):
@@ -64,7 +66,7 @@ class Handler(BaseHTTPRequestHandler):
                  "/flights.css": ("flights.css", "text/css"),
                  "/locations.js": ("locations.js", "text/javascript"), "/locations.css": ("locations.css", "text/css"),
                  "/location_history.js": ("location_history.js", "text/javascript"),
-                 "/deals.js": ("deals.js", "text/javascript"), "/deal_views.js": ("deal_views.js", "text/javascript"),
+                 "/deals.js": ("deals.js", "text/javascript"), "/deal-progress.js": ("deal-progress.js", "text/javascript"), "/deal_views.js": ("deal_views.js", "text/javascript"),
                  "/deals.css": ("deals.css", "text/css"),
                  "/departure.css": ("departure.css", "text/css"),
                  "/search-panels.css": ("search-panels.css", "text/css"),
@@ -77,6 +79,12 @@ class Handler(BaseHTTPRequestHandler):
                  "/world-backdrop.css": ("world-backdrop.css", "text/css"),
                  "/landscape.css": ("landscape.css", "text/css"),
                  "/getaway.css": ("getaway.css", "text/css"),
+                 "/date-editor.css": ("date-editor.css", "text/css"),
+                 "/date-editor-polish.css": ("date-editor-polish.css", "text/css"),
+                 "/travel-dates.js": ("travel-dates.js", "text/javascript"),
+                 "/search-form.js": ("search-form.js", "text/javascript"),
+                 "/search-presets.js": ("search-presets.js", "text/javascript"),
+                 "/search-presets.css": ("search-presets.css", "text/css"),
                  "/landscape-data.js": ("landscape-data.js", "text/javascript"),
                  "/landscape-rotation.js": ("landscape-rotation.js", "text/javascript"),
                  "/appearance.js": ("appearance.js", "text/javascript"),
@@ -124,6 +132,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
             user = auth_http.require(self, write=True)
             user_id = user["id"]
+            if self.path == '/api/search-presets':
+                result = search_presets.remove(user_id, data.get('id')) if data.get('action') == 'remove' else search_presets.save(user_id, data)
+                return self.send(200, result)
             if self.path == '/api/location-history':
                 return self.send(200, location_history.remember(user_id, data.get('role'), data.get('id')))
             if self.path == '/api/deals':

@@ -42,6 +42,18 @@ export function validate(d, discovery = false) {
     const nights=date_mode==='fixed'?[]:[...new Set(selected)].sort((a,b)=>a-b);
     min_nights=nights.length?Math.min(...nights):0;max_nights=nights.length?Math.max(...nights):0;
     ensure(Array.isArray(weekdays) && weekdays.every(n=>Number.isInteger(n)&&n>=0&&n<7), '请检查出发星期。');
+    if(d.date_pairs!==undefined) {
+      ensure(date_mode==='fixed' && Array.isArray(d.date_pairs) && d.date_pairs.length>=1 && d.date_pairs.length<=4,'请至少选择一个周末，最多选择四个。');
+      const pairs=d.date_pairs.map(p=>{
+        ensure(p && typeof p==='object','请检查所选周末。');
+        const start=date(p.start),end=date(p.end);
+        ensure(start>=today() && end<=plusDays(today(),365) && weekday(start)===5 && end===plusDays(start,1),'请检查所选周末的往返日期。');
+        return {start,end};
+      });
+      config.date_pairs=[...new Map(pairs.map(p=>[p.start,p])).values()].sort((a,b)=>a.start.localeCompare(b.start));
+      ensure(start===config.date_pairs[0].start && end===config.date_pairs.at(-1).end,'所选周末与日期范围不一致，请重新选择。');
+      ensure(os.length*Math.max(1,ds.length)*config.date_pairs.length<=120,'所选周末及地点超过 120 组查询，请缩小范围。');
+    }
     Object.assign(config,{date_mode,nights,min_nights,max_nights,weekdays:date_mode==='fixed'?[]:[...new Set(weekdays)].sort()});
   }
   return config;
@@ -68,7 +80,8 @@ export function accepts(offer,c,j) {
   if (!out || !back || !localTime(out.arrivalTime)) return false;
   const dep=out.departureTime?.slice(0,10),ret=back.departureTime?.slice(0,10),nights=(Date.parse(ret)-Date.parse(out.arrivalTime.slice(0,10)))/86400000;
   if (c.date_mode==='fixed') {
-    if(dep!==c.start || ret!==c.end || (c.budget && offer.price>c.budget)) return false;
+    const selected=c.date_pairs ? (j.window ? j.window.start===dep && j.window.end===ret : c.date_pairs.some(p=>p.start===dep && p.end===ret)) : dep===c.start && ret===c.end;
+    if(!selected || (c.budget && offer.price>c.budget)) return false;
   } else if (!(dep>=c.start && dep<=c.end) || (c.weekdays.length && !c.weekdays.includes(weekday(dep))) || !(nights>=c.min_nights && nights<=c.max_nights) || (c.nights && !c.nights.includes(nights)) || (c.budget && offer.price>c.budget)) return false;
   try { return matches(offer,c,{...j,location_id:j.location_id || 'airport:'+out.to,departure:dep,arrival:ret}); } catch { return false; }
 }

@@ -1,3 +1,4 @@
+import {selectedWeekends} from './travel-dates.js';
 import {selectedNights,nightsLabel} from './nights.js';
 import {tr} from './i18n.js';
 import {setupLandscape} from './landscape.js';
@@ -10,7 +11,10 @@ export function setupJourney(form, panel) {
     panel.querySelector('#journey-origin-value').textContent = origins.length ? origins[0] + (origins.length > 1 ? `${tr(" 等 "," and more · ")}${origins.length}${tr(" 处"," places")}` : '') : tr("选择出发地","Choose departure");
     panel.querySelector('#journey-destination-value').textContent = form.elements.anywhere.checked ? tr("任何地方","Anywhere") : (destinations.length ? destinations[0] + (destinations.length > 1 ? `${tr(" 等 "," and more · ")}${destinations.length}${tr(" 处"," places")}` : '') : '') || tr("选择目的地","Choose destinations");
     const start = form.elements.start.value, end = form.elements.end.value;
-    const fixed=form.elements.date_mode.value==='fixed';
+    const weekendMode=form.elements.date_mode.value==='weekends';
+    const fixed=form.elements.date_mode.value!=='range';
+    form.querySelector('.date-fields').hidden=weekendMode;
+    form.querySelectorAll('.date-fields input').forEach(input=>input.disabled=weekendMode);
     panel.querySelector('#deal-start-label').textContent=fixed?tr('出发日期','Departure date'):tr('最早出发','Earliest departure');
     panel.querySelector('#deal-end-label').textContent=fixed?tr('返程起飞日期','Return departure date'):tr('最晚出发','Latest departure');
     panel.querySelector('#deal-date-hint').textContent=fixed?tr('当地起飞日期','Local departure dates'):'';
@@ -25,12 +29,20 @@ export function setupJourney(form, panel) {
     panel.querySelector('#journey-month').textContent = date ? new Intl.DateTimeFormat('en', {month:'short'}).format(date).toUpperCase() : 'DATE';
     panel.querySelector('#journey-day').textContent = date ? String(date.getDate()).padStart(2, '0') : '＋';
     panel.querySelector('#journey-date-value').textContent = start && end ? tr(`${start.slice(5).replace('-', '月')}日 — ${end.slice(5).replace('-', '月')}日`,`${start.slice(5)} — ${end.slice(5)}`) : tr("选一段空闲","Choose some time away");
-    const preferences = [fixed?tr('固定往返','Fixed return dates'):nightsLabel(selectedNights(form)), `${form.elements.adults.value}${tr(" 位成人"," adults")}`];
+    if(weekendMode) {
+      const pairs=selectedWeekends(form);
+      panel.querySelector('#journey-date-value').textContent=pairs.length ? pairs.map(p=>`${p.start.slice(5)}–${p.end.slice(5)}`).join(' · ') : tr('请选择周末','Choose weekends');
+      panel.querySelector('#deal-date-hint').textContent=tr(`已选 ${pairs.length} 个周末`,`${pairs.length} weekends selected`);
+    }
+    const preferences = [weekendMode?tr('周末多选','Selected weekends'):fixed?tr('固定往返','Fixed return dates'):nightsLabel(selectedNights(form)), `${form.elements.adults.value}${tr(" 位成人"," adults")}`];
     if (form.elements.max_stops.value !== '-1') preferences.push(form.elements.max_stops.value === '0' ? tr("直飞","Direct") : tr("最多 1 次中转","Up to 1 stop"));
     if (Number(form.elements.budget.value)) preferences.push(`HK$${form.elements.budget.value}${tr(" 内"," or less")}`);
     if (Number(form.elements.max_duration_hours.value)) preferences.push(`${tr("每程 ","Per leg: ")}${form.elements.max_duration_hours.value}${tr(" 小时内"," hours per leg")}`);
-    const days = form.querySelectorAll('[name=weekday]:checked').length;
-    if (days && !fixed) preferences.push(`${days}${tr(" 个出发星期"," departure weekdays")}`);
+    const weekdays = [...form.querySelectorAll('[name=weekday]:checked')].map(box => Number(box.value));
+    if (weekdays.length && !fixed) {
+      const labels = tr(['周一','周二','周三','周四','周五','周六','周日'],['Mon','Tue','Wed','Thu','Fri','Sat','Sun']);
+      panel.querySelector('#journey-date-value').textContent += ` · ${weekdays.map(day=>labels[day]).join('、')}`;
+    }
     panel.querySelector('#journey-extras-value').textContent = preferences.join(' · ');
   }
   document.addEventListener('languagechange',sync);

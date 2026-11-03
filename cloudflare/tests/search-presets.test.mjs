@@ -1,0 +1,37 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {harness,request,register} from './harness.mjs';
+import {config,future} from './fixtures.mjs';
+
+test('saved searches persist complete owner-scoped snapshots without triggering queries or notifications',async t=>{
+  const h=await harness();t.after(()=>h.close());
+  const a=await register(h),b=await register(h,'preset-other@example.test');
+  const value=config({date_mode:'fixed',adults:2,budget:3000,max_stops:0,max_duration_hours:8});
+  assert.equal((await request(h,'/api/search-presets')).status,401);
+  assert.equal((await request(h,'/api/search-presets',{config:value},{cookie:a.cookie})).status,403);
+  const saved=await request(h,'/api/search-presets',{name:'常用往返',config:value},a);
+  assert.equal(saved.status,200,JSON.stringify(saved.data));
+  const row=saved.data.presets[0];
+  assert.deepEqual(row.config.origins,['airport:HKG']);assert.equal(row.config.budget,3000);assert.equal(row.config.adults,2);
+  assert.equal('alerts_enabled' in row.config,false);
+  assert.equal((await request(h,'/api/search-presets',undefined,b)).data.presets.length,0);
+  const again=await request(h,'/api/search-presets',{name:'重新命名',config:row.config},a);
+  assert.equal(again.data.presets.length,1);assert.equal(again.data.presets[0].id,row.id);
+  assert.equal((await request(h,'/api/search-presets',{config:value},a)).data.presets[0].name,'重新命名');
+  assert.equal((await request(h,'/api/search-presets',{action:'remove',id:row.id},b)).status,404);
+  assert.equal((await request(h,'/api/search-presets',undefined,a)).data.presets[0].name,'重新命名');
+  const flexible=config({destinations:[],nights:[2,4],weekdays:[0,5]});
+  assert.equal((await request(h,'/api/search-presets',{config:flexible},a)).status,200);
+  const first=new Date(future(20)+'T12:00:00Z');first.setUTCDate(first.getUTCDate()+(6-first.getUTCDay()+7)%7);
+  const shift=n=>new Date(first.getTime()+n*86400000).toISOString().slice(0,10);
+  const pairs=[{start:shift(0),end:shift(1)},{start:shift(14),end:shift(15)}];
+  const weekends=await request(h,'/api/search-presets',{config:config({date_mode:'fixed',start:pairs[0].start,end:pairs[1].end,date_pairs:pairs})},a);
+  assert.equal(weekends.status,200,JSON.stringify(weekends.data));
+  assert.deepEqual(weekends.data.presets.find(p=>p.config.date_pairs).config.date_pairs,pairs);
+  assert.equal((await request(h,'/api/search-presets',{config:null},a)).status,400);
+  assert.equal((await request(h,'/api/search-presets',{config:value,name:'x'.repeat(61)},a)).status,400);
+  assert.equal((await request(h,'/api/search-presets',{action:'remove',id:row.id},a)).data.presets.length,2);
+  assert.equal((await h.db.prepare('SELECT COUNT(*) n FROM search_runs').first()).n,0);
+  assert.equal((await h.db.prepare('SELECT COUNT(*) n FROM alerts').first()).n,0);
+  assert.equal((await h.db.prepare('SELECT COUNT(*) n FROM watches').first()).n,0);
+});
