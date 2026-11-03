@@ -1,3 +1,4 @@
+import {visibilityPoll} from './polling.js';
 import {subscribePreferences} from './preferences.js';
 import {subscribeCurrency} from './currency.js';
 import {tr} from './i18n.js';
@@ -37,7 +38,7 @@ export function setupDeals(openWatch) {
   const journey = setupJourney(form, panel);
   const status = panel.querySelector('#deal-status'), results = panel.querySelector('#deal-results');
   const controls = panel.querySelector('#deal-result-controls'), button = form.querySelector('[type=submit]');
-  let epoch=0, timer, result, day='',destination='',edited=false,preferenceKey;
+  let epoch=0, activeSearch, pollDelay=1500, progress, result, day='',destination='',edited=false,preferenceKey;
   form.addEventListener('input',()=>edited=true);
   form.addEventListener('change',()=>edited=true);
   const fmt = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
@@ -80,24 +81,28 @@ export function setupDeals(openWatch) {
     }
   });
   form.elements.result_sort.addEventListener('change', () => { if (result) render(); });
-  async function poll(id, version) {
+  const poller=visibilityPoll(poll,{delay:()=>pollDelay});
+  async function poll() {
+    if(!activeSearch) return;
+    const {id,version}=activeSearch;
     try {
       const data = await request(`/api/deals/${id}`);
       if (version !== epoch) return;
       if (data.status === 'running') {
         status.textContent=`${tr("查询中 · ","Checking · ")}${data.completed}/${data.total}`;
-        timer=setTimeout(() => poll(id,version),1500); return;
+        const next=JSON.stringify([data.completed,data.total,data.failures]);
+        pollDelay=next===progress?Math.min(8000,pollDelay*2):1500;progress=next;return;
       }
-      button.disabled=false; results.setAttribute('aria-busy','false');
+      poller.stop();button.disabled=false; results.setAttribute('aria-busy','false');
       if (data.status === 'error') { status.textContent=tr("数据源连接失败，请稍后重试。","Cannot reach the flight source. Try again later."); results.innerHTML=discoveryPlaceholder('error'); return; }
       result=data; day=''; destination=''; status.textContent=resultSummary(data); controls.hidden=false;
       panel.querySelector('#deal-sort').hidden=false;
       panel.querySelector('#deal-days').innerHTML=tr("<button type=\"button\" data-deal-day=\"\" aria-pressed=\"true\">全部日期</button>","<button type=\"button\" data-deal-day=\"\" aria-pressed=\"true\">All dates</button>")+sampledDays(data.offers).map(([date,price])=>`<button type="button" data-deal-day="${date}" aria-pressed="false">${date.slice(5)}<strong>${amount(price)}</strong></button>`).join('');
       render();
-    } catch (error) { if (version === epoch) { button.disabled=false; status.textContent=error.message; results.setAttribute('aria-busy','false'); results.innerHTML=discoveryPlaceholder('error'); } }
+    } catch (error) { if (version === epoch) { poller.stop();button.disabled=false; status.textContent=error.message; results.setAttribute('aria-busy','false'); results.innerHTML=discoveryPlaceholder('error'); } }
   }
   form.addEventListener('submit',async event => {
-    event.preventDefault(); const version=++epoch; clearTimeout(timer); button.disabled=true;
+    event.preventDefault(); const version=++epoch; poller.stop(); button.disabled=true;
     controls.hidden=true; panel.querySelector('#deal-sort').hidden=true; results.innerHTML=discoveryPlaceholder('loading'); results.setAttribute('aria-busy','true'); result=undefined; status.textContent=tr("搜索中…","Searching…");
     try {
       if (!origin.values().length) throw new Error(tr("请选择出发地。","Choose a departure location."));
@@ -106,7 +111,7 @@ export function setupDeals(openWatch) {
       const data={...Object.fromEntries(new FormData(form)),nights:selectedNights(form),origins:origin.values(),destinations:to,
         weekdays:[...form.querySelectorAll('[name=weekday]:checked')].map(e => Number(e.value))};
       const task = await request('/api/deals',data);
-      if (version === epoch) poll(task.id,version);
+      if (version === epoch) {activeSearch={id:task.id,version};pollDelay=1500;progress=undefined;poller.start();}
     } catch(error) { if (version === epoch) { status.textContent=error.message; button.disabled=false; results.setAttribute('aria-busy','false'); results.innerHTML=discoveryPlaceholder('error'); } }
   });
   function renderDisplayPreferences() {
@@ -127,7 +132,7 @@ export function setupDeals(openWatch) {
     origin.setValues(c.origins).catch(error=>{status.textContent=error.message;});
     form.dispatchEvent(new Event('journey:locations'));
   },reset(active) {
-    epoch+=1;clearTimeout(timer);form.reset();origin.clear();destinations.clear();result=undefined;destination='';edited=false;preferenceKey=undefined;
+    epoch+=1;poller.stop();activeSearch=undefined;form.reset();origin.clear();destinations.clear();result=undefined;destination='';edited=false;preferenceKey=undefined;
     holidays.reset(active);
     layout.reset();
     nights.reset();

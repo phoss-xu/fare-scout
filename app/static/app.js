@@ -1,9 +1,11 @@
+import {visibilityPoll} from './polling.js';
+import {historyPanel} from './history-panel.js';
 import {tr,setupLanguage} from './i18n.js';
 import {subscribePreferences} from './preferences.js';
 import {subscribeCurrency} from './currency.js';
 import {setupSettings,renderSettings} from './settings.js';
 import {request} from './api.js';
-import {latest, watchCards, offerCards, historyView, removedItems} from './views.js';
+import {latest, watchCards, offerCards, removedItems} from './views.js';
 import {renderAutomation, setupAutomation} from './automation.js';
 import {setupAuth, showSession} from './auth.js';
 import {setupLocations} from './locations.js';
@@ -14,8 +16,8 @@ import {setupWorkspace} from './ui.js';
 import {setupDaily} from './daily.js';
 import {setupAppearance} from './appearance.js';
 const $ = selector => document.querySelector(selector);
-let state, historyId, refreshing = false, currentUser, generation = 0;
-let lastSnapshot;
+let state, refreshing = false, currentUser, generation = 0;
+let lastSnapshot,refreshFailed=false;
 let formInitialized = false;
 let toastTimer;
 function toast(message) {
@@ -35,7 +37,7 @@ async function refresh() {
       showSession(await request('/api/auth/session'));
       return;
     }
-    state = result;
+    state = result;refreshFailed=false;
     renderSettings(state);
     $('#page-error').hidden = true;
     $('#summary').textContent = `${state.watches.length}${tr(" 份出行计划 · "," travel watches · ")}${state.watches.filter(w => w.running).length}${tr(" 份查询中"," checking prices")}`;
@@ -48,7 +50,7 @@ async function refresh() {
     daily.render(state);
     $('#watch-count').textContent = state.watches.length;
     $('#offer-count').textContent = latest(state.observations).filter(o => o.status === 'ok' && !o.dismissed_at).length;
-    if ($('#history-dialog').open) $('#history').innerHTML = historyView(state, historyId);
+    sampleHistory.render();
     if (!formInitialized) {
       formInitialized = true;
       const start = new Date(`${state.today}T12:00:00`);
@@ -60,6 +62,7 @@ async function refresh() {
       form.elements.start.min = form.elements.end.min = state.today;
     }
   } catch (error) {
+    refreshFailed=true;
     if (requestGeneration !== generation) return;
     if (error.status === 401) { showSession(null); return; }
     $('#page-error').textContent = tr("暂时连接不上服务，页面会自动重试。","Cannot reach the service. Retrying automatically.");
@@ -72,6 +75,7 @@ setupWorkspace();
 setupAppearance();
 setupSettings();
 const daily=setupDaily(refresh,toast,openWatch,c=>discovery.applyPreferences(c));
+const sampleHistory=historyPanel($('#history'),$('#history-dialog'),()=>state);
 const form = $('#watch-form');
 const placeControls = setupLocations(form);
 const holidays = setupHolidays($('#watch-holidays'), form, 'watch');
@@ -87,6 +91,18 @@ async function openWatch(data) {
 const discovery = setupDeals(openWatch);
 $('#new-watch').addEventListener('click', () => $('#create-dialog').showModal());
 document.addEventListener('click', async event => {
+  const moreRemoved=event.target.closest('[data-removed-more]');
+  if(moreRemoved && state?.removed_next_before) {
+    const owner=currentUser.id;moreRemoved.disabled=true;
+    try {
+      const page=await request('/api/removed-offers?before='+state.removed_next_before);
+      if(currentUser?.id!==owner) return;
+      state.removed_offers.push(...page.offers);state.removed_next_before=page.next_before;
+      $('#offers').innerHTML=offerCards(state)+removedItems(state,'offers');
+      $('#offers .removed-items').open=true;
+    } catch(error) {toast(error.message);moreRemoved.disabled=false;}
+    return;
+  }
   const removal=event.target.closest('[data-remove-kind],[data-restore-kind]');
   if(removal) {
     removal.disabled=true;
@@ -102,9 +118,7 @@ document.addEventListener('click', async event => {
   if (close) $(`#${close.dataset.close}`).close();
   const history = event.target.closest('[data-history]');
   if (history && state) {
-    historyId = Number(history.dataset.history);
-    $('#history').innerHTML = historyView(state, historyId);
-    $('#history-dialog').showModal();
+    sampleHistory.open(Number(history.dataset.history));
   }
   const check = event.target.closest('[data-check]');
   if (check) {
@@ -139,6 +153,7 @@ form.addEventListener('submit', async event => {
   finally { button.disabled = false; }
 });
 setupAutomation(() => state, refresh, toast);
+const statePoller=visibilityPoll(refresh,{delay:()=>refreshFailed?60000:state?.watches.some(w=>w.running)?4000:30000});
 await setupAuth(user => {
   generation += 1;
   currentUser = user;
@@ -147,7 +162,7 @@ await setupAuth(user => {
   renderSettings(null);
   daily.reset();
   lastSnapshot = undefined;
-  historyId = undefined;
+  sampleHistory.reset();
   ['watches','offers','alerts','history'].forEach(id => $(`#${id}`).replaceChildren());
   ['watch-count','offer-count','alert-count'].forEach(id => $(`#${id}`).textContent = '0');
   $('#summary').textContent = tr("正在加载…","Loading…");
@@ -162,9 +177,10 @@ await setupAuth(user => {
   $('#email-form').reset();
   delete $('#email-recipient').dataset.dirty;
   $('#page-error').hidden = true;
-  if (user) refresh();
+  statePoller.stop();
+  if (user) statePoller.start();
 });
-setInterval(refresh, 4000);
+
 
 function renderPreferences() {
   if(!state) return;
@@ -173,6 +189,6 @@ function renderPreferences() {
   $('#watches').innerHTML=watchCards(state)+removedItems(state,'watches');
   $('#offers').innerHTML=offerCards(state)+removedItems(state,'offers');
   renderAutomation(state);daily.render(state);
-  if($('#history-dialog').open) $('#history').innerHTML=historyView(state,historyId);
+  sampleHistory.render();
 }
 subscribePreferences(renderPreferences);subscribeCurrency(renderPreferences);

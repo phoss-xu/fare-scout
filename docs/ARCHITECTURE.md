@@ -153,3 +153,13 @@ Python 与 Workers 的 CSP 将风景图片及下载域名切换为 `images.unspl
 换算报价标注约值、原始 HKD 及汇率日期；缺少所选汇率时显示 HKD，并在设置中说明、允许重试。
 排序、预算、降价门槛、采样比较及邮件仍用原有 HKD，不重写任何报价或保存规则。
 Python 静态白名单和两个运行时的 CSP 新增相应模块与 `https://api.frankfurter.dev`。
+
+## 2026-11-03 · 本地性能改动（未发布）
+
+Workers 静态资源优先直出，安全响应头由 `static/_headers` 维护；业务 API 仍走登录守卫且禁止缓存。
+`static/polling.js` 统一管理可见性、单个在途请求和刷新间隔；`history-panel.js` 在打开记录时加载分页历史，Python 版仍兼容原状态数据。
+`store.state → observation-history.currentObservations / alert-pages` 只组装最新批次与分页摘要；历史覆盖、实际行程最低价在历史接口按完整数据计算。
+`0009_performance.sql` 增加当前批次索引表、查询缓存和相关索引，不清理采样与账号。
+`tasks → source-cache → provider` 为发现查询共享完全相同条件的短期结果，以 D1 租约合并在途请求；监控采样保持新鲜查询。源错误、空结果与缓存来源时间分别保留。
+普通状态读取不启动后台工作；创建自动监控显式入队，搜索提交/进度请求协助处理，Cron 持续接续队列、每日推荐与邮件。跨请求保留现有四路源查询上限。
+验证及并发测试口径见 `CLOUDFLARE.md` 的本地性能章节。

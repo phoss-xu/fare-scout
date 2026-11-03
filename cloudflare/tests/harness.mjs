@@ -8,7 +8,7 @@ export async function harness(options={}) {
   const result=await build({entryPoints:['cloudflare/src/index.js'],bundle:true,format:'esm',platform:'browser',write:false});
   const converted=convertV4MiniflareOptions({name:'fare-scout',modules:true,script:result.outputFiles[0].text,compatibilityDate:'2026-11-02',compatibilityFlags:['nodejs_compat'],
     d1Databases:['DB'],d1Persist:options.persist || path.join(dir,'d1'),
-    assets:{directory:path.resolve('app/static'),binding:'ASSETS',run_worker_first:true,routerConfig:{has_user_worker:true}},
+    assets:{directory:path.resolve('app/static'),binding:'ASSETS',run_worker_first:["/api/*","/setup"],routerConfig:{has_user_worker:true}},
     bindings:{QUERY_ENABLED:'false',MAIL_ENABLED:'false',...options.bindings},
     ...(options.mockEmail?{serviceBindings:{EMAIL:'email-capture'}}:{}),
     outboundService:options.outbound || (()=>{throw new Error('Unexpected external request in local test');})});
@@ -25,6 +25,7 @@ export async function harness(options={}) {
   try {
   const db=await mf.getD1Database('DB');
   if(!options.skipMigrations) for(const name of (await readdir('cloudflare/migrations')).sort()) {
+    if(options.beforeMigration && name>=options.beforeMigration) continue;
     const sql=await readFile('cloudflare/migrations/'+name,'utf8');
     // SQLite trigger bodies contain semicolons; prepare each entire trigger as a statement.
     const triggers=[];

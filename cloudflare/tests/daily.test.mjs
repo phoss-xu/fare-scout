@@ -10,6 +10,16 @@ async function moduleAt(path) {
 }
 const travel=await moduleAt('cloudflare/src/travel-time.js'),daily=await moduleAt('cloudflare/src/daily.js');
 const provider=await moduleAt('cloudflare/src/provider.js');
+async function finishDaily(h,session) {
+  const worker=await h.mf.getWorker('fare-scout');
+  for(let tick=0;tick<12;tick++) {
+    await worker.scheduled({cron:'* * * * *'});
+    const state=(await request(h,'/api/daily',undefined,session)).data;
+    if(state.edition && state.edition.status!=='preparing') return state;
+  }
+  throw new Error('Bounded Cron work did not complete the daily edition');
+}
+
 function weekend(start='2026-11-07',end='2026-11-09',origin='HKG') {
   const sun=new Date(Date.parse(start)+86400000).toISOString().slice(0,10);
   return {price:1000,bookingUrl:'https://example.test/booking',outbound:{from:origin,to:'SIN',departureTime:start+'T01:40:00',arrivalTime:start+'T05:40:00',durationSeconds:14400,stops:0},inbound:{from:'SIN',to:origin,departureTime:sun+'T20:20:00',arrivalTime:end+'T00:10:00',durationSeconds:13800,stops:0}};
@@ -67,8 +77,10 @@ test('scheduled daily discovery survives repeated ticks, records useful real-sha
   const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source(upstream)});t.after(()=>h.close());const a=await register(h);
   await request(h,'/api/daily',{...daily.defaults,enabled:true},a);
   const due=new Date(Date.now()-60000).toISOString();await h.db.prepare('UPDATE daily_preferences SET next_due=?').bind(due).run();
-  const worker=await h.mf.getWorker('fare-scout');await worker.scheduled({cron:'* * * * *'});await worker.scheduled({cron:'* * * * *'});
-  const state=(await request(h,'/api/daily',undefined,a)).data;
+  const worker=await h.mf.getWorker('fare-scout');await worker.scheduled({cron:'* * * * *'});
+  assert.equal((await request(h,'/api/daily',undefined,a)).data.edition.status,'preparing');
+  const state=await finishDaily(h,a);
+  await worker.scheduled({cron:'* * * * *'});
   assert.equal(state.edition.status,'ready');assert.equal(state.edition.offers.length,1);
   assert.equal(state.edition.offers[0].travel.full_days,2);assert.equal(state.edition.offers[0].travel.leave_days,0);
   assert.equal(state.edition.mail_status,'waiting_config');assert.equal(state.edition.total,12);
@@ -82,8 +94,7 @@ test('complete source failures differ from successful empty daily editions',asyn
     const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source({mode})});t.after(()=>h.close());const a=await register(h);
     await request(h,'/api/daily',{...daily.defaults,enabled:true},a);
     await h.db.prepare('UPDATE daily_preferences SET next_due=?').bind(new Date(Date.now()-60000).toISOString()).run();
-    await (await h.mf.getWorker('fare-scout')).scheduled({cron:'* * * * *'});
-    const e=(await request(h,'/api/daily',undefined,a)).data.edition;
+    const e=(await finishDaily(h,a)).edition;
     assert.equal(e.status,mode==='empty'?'ready':'error');assert.equal(e.failures,mode==='empty'?0:12);assert.deepEqual(e.offers,[]);
   }
 });

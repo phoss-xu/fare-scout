@@ -1,3 +1,6 @@
+import {removedOffers} from './observation-history.js';
+import {alertPage} from './alert-pages.js';
+import {cleanSourceCache} from './source-cache.js';
 import {ApiError,ensure,report} from './db.js';
 import {json,data,asset} from './http.js';
 import {current,requireUser,authenticate} from './auth.js';
@@ -14,16 +17,20 @@ import {confirmConsent} from './email-consent.js';
 import {saveDaily,dailyState,dailyTick} from './daily.js';
 import {deliverDaily} from './daily-mail.js';
 const AUTH=new Set(['/api/auth/register','/api/auth/login','/api/auth/activate','/api/auth/logout']);
-async function background(env) { await schedule(env.DB,env.QUERY_ENABLED==='true');await dailyTick(env);await drain(env);await dailyTick(env); }
-function continueWork(ctx,env) {
-  ctx.waitUntil(background(env).catch(error=>{report(error,'Background processing failed');throw new Error('Background processing failed');}));
+async function background(env,runId) { await drain(env,4,runId); }
+function continueWork(ctx,env,runId=null) {
+  ctx.waitUntil(background(env,runId).catch(error=>{report(error,'Background processing failed');throw new Error('Background processing failed');}));
 }
 async function api(request,env,ctx) {
   const url=new URL(request.url),path=url.pathname,db=env.DB;
   if(request.method==='GET') {
     if(path==='/api/auth/session') return json({...await current(request,db)||{user:null},auth_mode:env.AUTH_MODE||'password'});
     const user=await requireUser(request,db);
-    if(path==='/api/state') { continueWork(ctx,env);return json(await store.state(env,user)); }
+    if(path==='/api/removed-offers') return json(await removedOffers(db,user.id,url.searchParams.get('before')));
+    if(path==='/api/alerts') return json(await alertPage(db,user.id,url.searchParams.get('before')));
+    if(path==='/api/state') return json(await store.state(env,user));
+    const history=/^\/api\/watches\/(\d+)\/history$/.exec(path);
+    if(history) return json(await store.history(db,Number(history[1]),user.id,url.searchParams.get('before')));
     if(path==='/api/daily') return json(await dailyState(db,user.id));
     if(path==='/api/location-history') return json(await recent(db,user.id));
     if(path==='/api/locations') {
@@ -33,7 +40,7 @@ async function api(request,env,ctx) {
       if(q.has('id')) return json({location:locations.resolve(q.get('id'))});
       return json({locations:locations.search(q.get('q')||'',q.get('kind')||'')});
     }
-    if(/^\/api\/deals\/[^/]+$/.test(path)) { const result=await dealResult(db,path.split('/')[3],user.id);if(result.status==='running') continueWork(ctx,env);return json(result); }
+    if(/^\/api\/deals\/[^/]+$/.test(path)) { const result=await dealResult(db,path.split('/')[3],user.id);if(result.status==='running') continueWork(ctx,env,result.id);return json(result); }
   } else if(request.method==='POST') {
     const body=await data(request);
     if(path.startsWith('/api/auth/passkey/')) { const auth=await passkeyAuth(request,env,path,body);return json(auth.body,200,auth.cookie); }
@@ -43,9 +50,13 @@ async function api(request,env,ctx) {
     if(path==='/api/daily') { await saveDaily(db,user.id,body);return json({message:'每日推荐设置已保存。'}); }
     if(path==='/api/deals') {
       ensure(env.QUERY_ENABLED==='true','当前环境尚未开启真实查价，请联系服务管理员。',503);
-      const id=await enqueueDeal(db,validate(body,true),user.id);continueWork(ctx,env);return json({id},202);
+      const id=await enqueueDeal(db,validate(body,true),user.id);continueWork(ctx,env,id);return json({id},202);
     }
-    if(path==='/api/watches') { const id=await store.create(db,validate(body),user.id);continueWork(ctx,env);return json({id},201); }
+    if(path==='/api/watches') {
+      const c=validate(body),id=await store.create(db,c,user.id);
+      if(c.auto_enabled && env.QUERY_ENABLED==='true') { const runId=await enqueueWatch(db,id,true);continueWork(ctx,env,runId); }
+      return json({id},201);
+    }
     if(path==='/api/alerts/read') { await store.markRead(db,user.id,body.through_id);return json({message:'提醒已标为已读。'}); }
     if(path==='/api/email/verify' || path==='/api/email/check') {
       await verifyAction(env,user.id,path.endsWith('/check')?'check':'start');
@@ -79,10 +90,11 @@ export default {
     }
   },
   async scheduled(controller,env,ctx) {
+    await cleanSourceCache(env.DB);
     await schedule(env.DB,env.QUERY_ENABLED==='true');
     await dailyTick(env);
     // Bounded network work, with pending and retry tasks left durably for the next trigger.
-    await drain(env,12);
+    await drain(env,2);
     await dailyTick(env);
     await deliver(env);
     await deliverDaily(env);

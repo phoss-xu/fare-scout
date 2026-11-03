@@ -1,7 +1,7 @@
 import {ApiError,ensure} from './db.js';
 const SECURITY={
   'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff',
-  'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://images.unsplash.com; font-src 'self'; connect-src 'self' https://api.frankfurter.dev https://images.unsplash.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+  'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://images.unsplash.com https://tiles.openfreemap.org; font-src 'self'; connect-src 'self' https://api.frankfurter.dev https://images.unsplash.com https://tiles.openfreemap.org; worker-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
 };
 export function json(body,status=200,cookie) {
   return new Response(JSON.stringify(body),{status,headers:{...SECURITY,'Content-Type':'application/json; charset=utf-8',...(cookie?{'Set-Cookie':cookie}:{})}});
@@ -25,6 +25,6 @@ export async function asset(request,env) {
   if(url.pathname==='/setup') url.pathname='/';
   const response=await env.ASSETS.fetch(new Request(url,request));
   const headers=new Headers(response.headers);
-  for(const [k,v] of Object.entries(SECURITY)) headers.set(k,v);
+  for(const [k,v] of Object.entries(SECURITY)) if(k!=='Cache-Control') headers.set(k,v);
   return new Response(response.body,{status:response.status,headers});
 }

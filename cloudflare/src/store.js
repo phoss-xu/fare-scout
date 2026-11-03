@@ -1,3 +1,6 @@
+import {alertPage} from './alert-pages.js';
+import {currentObservations,removedOffers} from './observation-history.js';
+export {history} from './observation-history.js';
 import {all,first,run,batch,now,email,ensure} from './db.js';
 import {today,policy} from './domain.js';
 import {label,stats} from './locations.js';
@@ -48,14 +51,16 @@ export async function recipient(db,userId,address) {
 }
 export async function state(env,user) {
   const db=env.DB;
-  const watches=(await all(db,WATCH+' WHERE w.owner_id=? ORDER BY w.id DESC',[user.id])).map(decode);
-  const observations=(await all(db,`SELECT o.* FROM observations o JOIN watches w ON w.id=o.watch_id
-    WHERE w.owner_id=? AND w.deleted_at IS NULL ORDER BY o.id DESC`,[user.id])).map(o=>({...o,offer:o.offer?JSON.parse(o.offer):null}));
-  const alerts=await all(db,`SELECT a.*,q.status AS email_status FROM alerts a JOIN watches w ON w.id=a.watch_id
-    LEFT JOIN email_outbox q ON q.alert_id=a.id WHERE w.owner_id=? AND w.deleted_at IS NULL ORDER BY a.id DESC`,[user.id]);
+  const [watchRows,observations,removed,alertData,daily,emailStatus]=await Promise.all([
+    all(db,WATCH+' WHERE w.owner_id=? ORDER BY w.id DESC',[user.id]),
+    currentObservations(db,user.id),removedOffers(db,user.id),alertPage(db,user.id),
+    dailyState(db,user.id),mailStatus(env,user.notification_email,user.id)
+  ]);
+  const watches=watchRows.map(decode),alerts=alertData.alerts;
   const codes=new Set();
+  for(const a of alerts) codes.add(a.destination);
   for(const w of watches) { codes.add(w.origin);for(const d of w.destinations) codes.add(d); }
   for(const o of observations) { codes.add(o.destination);for(const leg of [o.offer?.outbound,o.offer?.inbound]) if(leg) { codes.add(leg.from);codes.add(leg.to); } }
-  return {watches:watches.filter(w=>!w.deleted_at),deleted_watches:watches.filter(w=>w.deleted_at),observations,alerts,
-    daily:await dailyState(db,user.id),query_enabled:env.QUERY_ENABLED==='true',email:await mailStatus(env,user.notification_email,user.id),user,today:today(),location_stats:stats(),destinations:Object.fromEntries([...codes].filter(Boolean).map(c=>[c,label(c)]))};
+  return {history_api:true,removed_offers:removed.offers,removed_next_before:removed.next_before,alert_page:{unread:alertData.unread,next_before:alertData.next_before},watches:watches.filter(w=>!w.deleted_at),deleted_watches:watches.filter(w=>w.deleted_at),observations,alerts,
+    daily,query_enabled:env.QUERY_ENABLED==='true',email:emailStatus,user,today:today(),location_stats:stats(),destinations:Object.fromEntries([...codes].filter(Boolean).map(c=>[c,label(c)]))};
 }

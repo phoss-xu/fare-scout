@@ -15,20 +15,36 @@ function link(value) {
   return tr("<span class=\"muted\">暂无核价链接</span>","<span class=\"muted\">No booking link available</span>");
 }
 
+let alertOwner,olderAlerts=[],olderDestinations={},olderCursor;
 export function renderAutomation(state) {
-  $('#alert-count').textContent = state.alerts.filter(a => !a.read_at).length;
-  $('#read-alerts').disabled = !state.alerts.some(a => !a.read_at);
+  if(alertOwner!==state.user?.id) {alertOwner=state.user?.id;olderAlerts=[];olderDestinations={};olderCursor=undefined;}
+  const alerts=[...new Map([...olderAlerts,...state.alerts].map(a=>[a.id,a])).values()].filter(a=>state.watches.some(w=>w.id===a.watch_id)).sort((a,b)=>b.id-a.id);
+  const destinations={...olderDestinations,...state.destinations};
+  $('#alert-count').textContent = state.alert_page?.unread ?? state.alerts.filter(a => !a.read_at).length;
+  $('#read-alerts').disabled = !(state.alert_page?.unread ?? state.alerts.filter(a=>!a.read_at).length);
   renderEmail(state.email);
-  $('#alerts').innerHTML = state.alerts.map(a => {
+  $('#alerts').innerHTML = alerts.map(a => {
     const w = state.watches.find(w => w.id === a.watch_id);
     const route = a.route_key ? JSON.parse(a.route_key) : [];
     const drop = a.previous_price == null ? '' : `${tr("降价 HK$","Price drop HK$")}${money(a.previous_price - a.price)}`;
-    return `<article class="card alert-card ${a.read_at ? '' : 'unread'}"><div class="card-top"><span class="badge">${a.reason === 'budget' ? tr("进入你的预算","Within your budget") : tr("发现降价","Price drop")}${a.read_at ? tr(" · 已读"," · Read") : tr(" · 未读"," · Unread")}</span><span class="muted">${time(a.created_at)}</span></div><h3>${escape(route[0] || w.origin)} <span class="arrow">↗</span> ${escape(state.destinations[a.destination])}</h3><p class="trip-dates">${a.departure} — ${a.arrival}${w.mode === 'weekend' ? tr(" 返程抵达"," return arrival") : tr(" 返程起飞"," return departure")}</p><div class="price">${price(a.price)}<span> / ${w.adults}${tr(" 人往返</span></div><p class=\"muted\">"," travellers, return</span></div><p class=\"muted\">")}${drop || tr("首次采样已在预算内","First observed fare is within budget")}</p><p class="muted">${delivery[a.email_status] || tr("邮件尚未排队","Email not queued yet")}${tr("</p><div class=\"card-bottom\"><span class=\"muted\">预订前核价</span>","</p><div class=\"card-bottom\"><span class=\"muted\">Confirm price before booking</span>")}${link(a.booking_url)}</div></article>`;
+    return `<article class="card alert-card ${a.read_at ? '' : 'unread'}"><div class="card-top"><span class="badge">${a.reason === 'budget' ? tr("进入你的预算","Within your budget") : tr("发现降价","Price drop")}${a.read_at ? tr(" · 已读"," · Read") : tr(" · 未读"," · Unread")}</span><span class="muted">${time(a.created_at)}</span></div><h3>${escape(route[0] || w.origin)} <span class="arrow">↗</span> ${escape(destinations[a.destination])}</h3><p class="trip-dates">${a.departure} — ${a.arrival}${w.mode === 'weekend' ? tr(" 返程抵达"," return arrival") : tr(" 返程起飞"," return departure")}</p><div class="price">${price(a.price)}<span> / ${w.adults}${tr(" 人往返</span></div><p class=\"muted\">"," travellers, return</span></div><p class=\"muted\">")}${drop || tr("首次采样已在预算内","First observed fare is within budget")}</p><p class="muted">${delivery[a.email_status] || tr("邮件尚未排队","Email not queued yet")}${tr("</p><div class=\"card-bottom\"><span class=\"muted\">预订前核价</span>","</p><div class=\"card-bottom\"><span class=\"muted\">Confirm price before booking</span>")}${link(a.booking_url)}</div></article>`;
   }).join('') || tr("<div class=\"empty\"><span class=\"empty-icon\">↘</span><h3>暂无提醒</h3></div>","<div class=\"empty\"><span class=\"empty-icon\">↘</span><h3>No alerts yet</h3></div>");
+  if((olderCursor===undefined?state.alert_page?.next_before:olderCursor)) $('#alerts').insertAdjacentHTML('beforeend',`<button type="button" class="small-btn" data-alerts-more>${tr('加载更早的提醒','Load earlier alerts')}</button>`);
 }
 
 export function setupAutomation(getState, refresh, toast) {
-  document.addEventListener('click', event => {
+  document.addEventListener('click', async event => {
+    const more=event.target.closest('[data-alerts-more]');
+    if(more) {
+      const state=getState(),owner=state.user.id,cursor=olderCursor===undefined?state.alert_page?.next_before:olderCursor;
+      more.disabled=true;
+      try {
+        const page=await request('/api/alerts?before='+cursor);
+        if(getState()?.user.id!==owner) return;
+        olderAlerts=[...olderAlerts,...state.alerts,...page.alerts];olderDestinations={...olderDestinations,...state.destinations,...page.destinations};olderCursor=page.next_before;renderAutomation(getState());
+      } catch(error) {toast(error.message);more.disabled=false;}
+      return;
+    }
     const settings = event.target.closest('[data-settings]');
     if (!settings) return;
     const w = getState().watches.find(w => w.id === Number(settings.dataset.settings));
@@ -60,7 +76,7 @@ export function setupAutomation(getState, refresh, toast) {
   $('#read-alerts').addEventListener('click', async () => {
     const ids = getState().alerts.map(a => a.id);
     if (!ids.length) return;
-    try { await request('/api/alerts/read', {through_id:Math.max(...ids)}); await refresh(); }
+    try { await request('/api/alerts/read', {through_id:Math.max(...ids)});olderAlerts=[];olderCursor=undefined;await refresh(); }
     catch (error) { toast(error.message); }
   });
   setupEmail(getState,refresh,toast);

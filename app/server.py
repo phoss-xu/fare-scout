@@ -95,7 +95,7 @@ class Handler(BaseHTTPRequestHandler):
                  "/daily.css": ("daily.css", "text/css"),
                  "/automation.css": ("automation.css", "text/css"),
                  "/style.css": ("style.css", "text/css")}
-        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("landscape-provider", "landscape-actions", "email-settings", "preferences", "exchange-rates", "currency", "i18n", "settings")})
+        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("polling", "history-panel", "landscape-provider", "landscape-actions", "email-settings", "preferences", "exchange-rates", "currency", "i18n", "settings")})
         files.update({f"/assets/places/{name}.jpg": (f"assets/places/{name}.jpg", "image/jpeg") for name in ("beach", "forest", "rice", "city", "sculpture", "harbour", "harbour.thumb", "beach.thumb", "forest.thumb", "rice.thumb", "city.thumb", "sculpture.thumb")})
         files.update({f"/assets/manrope-{weight}.ttf": (f"assets/manrope-{weight}.ttf", "font/ttf") for weight in (400, 500, 600, 700)})
         files["/assets/fare-scout-serif-vf.woff2"] = ("assets/fare-scout-serif-vf.woff2", "font/woff2")

@@ -1,0 +1,4 @@
+/*
+  Referrer-Policy: no-referrer
+  X-Content-Type-Options: nosniff
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://images.unsplash.com https://tiles.openfreemap.org; font-src 'self'; connect-src 'self' https://api.frankfurter.dev https://images.unsplash.com https://tiles.openfreemap.org; worker-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'

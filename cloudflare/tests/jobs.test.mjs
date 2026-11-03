@@ -33,7 +33,8 @@ test('watch batches, price comparison, alert deduplication and recoverable accou
   assert.equal((await request(h,`/api/watches/${id}/restore`,{},a)).status,200);
   state=(await request(h,'/api/state',undefined,a)).data;
   assert.equal(state.watches[0].auto_enabled,false);assert.equal(state.watches[0].alerts_enabled,false);
-  assert.equal(state.observations.length,3);
+  assert.equal(state.observations.length,1);
+  assert.equal((await request(h,`/api/watches/${id}/history`,undefined,a)).data.summary.total,3);
   assert.equal((await request(h,'/api/alerts/read',{through_id:state.alerts[0].id},a)).status,200);
   assert.ok((await request(h,'/api/state',undefined,a)).data.alerts.every(a=>a.read_at));
 });
@@ -45,11 +46,12 @@ test('empty and malformed source responses remain distinct; transient failures r
   upstream.mode='failure';assert.equal((await request(h,`/api/watches/${id}/check`,{},a)).status,202);
   for(let attempt=1;attempt<=3;attempt++) {
     await waitFor(async()=>await h.db.prepare('SELECT id FROM search_tasks WHERE attempts=? AND status=?').bind(attempt,attempt===3?'error':'pending').first());
-    if(attempt<3) { await h.db.prepare("UPDATE search_tasks SET available_at='2000-01-01' WHERE status='pending'").run();await request(h,'/api/state',undefined,a); }
+    if(attempt<3) { await h.db.prepare("UPDATE search_tasks SET available_at='2000-01-01' WHERE status='pending'").run();await (await h.mf.getWorker('fare-scout')).scheduled({cron:'* * * * *'}); }
   }
   await waitFor(async()=>!(await h.db.prepare('SELECT running FROM watches WHERE id=?').bind(id).first()).running);
   const state=(await request(h,'/api/state',undefined,a)).data;
-  assert.equal(state.observations[0].status,'error');assert.ok(state.watches[0].failure_count);assert.equal(state.observations.length,3);
+  assert.equal(state.observations[0].status,'error');assert.ok(state.watches[0].failure_count);assert.equal(state.observations.length,1);
+  assert.equal((await request(h,`/api/watches/${id}/history`,undefined,a)).data.summary.total,3);
 });
 test('multi-origin flexible discovery, validation, query args and owner-scoped results',async t=>{
   const upstream={offers:[offer(1200),offer(1000)]};const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source(upstream)});t.after(()=>h.close());

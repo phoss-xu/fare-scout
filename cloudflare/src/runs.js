@@ -25,7 +25,7 @@ export async function enqueueDeal(db,c,userId) {
   const pairs=origins(c).flatMap(o=>(destinations(c).length?destinations(c):[null]).map(d=>({origin_id:o.id,location_id:d?.id || null})));
   const output=await batch(db,[
     [`INSERT OR IGNORE INTO search_runs(id,kind,owner_id,config,total,job_count,created_at)
-      SELECT ?,'deal',?,?,?,?,? WHERE (SELECT COUNT(*) FROM search_runs WHERE kind='deal' AND json_extract(config,'$.daily') IS NOT 1)<100`,[identity,userId,JSON.stringify(c),pairs.length,pairs.length,timestamp]],
+      SELECT ?,'deal',?,?,?,?,? WHERE (SELECT COUNT(*) FROM search_runs WHERE kind='deal' AND status='running' AND json_extract(config,'$.daily') IS NOT 1)<100`,[identity,userId,JSON.stringify(c),pairs.length,pairs.length,timestamp]],
     ...pairs.map(j=>['INSERT INTO search_tasks(id,run_id,job,available_at) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM search_runs WHERE id=?)',[crypto.randomUUID(),identity,JSON.stringify(j),timestamp,identity]])
   ]);
   ensure(output[0].meta.changes,'你已有一份特价搜索正在进行，或搜索服务正在忙，请稍后重试。',409);
@@ -34,14 +34,15 @@ export async function enqueueDeal(db,c,userId) {
 export async function dealResult(db,id,userId) {
   const row=await first(db,"SELECT * FROM search_runs WHERE id=? AND owner_id=? AND kind='deal'",[id,userId]);
   ensure(row,'这份搜索不存在或已过期，请重新搜索。',404);
-  const tasks=await all(db,'SELECT status,offers FROM search_tasks WHERE run_id=?',[id]);
+  const tasks=await all(db,'SELECT status,offers,source_checked_at,cache_hit FROM search_tasks WHERE run_id=?',[id]);
   const best=new Map();
+  const checked=tasks.filter(t=>t.status==='done' && t.source_checked_at).map(t=>t.source_checked_at).sort();
   for(const task of tasks) for(const o of JSON.parse(task.offers||'[]')) {
     const airport=resolve('airport:'+o.outbound.to),key=airport.city_code || airport.code;
     if(!best.has(key)||o.price<best.get(key).price) best.set(key,o);
   }
   return {id,status:row.status,config:JSON.parse(row.config),completed:tasks.filter(t=>['done','error','cancelled'].includes(t.status)).length,total:row.total,
-    failures:tasks.filter(t=>t.status==='error').length,offers:[...best.values()].sort((a,b)=>a.price-b.price),source:'Kiwi',checked_at:row.finished_at};
+    failures:tasks.filter(t=>t.status==='error').length,offers:[...best.values()].sort((a,b)=>a.price-b.price),source:'Kiwi',checked_at:checked[0]||row.finished_at,cached:tasks.some(t=>t.cache_hit)};
 }
 export async function finalize(db,id) {
   const r=await first(db,"SELECT * FROM search_runs WHERE id=? AND status='running'",[id]);
