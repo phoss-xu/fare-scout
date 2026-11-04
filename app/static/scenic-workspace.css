@@ -72,6 +72,9 @@ body:has(#workspace:not([hidden])) :is(.top,.tabs) :focus-visible{outline-color:
 #deals-panel .deal-search :focus-visible{outline-color:var(--scenery-ink)}
 #deals-panel :is(.journey-editor,.journey-extras-body,.saved-searches) :focus-visible{outline-color:var(--green)}
 #deals-panel .discovery-results:not(.results-requested):not(:has(.deal-card)){display:none}
+#deals-panel .discovery-results:has(#daily-content:not([hidden]) .deal-card){position:relative;isolation:isolate;padding-top:36px}
+#deals-panel .discovery-results:has(#daily-content:not([hidden]) .deal-card)::before{content:'';position:absolute;top:-32px;bottom:-96px;left:50%;width:100vw;transform:translateX(-50%);z-index:-1;pointer-events:none;background:linear-gradient(180deg,transparent,var(--paper) 32px)}
+#deals-panel:has(#daily-content:not([hidden]) .deal-card) .deal-search{z-index:2}
 #deals-panel .discovery-heading{margin-bottom:24px}
 #deals-panel .discovery-heading h2{font-weight:400;font-size:30px;letter-spacing:-.02em}
 /* A shorter scenic opening keeps returned fares close to the search. */
@@ -88,6 +91,7 @@ body:has(#workspace:not([hidden])) .workspace-head .primary{background:color-mix
 body:has(#workspace:not([hidden])) .my-trips-tabs{border-color:var(--ui-edge)}
 body:has(#workspace:not([hidden])) footer{width:calc(100% - 112px);max-width:none;margin-top:28px;border-color:var(--ui-edge);padding-block:24px}
 body:has(#workspace:not([hidden])):has(#deals-panel:not([hidden])):not(:has(.results-requested)) footer{color:var(--scenery-ink);border-color:var(--scenery-border);opacity:.7;text-shadow:0 1px 12px var(--scenery-shade)}
+body:has(#workspace:not([hidden])):has(#deals-panel:not([hidden])):has(#daily-content:not([hidden]) .deal-card) footer{color:var(--muted);border-color:var(--ui-edge);opacity:1;text-shadow:none}
 @media(min-width:1600px){body:has(#workspace:not([hidden])) :is(main,.top,footer){width:calc(100% - 160px)}}
 @media(max-width:1000px) and (min-width:761px){#deals-panel :is(.journey-place summary strong,.date-copy strong){font-size:18px}#deals-panel .journey-choices>details>summary{padding-inline:16px}}
 @media(max-width:760px){
