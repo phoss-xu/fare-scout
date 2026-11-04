@@ -1,6 +1,6 @@
 # Cloudflare Workers Free + D1
 
-线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `3cf0e7e9-74bb-4c06-b580-7c4e42d66eab`（代码提交 `b4c86ca`，2026-11-03）。Workers Free，Passkey 登录；未开通 Paid，未迁移旧本地数据，Cloudflare 邮件发送已启用，按用户验证与接收确认状态投递。
+线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `c6f8d3c0-a003-46dc-ab90-89b93bcaa73d`（代码提交 `a8de0ab`，全量改动 `14b76d3`，2026-11-04）。Workers Free，Passkey 登录；未开通 Paid，未迁移旧本地数据，Cloudflare 邮件发送已启用，按用户验证与接收确认状态投递。
 
 D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。`0001`–`0011` 共十一项迁移已应用，Wrangler 确认没有待应用迁移。部署前后用户 4、Passkey 4、会话 6、监控 2；行程收藏/分享表为空，新批次副本表有 21 条记录。后续更新不初始化或清空业务数据，原 SQLite 与旧本地 D1 均保留。
 
@@ -21,9 +21,9 @@ npm run dev
 
 旧版 `python3 -m app.server` 仍使用 8765 和 `fare_scout.db`，保留密码登录。前端根据 `/api/auth/session` 的 `auth_mode` 显示相应登录界面；Python 版不会加载 Passkey 模块。
 
-## 本地双登录模式（2026-11-04，待发布）
+## 本地双登录模式（2026-11-04）
 
-本地代码新增 `AUTH_MODE=mixed`，同时开放现有密码及通行密钥实现。`/api/auth/session` 返回 `auth_methods`，前端据此提供登录／注册方式切换；`passkey` 仍只开放通行密钥，`password`／缺省仍只开放密码。当前 wrangler.jsonc 保持线上 `passkey` 配置，未部署或切换生产认证。
+本地代码新增 `AUTH_MODE=mixed`，同时开放现有密码及通行密钥实现。`/api/auth/session` 返回 `auth_methods`，前端据此提供登录／注册方式切换；`passkey` 仍只开放通行密钥，`password`／缺省仍只开放密码。此能力已随全量版本发布；当前 wrangler.jsonc 和生产变量保持 `passkey`，没有切换生产认证模式。
 
 ```bash
 npm run dev -- --local --var MAIL_ENABLED:false --var QUERY_ENABLED:false --var AUTH_MODE:mixed --var PASSKEY_ORIGIN:http://localhost:8787
@@ -166,3 +166,12 @@ Cloudflare 官方 19 个 skills 已安装至 `~/.agents/skills/`；Codex 的 Clo
 | 100 | 268ms | 283ms | 100/100 HTTP 200 |
 
 这些是本机 workerd + 本地 D1 的短时状态读取结果，不包含真实数据源、邮件、设备 Passkey 或 Cloudflare 网络、CPU 与配额约束，不表示线上承载上限。浏览器已检查登录、监控最新批次、100→200 条历史翻页、390px 无横向溢出和查询关闭提示。性能代码随本节上方的 `b4c86ca` 部署；这里的本地基准不替代线上容量测量。
+
+## 2026-11-04 全量界面与字体发布
+
+- 用户明确授权当前全部改动 commit、push 和部署。`14b76d3` 提交 443 个变更文件；线上真实每日推荐的阅读对比度修正为 `a8de0ab`。已推送 origin/main。
+- 最终 Worker 版本 `c6f8d3c0-a003-46dc-ab90-89b93bcaa73d`，发布命令使用项目 Wrangler `deploy --keep-vars`，目标 `fare-scout` 与既有 D1/EMAIL/Cron；生产继续 Passkey、查价及邮件原有配置，不带入本地 .dev.vars 或数据库。
+- 全量提交副本前端 104、Workers/D1 61、Python 89、本地 Passkey 集成 3 项通过，共 257 项；生产 dry-run 成功。536 项静态资源，Worker gzip 788.63 KiB。补修仅改样式，前端 104 项再次通过。
+- 发布前后只读统计 users=4、passkeys=4、watches=2，无待应用迁移。主页、字体、共用/场景 CSS、app/auth 模块、图库及两张抽样照片 HTTP 200 且 SHA-256 与发布副本相同。匿名 session 返回 200/passkey，匿名 state 返回 401。
+- 实际 Chrome 保持原会话进入新版工作台，已有每日推荐继续读取；字体选项显示 Times New Roman + 思源宋体。桌面与 390px 文档宽均无横向溢出，手机日期展开/收起正常，控制台无 error。截图 `/private/tmp/fare-scout-production-desktop.png` 与 `/private/tmp/fare-scout-production-mobile.png`。
+- 发布验收没有主动查价、创建监控、发送通知、修改推送计划或变更账号权限；已有定时任务继续按原配置运行。
