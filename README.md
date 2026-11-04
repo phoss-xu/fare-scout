@@ -13,8 +13,8 @@ npm run db:local
 npm run dev
 ```
 
-本地打开 http://localhost:8787（Passkey 开发使用 localhost）。真实查价需在 `.dev.vars` 开启 `QUERY_ENABLED=true`；验收期间保持 `MAIL_ENABLED=false`。
-原 Python 版与 `fare_scout.db` 保留，继续使用原本地密码登录；云端由用户重新创建 Passkey 账号。
+本地统一打开 http://localhost:8787（本地 D1，支持原账号的邮箱密码及 Passkey 登录）。真实查价需在 `.dev.vars` 开启 `QUERY_ENABLED=true`；验收期间保持 `MAIL_ENABLED=false`。
+原 Python 数据已迁入当前本地 D1，密码哈希保持不变；`fare_scout.db` 保留备份，不再同时运行 8765。云端账号保持独立。
 运行方式、Passkey、验证边界及发布步骤见 [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md)。
 
 Workers 版新增只读管理后台：登录后访问 `/admin`，查看用户、查价任务、两类邮件队列和调度心跳。
@@ -94,13 +94,13 @@ Workers 版新增只读管理后台：登录后访问 `/admin`，查看用户、
 
 ### 本地网页第一版
 
-使用 Python 3.9+，无需安装额外依赖：
+使用 Node.js 及项目已有依赖（首次运行先执行 `npm ci`）：
 
 ```bash
-python3 -m app.server
+npm run dev
 ```
 
-打开 http://127.0.0.1:8765，注册或登录后默认进入「搜特价」，也可切换「出行监控」创建监控。
+`.dev.vars` 使用 `AUTH_MODE="mixed"`（与 example 一致）。打开 http://localhost:8787，注册或登录后默认进入「搜特价」，也可切换「出行监控」创建监控。
 新监控默认自动进行首次查价，也可暂停后点击「查一次价格」。
 每个账号分别保存监控、价格记录、提醒和收件邮箱；发信服务由服务管理员统一配置。
 旧单人版账号需通过本机终端输出的初始化入口设置密码，已有数据保留在指定账号下。
@@ -144,3 +144,5 @@ Cloudflare 邮件自助验证与接收确认已正式上线，真实确认邮件
 地图采用 MapLibre GL JS 与 OpenFreeMap Liberty，目的地图片与紧凑价格气泡配合侧栏浏览，手机侧栏位于地图下方。`npm install` 后运行开发或构建命令会自动准备地图 vendor 文件；单独运行 Python 服务前可执行 `npm run assets:maps`。地图瓦片需要浏览器联网，加载失败可重试，报价侧栏仍可使用。数据与图片许可见 `app/static/assets/MAP-SOURCES.md`。
 
 本地新增「行程操作」（待发布）：卡片、登机牌、地图详情及每日推荐统一提供分享、收藏与降价提醒；「我的行程」按已收藏/监控中切换。收藏保存在账号，分享为无需登录查看的固定报价快照，可复制链接、调用系统分享或生成分享图；分享保留原始查询时间，不包含账号邮箱、预算与提醒偏好。固定日期单程也支持提醒，同机场同日期比较，不锁定航班号。D1 上线前需应用 `0011_trips.sql`，本轮未执行远端迁移或发布。架构与边界见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+
+登录背景播放真实旅行片段，按视频结束自然换片；右下角爱心收藏、碎心排除，偏好暂保存在当前浏览器，尚未跨设备同步。素材来源见 [CREDITS](app/static/assets/travel-films/CREDITS.md)，本地双登录边界见 [Cloudflare 文档](docs/CLOUDFLARE.md)。

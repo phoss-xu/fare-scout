@@ -1,3 +1,4 @@
+@font-face{font-family:"IM Fell English";font-style:normal;font-weight:400;font-display:swap;src:url('/assets/im-fell-english-400.ttf') format('truetype')}
 @font-face{font-family:"Fare Scout Serif";font-style:normal;font-weight:250 900;font-display:swap;src:url('/assets/fare-scout-serif-vf.woff2') format('woff2');unicode-range:U+80-10FFFF}
 @font-face{font-family:Manrope;font-style:normal;font-weight:400;font-display:swap;src:url('/assets/manrope-400.ttf') format('truetype')}
 @font-face{font-family:Manrope;font-style:normal;font-weight:500;font-display:swap;src:url('/assets/manrope-500.ttf') format('truetype')}
@@ -5,7 +6,7 @@
 @font-face{font-family:Manrope;font-style:normal;font-weight:700;font-display:swap;src:url('/assets/manrope-700.ttf') format('truetype')}
 :root{
  --paper:#f6f7f4;--ink:#24362e;--muted:#69766f;--green:#396b51;--lime:#e3eddb;--line:#dfe5dd;--white:#fff;--orange:#9a4c33;
- --surface-soft:#edf2e9;--family:Manrope,"Fare Scout Serif","Source Han Serif SC","Noto Serif CJK SC","Songti SC",SimSun,serif;
+ --surface-soft:#edf2e9;--family:"IM Fell English","Fare Scout Serif","Source Han Serif SC","Noto Serif CJK SC","Songti SC",SimSun,serif;
  --heading-1:600 48px/1 var(--family);--heading-3:600 36px/40px var(--family);--heading-4:600 30px/36px var(--family);--heading-5:600 24px/32px var(--family);--heading-6:600 20px/28px var(--family);
  --title-2:500 18px/28px var(--family);--title-3:500 16px/24px var(--family);--title-4:500 14px/20px var(--family);--body-3:400 16px/24px var(--family);--body-6:400 14px/20px var(--family);--caption-5:400 12px/16px var(--family);--button-md:600 16px/24px var(--family);--button-sm:600 14px/20px var(--family);
  --s-0:0;--s-25:2px;--s-50:4px;--s-75:8px;--s-100:12px;--s-200:16px;--s-300:24px;--s-400:32px;--s-500:40px;--s-600:48px;--s-700:64px;--s-800:80px;--s-900:96px;
@@ -30,3 +31,12 @@ form>label,.two-col>label{display:flex;flex-direction:column;gap:var(--s-75);fon
 @keyframes arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.card,.deal-intro{animation:arrive 600ms var(--curve) both}
 @media(max-width:760px){.top,main,footer{width:calc(100% - 32px)}.top{min-height:64px;padding:var(--s-100);margin-top:var(--s-100)}.brand{font:600 20px/28px var(--family);gap:var(--s-75)}.brand-icon{width:32px;height:32px;border-radius:8px}.tabs{width:100%;gap:var(--s-50);margin:var(--s-200) 0 var(--s-300)}.tabs button{flex:1;padding:var(--s-100) var(--s-75);font:var(--caption-5)}.tabs span{margin-left:var(--s-50)}.cards{grid-template-columns:1fr;gap:var(--s-200)}.card{padding:var(--s-200)}h1{font:var(--heading-3);letter-spacing:-1px}.workspace-head{align-items:start;margin:var(--s-300) 0}.workspace-head h1{font:var(--heading-5)}.workspace-head .primary{font:var(--button-sm);min-height:40px}.workspace-head .eyebrow{display:none}.note{margin:var(--s-300) 0}.two-col{gap:var(--s-100)}dialog{padding:var(--s-300);max-height:94dvh}.dialog-head h2{font:var(--heading-6)}.card-bottom{flex-wrap:wrap}footer{flex-direction:column;gap:var(--s-75)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+
+
+/* Familiar action controls share a single icon treatment. */
+.icon-action{display:inline-flex;align-items:center;justify-content:center;width:44px;min-width:44px;height:44px;padding:10px;border-radius:50%}
+.icon-action svg{width:22px;height:22px;flex-shrink:0}
+.icon-action:hover svg{transform:translateY(-1px)}
+.icon-action svg{transition:transform .2s var(--curve)}

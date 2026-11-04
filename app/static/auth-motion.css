@@ -1,0 +1,44 @@
+/* The felt illustration owns its colours; UI surfaces and text use global tokens. */
+.auth-journey{margin:-12px 0 16px;overflow:hidden;contain:layout paint;user-select:none}
+.journey-stage{position:relative;height:156px;margin:0 4px;overflow:hidden}
+.journey-ground{position:absolute;inset:auto 8px 11px;height:1px;background:var(--line)}
+.journey-trail{position:absolute;bottom:15px;left:45%;right:12%;height:1px;border-top:2px dotted var(--muted);opacity:.25}
+.journey-sign{position:absolute;right:8px;bottom:11px;width:30px;height:43px;stroke:var(--muted);stroke-width:1.2;fill:none;opacity:.4}
+#auth-view .journey-caption,.journey-caption{font-size:12px;line-height:1.7;color:var(--muted);text-align:center;margin:5px 0 0;min-height:1.7em;max-width:none;letter-spacing:.02em}
+.journey-traveler{position:absolute;bottom:0;left:0;width:152px;height:152px;transition:left 1.15s cubic-bezier(.45,0,.3,1),opacity .25s}
+.panda-sway{height:100%;transform-origin:50% 90%;animation:panda-breathe 3.8s ease-in-out infinite}
+.panda-sprite{width:100%;height:100%;background:url('/assets/mascot/red-panda-poses.png') 0 0/400% 200% no-repeat}
+.journey-shadow{position:absolute;bottom:10px;left:22%;width:60%;height:4px;border-radius:50%;background:var(--ink);opacity:.07;z-index:-1}
+.auth-journey[data-packed=true] .panda-sprite{background-position:33.333333% 0}
+.auth-journey[data-packed=true] .panda-sway{animation:panda-shoulder .65s var(--curve),panda-breathe 3.8s .65s ease-in-out infinite}
+.auth-journey[data-ready=true] .panda-sprite{background-position:100% 0}
+.auth-journey[data-ready=true] .panda-sway{animation:panda-tug .65s var(--curve),panda-breathe 3.8s .65s ease-in-out infinite}
+.auth-journey[data-private=true] .panda-sprite{background-position:66.666667% 0}
+.auth-journey[data-private=true] .panda-sway{animation:panda-turn .4s var(--curve) both}
+.auth-journey[data-state=walking] .journey-traveler,.auth-journey[data-state=waiting] .journey-traveler{left:calc(100% - 152px)}
+.auth-journey[data-state=walking] .panda-sprite,.auth-journey[data-state=departing] .panda-sprite{animation:panda-walk-frames .56s steps(1,end) infinite}
+.auth-journey[data-state=walking] .panda-sway,.auth-journey[data-state=departing] .panda-sway{animation:panda-step .28s ease-in-out infinite alternate}
+.auth-journey[data-state=waiting] .panda-sprite{background-position:66.666667% 100%;animation:none}
+.auth-journey[data-state=waiting] .panda-sway{animation:panda-check 2.8s ease-in-out infinite}
+.auth-journey[data-state=error] .panda-sprite{background-position:100% 100%;animation:none}
+.auth-journey[data-state=error] .panda-sway{animation:panda-puzzle .55s ease-out both}
+.auth-journey[data-state=departing] .journey-traveler{left:calc(100% + 24px);transition-duration:.55s;transition-timing-function:ease-in}
+#auth-view.auth-leaving{animation:auth-leave .32s ease-in both}
+#workspace.auth-arriving{animation:auth-enter .45s var(--curve) both}
+.auth-card[aria-busy=true] .primary{opacity:.8;cursor:wait}
+@keyframes panda-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-1.5px) scale(1.012)}}
+@keyframes panda-shoulder{0%{transform:translateY(3px) rotate(-4deg)}55%{transform:translateY(-4px) rotate(3deg)}100%{transform:none}}
+@keyframes panda-tug{0%,55%,100%{transform:translateY(0)}30%{transform:translateY(-3px) rotate(-3deg)}75%{transform:translateY(-4px) rotate(2deg)}}
+@keyframes panda-turn{from{transform:scaleX(.92) rotate(-4deg)}to{transform:scaleX(1) rotate(0)}}
+@keyframes panda-walk-frames{0%,100%{background-position:0 100%}50%{background-position:33.333333% 100%}}
+@keyframes panda-step{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-3px) rotate(2deg)}}
+@keyframes panda-check{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-3deg)}}
+@keyframes panda-puzzle{0%{transform:rotate(0)}45%{transform:rotate(-4deg)}100%{transform:rotate(0)}}
+@keyframes auth-leave{to{opacity:0;transform:translateY(-6px)}}
+@keyframes auth-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){.auth-journey{margin:-14px 0 18px}.journey-stage{height:140px}.journey-traveler{width:136px;height:136px}.auth-journey[data-state=walking] .journey-traveler,.auth-journey[data-state=waiting] .journey-traveler{left:calc(100% - 136px)}.journey-caption{font-size:11px}}
+@media(prefers-reduced-motion:reduce){
+ .auth-journey *{animation:none!important;transition:none!important}
+ .auth-journey[data-state=walking] .panda-sprite,.auth-journey[data-state=departing] .panda-sprite{background-position:100% 0}
+ .auth-journey[data-state=departing] .journey-traveler{opacity:0}
+}

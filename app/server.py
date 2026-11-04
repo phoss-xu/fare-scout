@@ -121,6 +121,15 @@ class Handler(BaseHTTPRequestHandler):
             if photo.suffix in (".jpg", ".png", ".webp"):
                 files[f"/assets/destinations/{photo.name}"] = (f"assets/destinations/{photo.name}", {".jpg":"image/jpeg", ".png":"image/png", ".webp":"image/webp"}[photo.suffix])
         files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("trip-snapshot", "trip-state", "trip-actions", "trip-dialogs", "trip-sharing", "shared-trip", "boarding-itinerary", "route-detail", "route-detail-model", "route-detail-views", "route-detail-search", "result-comparison")})
+        for name in ("auth-motion", "auth-red-panda", "auth-films", "auth-films-data", "film-preferences", "ui-icons", "local-passkeys", "password-confirmation"):
+            files[f"/{name}.js"] = (f"{name}.js", "text/javascript")
+        for name in ("auth-motion", "auth-scene", "liquid-glass"):
+            files[f"/{name}.css"] = (f"{name}.css", "text/css")
+        for film in (STATIC / "assets/travel-films").glob("*"):
+            if film.suffix in (".mp4", ".jpg"):
+                files[f"/assets/travel-films/{film.name}"] = (f"assets/travel-films/{film.name}", "video/mp4" if film.suffix == ".mp4" else "image/jpeg")
+        files["/assets/mascot/red-panda-poses.png"] = ("assets/mascot/red-panda-poses.png", "image/png")
+        files["/assets/fingerprint.svg"] = ("assets/fingerprint.svg", "image/svg+xml")
         files["/boarding-itinerary.css"] = ("boarding-itinerary.css", "text/css")
         files["/route-detail.css"] = ("route-detail.css", "text/css")
         files["/trip-actions.css"] = ("trip-actions.css", "text/css")

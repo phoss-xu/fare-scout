@@ -1,10 +1,10 @@
+import {icon} from './ui-icons.js';
 import {tr} from './i18n.js';
 import {escape,time} from './format.js';
 import {tripIdentity,watchForTrip} from './trip-snapshot.js';
 const records=new Map(),refs=new Map();let sequence=0;
 export let savedTrips=[],tripWatches=[],tripAccount=null;
-export const icons={heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',share:'<path d="M12 16V3m-5 5 5-5 5 5M5 13v7h14v-7"/>',bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>'};
-export const icon=name=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`;
+export {icons,icon} from './ui-icons.js';
 export function registerTrip(offer,context={}) {
   const snapshot={offer,adults:context.adults || 1,currency:offer.currency || context.currency || 'HKD',cabin:'M',checked_at:context.checked_at ?? null,
     filters:{max_stops:context.max_stops ?? context.filters?.max_stops ?? -1,max_duration_hours:context.max_duration_hours || context.filters?.max_duration_hours || 0}};

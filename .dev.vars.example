@@ -12,7 +12,7 @@ RESEND_API_KEY=""
 MAIL_FROM=""
 
 # Passkey credentials are bound to this origin; use the same address in the browser.
-AUTH_MODE="passkey"
+AUTH_MODE="mixed"
 PASSKEY_ORIGIN="http://localhost:8787"
 
 # Read-only admin access: comma-separated existing user IDs; empty denies everyone.

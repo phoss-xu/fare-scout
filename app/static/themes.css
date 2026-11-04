@@ -30,3 +30,6 @@ input:not([type=checkbox]),select{background:var(--white);color:var(--ink);borde
 .location-choice-grid button[aria-pressed=true] strong::after{color:var(--on-accent)}
 .journey-choices summary:hover,.search-submit:hover:not(:disabled),button:active:not(:disabled){transform:none}
 .search-submit{box-shadow:none}.search-submit:hover:not(:disabled){box-shadow:none}
+
+/* Foreground on scenic imagery is shared independently of surface themes. */
+:root{--scenery-ink:#FFFCF5;--scenery-shade:#101D1B;--scenery-border:#FFFCF55C}

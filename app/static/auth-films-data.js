@@ -1,0 +1,10 @@
+/** Reusable travel media catalog: stable IDs, source provenance and honest place metadata. */
+export const authFilms = [
+  {id:'seaside-coffee',zh:'海边 · 一杯咖啡的时间',en:'By the sea · Time for a coffee',shortZh:'听海喝咖啡',shortEn:'Seaside coffee',author:'Pinaak Kumar',source:'https://www.pexels.com/video/serene-ocean-view-coffee-on-rustic-table-31245001/',position:'40% 50%',location:{country:null,place:null,basis:'unconfirmed'}},
+  {id:'lake-como',zh:'意大利 · 沿科莫湖慢慢航行',en:'Italy · Sailing Lake Como',shortZh:'湖上帆船',shortEn:'Lake sailing',author:'cristian rossa',source:'https://www.pexels.com/video/a-boat-sailing-in-lake-como-near-varenna-village-11646721/',position:'46% 50%',location:{country:'IT',place:'Varenna, Lake Como',basis:'source-description'}},
+  {id:'palm-hammock',zh:'泰国 · 躺进海风里',en:'Thailand · A hammock in the sea breeze',shortZh:'海风与吊床',shortEn:'Beach hammock',author:'Peggy Anke',source:'https://www.pexels.com/video/dream-life-beach-life-14231321/',position:'50% 76%',location:{country:'TH',place:null,basis:'source-tags'}},
+  {id:'mountain-balcony',zh:'山间 · 在绿意里醒来',en:'In the hills · A slower morning',shortZh:'山景阳台',shortEn:'Mountain balcony',author:'ArtHouse Studio',source:'https://www.pexels.com/video/man-enjoying-lush-green-view-of-mountains-5091104/',position:'50% 50%',location:{country:null,place:null,basis:'unconfirmed'}},
+  {id:'swiss-lake-train',zh:'瑞士 · 坐在湖景列车窗边',en:'Switzerland · A lakeside window seat',shortZh:'湖景列车',shortEn:'Lakeside train',author:'Zheltenko Oleksandr',source:'https://www.pexels.com/video/a-lake-in-a-mountain-landscape-seen-from-a-train-window-12769872/',position:'50% 50%',location:{country:'CH',place:null,basis:'source-description'}},
+  {id:'morning-hike',zh:'法国 · 走进清晨的山雾',en:'France · Into the morning mist',shortZh:'走进云海',shortEn:'Morning hike',author:'Florian Delée',source:'https://www.pexels.com/video/hiker-in-morning-mist-on-french-mountain-32562963/',position:'44% 50%',location:{country:'FR',place:null,basis:'source-description'}}
+];
+export const filmPath = (film,extension='mp4') => `/assets/travel-films/${film.id}.${extension}`;

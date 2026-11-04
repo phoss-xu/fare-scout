@@ -1,0 +1,132 @@
+/* Scenic login: type and actions sit directly in the landscape, without panels. */
+.auth-brand-heading{display:none}
+body:has(#auth-view:not([hidden])){isolation:isolate;min-height:100svh}
+body:has(#auth-view:not([hidden]))::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(0deg,color-mix(in srgb,var(--scenery-shade) 70%,transparent),transparent 70%),linear-gradient(90deg,color-mix(in srgb,var(--scenery-shade) 15%,transparent),transparent 42%,color-mix(in srgb,var(--scenery-shade) 56%,transparent))}
+body:has(#auth-view:not([hidden])) .top{position:relative;align-items:flex-start;justify-content:flex-end;width:calc(100% - 112px);max-width:none;min-height:44px;margin:24px auto 0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+body:has(#auth-view:not([hidden])) .top::before,body:has(#auth-view:not([hidden])) .top::after{display:none}
+body:has(#auth-view:not([hidden])) .top>.brand{display:none}
+body:has(#auth-view:not([hidden])) .auth-brand-heading{display:block;font:400 clamp(48px,5vw,68px)/1 var(--family);letter-spacing:-.035em;color:var(--scenery-ink);margin:0 0 44px;text-shadow:0 2px 24px color-mix(in srgb,var(--scenery-shade) 30%,transparent)}
+body:has(#auth-view:not([hidden])) .appearance-open{min-height:44px;margin-top:8px;padding:8px 0 8px 12px;border:0;border-radius:0;background:none;box-shadow:none;color:var(--scenery-ink);backdrop-filter:none}
+#auth-view{width:calc(100% - 112px);max-width:none;min-height:calc(100svh - 76px);margin:0 auto;padding:32px 0 24px;grid-template-columns:minmax(0,380px) minmax(0,1fr);grid-template-rows:1fr auto;gap:28px;align-items:center}
+#auth-view>.auth-films{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:var(--scenery-shade)}
+.auth-films>img,.auth-films>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+.auth-films>video{opacity:0;transition:opacity 1.2s ease}
+.auth-films>video.is-active{opacity:1}
+#auth-view .auth-intro{grid-column:1/-1;grid-row:2;align-self:end;display:block;padding:0;overflow:visible}
+#auth-view .auth-card{grid-column:1;grid-row:1;width:100%;max-width:380px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;color:var(--scenery-ink);text-shadow:0 1px 12px color-mix(in srgb,var(--scenery-shade) 35%,transparent)}
+#auth-view .auth-card::before,#auth-view .auth-card::after{display:none}
+#auth-view .auth-card h2{font-size:24px;font-weight:400;line-height:1.5;margin:0 0 14px;color:inherit}
+#auth-view .auth-card .eyebrow{display:none}
+#auth-view[data-auth-mode=passkey][data-form-mode=login] #auth-title{display:none}
+#auth-view .auth-hint{font-size:13px;line-height:1.9;margin:0 0 24px;opacity:.8;color:inherit}
+#auth-view .auth-card form{display:flex;flex-direction:column}
+#auth-view .auth-card form>label{font-size:13px;color:inherit}
+#auth-view .auth-card input:not([type=checkbox]){padding:14px 16px;border:1px solid var(--scenery-border);border-radius:16px;background:linear-gradient(115deg,color-mix(in srgb,var(--scenery-ink) 14%,transparent),color-mix(in srgb,var(--scenery-ink) 4%,transparent));color:inherit;font-size:16px;box-shadow:var(--glass-shadow);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);transition:border-color .2s,background .2s}
+#auth-view .auth-card input:not([type=checkbox]):focus{background:color-mix(in srgb,var(--scenery-ink) 6%,transparent);border-color:var(--scenery-ink);outline:2px solid var(--scenery-border);outline-offset:3px}
+#auth-view .auth-card input::placeholder{color:var(--scenery-ink);opacity:.55}
+#auth-view .auth-card form>.auth-remember{order:3;font-size:11px;line-height:1.8;margin:18px 0 0!important;opacity:.75}
+#auth-view .auth-card .auth-remember input{accent-color:var(--scenery-ink);width:14px;height:14px}
+#auth-view .auth-card :is(.primary,.local-passkey-login){width:fit-content;min-height:56px;padding:12px 0;border:0;border-radius:0;background:none;background-image:none;color:var(--scenery-ink);box-shadow:none;font-size:17px;font-weight:400;justify-content:flex-start;gap:20px;text-shadow:inherit}
+#auth-view #auth-submit{order:1}
+#auth-view #auth-submit:hover:not(:disabled){background:none;color:var(--scenery-ink)}
+#auth-view[data-auth-mode=passkey] #auth-submit{display:grid;grid-template-columns:80px auto;gap:20px;align-items:center;padding:0;min-height:80px;isolation:isolate}
+#auth-view[data-auth-mode=passkey] #auth-submit::before{content:'';grid-column:1;grid-row:1;justify-self:center;width:36px;height:36px;background:currentColor;mask:url('/assets/fingerprint.svg') center/contain no-repeat;-webkit-mask:url('/assets/fingerprint.svg') center/contain no-repeat}
+#auth-view[data-auth-mode=passkey] #auth-submit::after{content:'';grid-column:1;grid-row:1;width:80px;height:80px;border:1px solid var(--scenery-border);border-radius:50%;background:color-mix(in srgb,var(--scenery-ink) 5%,transparent);z-index:-1;transition:background .3s var(--curve),transform .3s var(--curve)}
+#auth-view[data-auth-mode=passkey] #auth-submit:hover:not(:disabled)::after{background:color-mix(in srgb,var(--scenery-ink) 15%,transparent);transform:scale(1.06)}
+#auth-view .auth-options{display:flex;align-items:center;flex-wrap:wrap;gap:0 24px;margin-top:16px}
+#auth-view .auth-switch{display:block;min-height:44px;margin:0;padding:8px 0;font-size:12px;font-weight:400;color:inherit;opacity:.8}
+#auth-view .auth-options .auth-recovery{flex-basis:100%}
+#auth-view .auth-switch:hover{opacity:1}
+#auth-view .auth-footer,#auth-view .auth-recovery{color:inherit;border-color:var(--scenery-border);font-size:11px;opacity:.85}
+#auth-view .auth-recovery summary{color:inherit}
+#auth-view .auth-recovery code{color:var(--ink)}
+#auth-view #auth-error{order:2;background:color-mix(in srgb,var(--scenery-shade) 60%,transparent);color:var(--scenery-ink);padding:10px 12px;margin:16px 0 0;line-height:1.8}
+#auth-view #auth-error:empty{display:none}
+#auth-view #auth-confirm-error{color:var(--scenery-ink);background:color-mix(in srgb,var(--scenery-shade) 60%,transparent);padding:10px 12px}
+#auth-view .auth-journey{margin:16px 0 0;padding:0;border:0}
+#auth-view .auth-journey[data-state=idle],#auth-view .journey-stage{display:none}
+#auth-view .journey-caption{font-size:12px;line-height:1.8;text-align:left;color:inherit;margin:0}
+#auth-view :is(button,input,a,summary):focus-visible,body:has(#auth-view:not([hidden])) .top :focus-visible{outline-color:var(--scenery-ink)}
+.auth-film-controls{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:8px 24px;color:var(--scenery-ink);font-size:12px;line-height:1.7}
+.auth-film-caption{display:contents}
+#auth-film-place{display:none}
+#auth-film-credit{order:1;font-size:11px;opacity:.65;width:fit-content;min-height:44px;display:inline-flex;align-items:center}
+#auth-film-credit:hover{opacity:1;text-decoration:underline}
+#auth-film-toggle{order:2;opacity:.8;font-size:16px;min-width:32px}
+#auth-film-status{order:3;flex-basis:100%;text-align:right;font-size:12px;margin:0}
+#auth-film-status:empty{display:none}
+@media(max-width:760px){
+ body:has(#auth-view:not([hidden]))::before{background:linear-gradient(90deg,color-mix(in srgb,var(--scenery-shade) 58%,transparent),color-mix(in srgb,var(--scenery-shade) 32%,transparent)),linear-gradient(0deg,color-mix(in srgb,var(--scenery-shade) 55%,transparent),transparent 80%)}
+ body:has(#auth-view:not([hidden])) .top{width:calc(100% - 48px);margin-top:24px;align-items:center}
+ body:has(#auth-view:not([hidden])) .auth-brand-heading{font-size:44px;margin-bottom:36px}
+ body:has(#auth-view:not([hidden])) .appearance-open{margin-top:0}
+ #auth-view{width:calc(100% - 48px);max-width:480px;min-height:calc(100svh - 84px);padding:40px 0 20px;grid-template-columns:minmax(0,1fr);gap:36px}
+ #auth-view .auth-card{max-width:none}
+ #auth-view .auth-card h2{font-size:24px}
+ #auth-view .auth-hint{font-size:12px}
+ #auth-view[data-auth-mode=passkey] #auth-submit{grid-template-columns:64px auto;gap:16px;min-height:64px;font-size:16px}
+ #auth-view[data-auth-mode=passkey] #auth-submit::after{width:64px;height:64px}
+ #auth-view[data-auth-mode=passkey] #auth-submit::before{width:30px;height:30px}
+ .auth-film-controls{justify-content:flex-start;gap:0 20px}
+ #auth-film-status{text-align:left}
+}
+@media(prefers-reduced-motion:reduce){.auth-films>video{transition:none}}
+
+#auth-view .auth-method-switch{display:block;min-height:44px;margin:0;padding:8px 0;font-size:12px;font-weight:400;color:var(--scenery-ink);text-decoration:underline;text-underline-offset:5px;text-decoration-color:var(--scenery-border)}
+#auth-view .auth-method-switch:hover{color:var(--scenery-ink);text-decoration-color:currentColor}
+#auth-view[data-auth-mode=password] #auth-submit{border-bottom:1px solid var(--scenery-border);gap:20px}
+#auth-view[data-auth-mode=password] #auth-submit::after{content:'↗';font-size:22px}
+
+/* Icon actions retain semantic labels and full touch targets. */
+#auth-view .auth-options{gap:12px;margin-top:16px}
+#auth-view :is(.auth-method-switch,.auth-switch){display:inline-grid;place-items:center;width:44px;min-height:44px;padding:10px;margin:0;border:1px solid transparent;border-radius:50%;text-decoration:none;opacity:.8}
+#auth-view :is(.auth-method-switch,.auth-switch):hover{opacity:1;background:color-mix(in srgb,var(--scenery-ink) 10%,transparent)}
+#auth-view :is(.auth-method-switch,.auth-switch) svg{width:22px;height:22px;transition:transform .25s var(--curve)}
+#auth-view :is(.auth-method-switch,.auth-switch):hover svg{transform:translateY(-2px)}
+#auth-view[data-auth-mode=passkey] #auth-submit{grid-template-columns:80px;gap:0;width:80px;height:80px}
+#auth-view[data-auth-mode=passkey] #auth-submit::before{content:none}
+#auth-view[data-auth-mode=passkey] #auth-submit>svg{grid-column:1;grid-row:1;width:36px;height:36px;justify-self:center}
+#auth-view[data-auth-mode=password] #auth-submit{display:grid;place-items:center;width:56px;height:56px;min-height:56px;padding:14px;border:1px solid var(--scenery-border);border-radius:50%}
+#auth-view[data-auth-mode=password] #auth-submit::after{content:none}
+#auth-view[data-auth-mode=password] #auth-submit>svg{width:26px;height:26px}
+#auth-view .auth-card form>.auth-remember{width:fit-content;min-height:44px;margin:12px 0 0!important;gap:10px;opacity:.65}
+#auth-view .auth-remember svg{width:19px;height:19px}
+#auth-view .auth-card[aria-busy=true] #auth-submit>svg{animation:auth-icon-wait 1.4s ease-in-out infinite}
+@keyframes auth-icon-wait{50%{opacity:.35;transform:scale(.92)}}
+#auth-film-credit{width:44px;justify-content:center}
+#auth-film-credit svg{width:18px;height:18px}
+body:has(#auth-view:not([hidden])) .appearance-open{display:grid;place-items:center;width:44px;padding:10px}
+@media(max-width:760px){#auth-view[data-auth-mode=passkey] #auth-submit{grid-template-columns:64px;width:64px;height:64px}.auth-film-controls{gap:8px 12px}}
+
+#auth-view .auth-card .local-passkey-login{display:grid;place-items:center;width:44px;min-height:44px;padding:10px;border-radius:50%}
+#auth-view .local-passkey-login svg{width:24px;height:24px}
+
+/* Small glass surfaces borrow the shared filter and shadow used inside the app. */
+#auth-view :is(.auth-method-switch,.auth-switch,.local-passkey-login),
+#auth-view[data-auth-mode=password] #auth-submit,
+#auth-view[data-auth-mode=passkey] #auth-submit::after{
+ background:linear-gradient(135deg,color-mix(in srgb,var(--scenery-ink) 20%,transparent),color-mix(in srgb,var(--scenery-ink) 5%,transparent));
+ border:1px solid var(--scenery-border);box-shadow:var(--glass-shadow);
+ -webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);opacity:1;
+}
+#auth-view[data-auth-mode=password] #auth-submit:hover:not(:disabled){background:color-mix(in srgb,var(--scenery-ink) 18%,transparent)}
+/* Native autofill paints an opaque browser surface; cover it without delaying transitions. */
+#auth-view .auth-card input:-webkit-autofill{
+ -webkit-text-fill-color:var(--scenery-ink);caret-color:var(--scenery-ink);
+ -webkit-box-shadow:0 0 0 1000px color-mix(in srgb,var(--scenery-shade) 88%,var(--scenery-ink)) inset;
+}
+
+/* Scenery feedback stays at the far edge; attribution and playback stay quiet. */
+.auth-film-controls{justify-content:flex-start;gap:12px}
+.auth-film-reactions{display:flex;gap:12px;margin-left:auto;order:2}
+.auth-film-reactions button{display:grid;place-items:center;width:44px;height:44px;padding:10px;border:1px solid var(--scenery-border);border-radius:50%;color:var(--scenery-ink);background:linear-gradient(135deg,color-mix(in srgb,var(--scenery-ink) 18%,transparent),color-mix(in srgb,var(--scenery-ink) 4%,transparent));box-shadow:var(--glass-shadow);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);transition:transform .2s var(--curve)}
+.auth-film-reactions button:hover{transform:translateY(-2px)}
+.auth-film-reactions svg{width:22px;height:22px}
+#auth-film-like[aria-pressed=true] svg{fill:currentColor;animation:heart-pop .3s var(--curve)}
+#auth-film-credit{order:0;opacity:.5}
+#auth-film-toggle{order:1;opacity:.5;width:44px}
+#auth-film-status{order:3;text-align:left}
+@media(max-width:760px){.auth-film-controls{gap:8px}.auth-film-reactions{gap:10px}}
+
+#auth-film-undo{order:1;display:grid;place-items:center;width:44px;height:44px;padding:10px;border:0;background:none;color:var(--scenery-ink);opacity:.7}
+#auth-film-undo svg{width:20px;height:20px}

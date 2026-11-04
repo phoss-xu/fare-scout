@@ -1,6 +1,6 @@
 import {generateRegistrationOptions,verifyRegistrationResponse,generateAuthenticationOptions,verifyAuthenticationResponse} from '@simplewebauthn/server';
 import {first,run,batch,seconds,now,email,ensure,ApiError,report} from './db.js';
-import {token,digest,equal,throttle,publicUser,issueSession} from './auth.js';
+import {token,digest,equal,throttle,publicUser,issueSession,enabledAuthMethods} from './auth.js';
 const FLOW='fare_passkey_flow';
 const encode = bytes => btoa(String.fromCharCode(...bytes)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
 const decode = value => Uint8Array.from(atob(value.replaceAll('-','+').replaceAll('_','/')),c=>c.charCodeAt(0));
@@ -75,9 +75,9 @@ async function verify(request,env,kind,data) {
  return issueSession(request,db,publicUser(user),data.remember===true);
 }
 export async function passkeyAuth(request,env,path,data) {
- ensure(env.AUTH_MODE==='passkey','此环境未启用通行密钥。',404);
+ ensure(enabledAuthMethods(env).includes('passkey'),'此环境未启用通行密钥。',404);
  const match=/^\/api\/auth\/passkey\/(register|login)\/(options|verify)$/.exec(path);
  ensure(match,'操作不存在。',404);
  const result=await (match[2]==='options'?options:verify)(request,env,match[1],data);
- result.body.auth_mode='passkey';return result;
+ result.body.auth_mode='passkey';result.body.auth_methods=enabledAuthMethods(env);return result;
 }

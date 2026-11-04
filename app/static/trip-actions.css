@@ -7,3 +7,7 @@
 .trip-dialog .dialog-head{margin-bottom:20px}.trip-dialog-body>label{display:flex;flex-direction:column;gap:8px;font-size:12px}.trip-share-actions .small-btn{border-radius:8px}.trip-dialog a{text-decoration:none}.shared-trip-shell .boarding-itinerary{display:none}.shared-trip-shell .trip-dates,.shared-trip-shell .ticket-baggage{font-size:12px;line-height:1.8}.shared-trip-shell .deal-flight-more>summary{font-size:12px;min-height:44px}.shared-trip-shell .card-top .muted{font-size:11px}
 @media(max-width:600px){.shared-trip-shell .deal-result-title{flex-direction:column;align-items:start}.shared-trip-shell .deal-card .price{text-align:left}.shared-trip-shell #shared-login-actions>a{flex:1;font-size:12px}}
 #deals-panel .deal-card .card-bottom>a.small-btn{background:#d7633d;border-color:transparent;color:#fff;border-radius:8px;min-height:44px}#deals-panel .deal-card .card-bottom>a.small-btn:hover{background:#bd4e2b}
+
+.trip-save[aria-pressed=true] svg{animation:trip-heart-pop .3s var(--curve)}
+@keyframes trip-heart-pop{50%{transform:scale(1.18)}}
+.trip-share-actions .icon-action{width:48px;min-width:48px;height:48px;padding:12px;border-radius:50%}

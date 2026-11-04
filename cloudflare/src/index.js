@@ -7,7 +7,7 @@ import {ApiError,ensure,report} from './db.js';
 import {adminApi,requireAdmin} from './admin.js';
 import {trackScheduled} from './runtime-health.js';
 import {json,data,asset} from './http.js';
-import {current,requireUser,authenticate} from './auth.js';
+import {enabledAuthMethods,current,requireUser,authenticate} from './auth.js';
 import {passkeyAuth} from './passkeys.js';
 import * as store from './store.js';
 import * as locations from './locations.js';
@@ -29,7 +29,7 @@ async function api(request,env,ctx) {
   const url=new URL(request.url),path=url.pathname,db=env.DB;
   if(path==='/api/admin' || path.startsWith('/api/admin/')) return adminApi(request,env);
   if(request.method==='GET') {
-    if(path==='/api/auth/session') return json({...await current(request,db)||{user:null},auth_mode:env.AUTH_MODE||'password'});
+    if(path==='/api/auth/session') return json({...await current(request,db)||{user:null},auth_mode:env.AUTH_MODE||'password',auth_methods:enabledAuthMethods(env)});
     if(path.startsWith('/api/shared-trips/')) return json(await trips.shared(db,path.slice('/api/shared-trips/'.length)));
     const user=await requireUser(request,db);
     if(path==='/api/trips') return json(await trips.listed(db,user.id));

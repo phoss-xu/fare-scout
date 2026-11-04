@@ -206,3 +206,10 @@ Workers 静态资源优先直出，安全响应头由 `static/_headers` 维护�
 搜特价／每日推荐的登机牌和卡片由 `offer-views.js → route-detail.js` 打开详情面板；`route-detail-model.js` 按实际去返程机场及报价币种归组，`route-detail-views.js` 展示日期组合、完整报价方案、当地时间与中转、所选航段／行李和核价入口。手机为全屏面板，桌面为双栏；去返程始终选择数据源的完整组合。
 
 `route-detail-search.js → POST /api/deals` 复用已有账号隔离队列与轮询。新增可选 `comparison:true` 仅接受单组机场与固定日期，沿用人数、报价币种及中转／时长条件，不设发现预算上限。Python `deal_source.py` 和 Workers `provider.js` 此时传 `one_for_city:false`，按完整去返航程去重保留最低报价；Workers `runs.js` 同样保留不同航班组合，普通发现与监控聚合规则不变。补查更新该日期组合及其查询时间，失败／空结果保留旧报价并明确提示；关闭或切换日期后忽略迟到响应。补查不创建监控、价格采样、提醒或邮件，无新增数据库迁移。
+
+
+## 本地登录与旅行素材（2026-11-04）
+
+- 当前本地入口统一为 `npm run dev` → `http://localhost:8787` → Wrangler 本地 D1；`.dev.vars` 使用 mixed 认证。历史 Python 8765 服务已停用，`fare_scout.db` 留作迁移源／备份，不进行双写。现有迁移器 `scripts/export_d1.py` 在副本中升级旧 schema，排除会话与 setup tokens，仅向空的已迁移 D1 导入；保持密码哈希与账号 ID，暂停导入的查价和提醒计划。线上数据库未参与本次操作。
+- `auth-films-data.js` 是登录场景与未来导览可共用的素材目录：稳定 ID、作者／原页、实际地点依据与画面焦点。地点未知时留空，不把体验名称当作具体城市。`auth-films.js` 根据原生 ended 事件换片，双播放器交接，删除 loop 和 30 秒轮换计时器；载入失败有诊断并跳过，所有片段失败时展示中性背景。减少动态效果／省流量使用静帧，不自动轮换。
+- `film-preferences.js` 保存 `fare-scout:travel-media:reactions:v1`（`version`、以素材 ID 为键的 `reaction` 与 `updatedAt`）。爱心切换 liked；碎心写入 disliked 并立即从队列排除；已排除的素材刷新后仍跳过，撤销入口可恢复。此阶段是浏览器内访客偏好，不上传账号、不跨浏览器同步；未来导览可以按同一 ID 读取目录及偏好再接入账号收藏。存储失败保留本次选择并明确提示。全部排除后停止风景，并允许撤销，不强制重播已拒绝的素材。

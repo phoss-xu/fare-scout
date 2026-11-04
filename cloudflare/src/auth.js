@@ -2,6 +2,7 @@ import {pbkdf2} from '@noble/hashes/pbkdf2.js';
 import {sha256} from '@noble/hashes/sha2.js';
 import {bytesToHex,hexToBytes} from '@noble/hashes/utils.js';
 import {first,run,batch,seconds,now,email,ensure,ApiError} from './db.js';
+export const enabledAuthMethods = env => env.AUTH_MODE==='mixed' ? ['passkey','password'] : env.AUTH_MODE==='passkey' ? ['passkey'] : ['password'];
 const LIFETIME = 7*86400;
 const REMEMBERED_LIFETIME = 30*86400;
 export const token = () => bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
@@ -58,7 +59,7 @@ export async function authenticate(request,env,path,data) {
     await run(db,'DELETE FROM sessions WHERE token_hash=?',[digest(old)]);
     return {body:{message:'已退出登录。'},cookie:cookie(request,'')};
   }
-  ensure(env.AUTH_MODE!=='passkey','请使用通行密钥登录。',404);
+  ensure(enabledAuthMethods(env).includes('password'),'请使用通行密钥登录。',404);
   const address=path.endsWith('/activate')?'setup@localhost.test':email(data.email);
   await throttle(request,db,address);
   let user;
