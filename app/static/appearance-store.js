@@ -1,5 +1,5 @@
 export const APPEARANCE_KEY = 'fare-scout:appearance';
-export const DEFAULT_APPEARANCE = Object.freeze({theme:'paper', landscape:'hourly', surfaceOpacity:65, motion:true});
+export const DEFAULT_APPEARANCE = Object.freeze({font:'serif', theme:'paper', landscape:'hourly', surfaceOpacity:65, motion:true});
 export const themes = [
   {id:'paper',name:'旧书纸',description:'暖纸与墨绿，点一笔蓝'},
   {id:'moss',name:'苔藓庭院',description:'鼠尾草与森林绿'},
@@ -15,7 +15,8 @@ export const landscapeModes = {
   fixed:'保留当前风景，重新打开页面也不更换。'
 };
 export function normalizeAppearance(value) {
-  return {theme:themes.some(theme => theme.id === value?.theme) ? value.theme : DEFAULT_APPEARANCE.theme,
+  return {font:['momo','serif','source-hans'].includes(value?.font) ? value.font : DEFAULT_APPEARANCE.font,
+    theme:themes.some(theme => theme.id === value?.theme) ? value.theme : DEFAULT_APPEARANCE.theme,
     landscape:Object.hasOwn(landscapeModes, value?.landscape) ? value.landscape : DEFAULT_APPEARANCE.landscape,
     surfaceOpacity:typeof value?.surfaceOpacity === 'number' && Number.isFinite(value.surfaceOpacity) ? Math.min(100, Math.max(0, Math.round(value.surfaceOpacity))) : DEFAULT_APPEARANCE.surfaceOpacity,
     motion:typeof value?.motion === 'boolean' ? value.motion : DEFAULT_APPEARANCE.motion};
@@ -32,6 +33,7 @@ export function getAppearance() {
 export function setAppearance(patch) {
   current = normalizeAppearance({...getAppearance(), ...patch});
   document.documentElement.dataset.theme = current.theme;
+  document.documentElement.dataset.font = current.font;
   try { localStorage.setItem(APPEARANCE_KEY, JSON.stringify(current)); lastSaved = true; }
   catch (error) { lastSaved = false; console.info('Appearance preference could not be saved', error.name); }
   subscribers.forEach(listener => listener({...current}, lastSaved));

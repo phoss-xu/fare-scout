@@ -92,6 +92,33 @@ class AccountTests(unittest.TestCase):
         with self.assertRaises(accounts.AuthError):
             accounts.activate({"token": token, "password": PASSWORD})
 
+    def test_local_recovery_is_expiring_single_use_and_revokes_only_owner_sessions(self):
+        alice, bob = self.user("alice@example.com"), self.user("bob@example.com")
+        old, _ = sessions.issue(alice["id"])
+        other, _ = sessions.issue(bob["id"])
+        token = accounts.recovery_token(alice["email"])
+        self.assertIsNotNone(sessions.current(old))
+        with store.connect() as db:
+            saved = db.execute("SELECT * FROM setup_tokens").fetchone()
+            self.assertNotEqual(saved["token_hash"], token)
+            self.assertLessEqual(saved["expires_at"], time.time() + 900)
+        expired = accounts.recovery_token(alice["email"])
+        with self.assertRaises(accounts.AuthError):
+            accounts.activate({"token": token, "password": "new-password"})
+        with store.connect() as db:
+            db.execute("UPDATE setup_tokens SET expires_at=?", (time.time()-1,))
+        with self.assertRaises(accounts.AuthError):
+            accounts.activate({"token": expired, "password": "new-password"})
+        token = accounts.recovery_token(alice["email"])
+        accounts.activate({"token": token, "password": "new-password"})
+        self.assertIsNone(sessions.current(old))
+        self.assertIsNotNone(sessions.current(other))
+        self.assertEqual(accounts.login({"email": alice["email"], "password": "new-password"})["id"], alice["id"])
+        with self.assertRaises(accounts.AuthError):
+            accounts.activate({"token": token, "password": "different-password"})
+        with self.assertRaises(ValueError):
+            accounts.recovery_token("missing@example.com")
+
     def test_expired_session_and_invalid_credentials_are_rejected(self):
         user = self.user("alice@example.com")
         token, _ = sessions.issue(user["id"])

@@ -6,7 +6,7 @@ import {themes,normalizeAppearance,DEFAULT_APPEARANCE,getAppearance,setAppearanc
 
 test('invalid, old or injected browser preferences fall back to known values', () => {
   for(const value of [null,{},'night',{theme:'url(evil)',landscape:'__proto__'}]) assert.deepEqual(normalizeAppearance(value),DEFAULT_APPEARANCE);
-  assert.deepEqual(normalizeAppearance({theme:'night',landscape:'daily',extra:'ignored'}),{theme:'night',landscape:'daily',surfaceOpacity:65,motion:true});
+  assert.deepEqual(normalizeAppearance({theme:'night',landscape:'daily',extra:'ignored'}),{font:'serif',theme:'night',landscape:'daily',surfaceOpacity:65,motion:true});
 });
 test('all six real theme palettes retain readable text and button labels', () => {
   const css=readFileSync(new URL('../app/static/themes.css',import.meta.url),'utf8');
@@ -36,11 +36,11 @@ test('appearance changes persist both settings; storage failure still previews a
   const changes=[],unsubscribe=subscribeAppearance((prefs,success)=>changes.push({prefs,success}));
   t.after(unsubscribe);
   assert.equal(setAppearance({theme:'rose'}),true);
-  assert.deepEqual(JSON.parse(saved),{theme:'rose',landscape:'fixed',surfaceOpacity:65,motion:true});
+  assert.deepEqual(JSON.parse(saved),{font:'serif',theme:'rose',landscape:'fixed',surfaceOpacity:65,motion:true});
   localStorage.setItem=()=>{throw new Error('storage disabled');};
   assert.equal(setAppearance({landscape:'daily'}),false);
   assert.equal(document.documentElement.dataset.theme,'rose');
-  assert.deepEqual(changes.at(-1),{prefs:{theme:'rose',landscape:'daily',surfaceOpacity:65,motion:true},success:false});
+  assert.deepEqual(changes.at(-1),{prefs:{font:'serif',theme:'rose',landscape:'daily',surfaceOpacity:65,motion:true},success:false});
 });
 
 test('header veil opacity migrates old photo preferences and clamps only finite numeric values', () => {

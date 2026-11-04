@@ -19,7 +19,7 @@ npm run dev
 
 `wrangler dev` 使用项目 `.wrangler/` 的本地 D1。`.dev.vars` 优先于旧 Python `.env`，无需复制旧 SMTP 凭据。真实查询由 `QUERY_ENABLED` 控制，验收期间 `MAIL_ENABLED=false`。
 
-当前本地入口统一为 8787 的 Wrangler 服务，旧 Python 数据已迁入当前本地 D1；旧库保留备份，不再同时运行 8765。
+旧版 `python3 -m app.server` 仍使用 8765 和 `fare_scout.db`，保留密码登录。前端根据 `/api/auth/session` 的 `auth_mode` 显示相应登录界面；Python 版不会加载 Passkey 模块。
 
 ## 本地双登录模式（2026-11-04，待发布）
 
@@ -29,7 +29,7 @@ npm run dev
 npm run dev -- --local --var MAIL_ENABLED:false --var QUERY_ENABLED:false --var AUTH_MODE:mixed --var PASSKEY_ORIGIN:http://localhost:8787
 ```
 
-现有凭据独立校验，沿用 PBKDF2 600,000 轮、同源检查、限流、会话与 CSRF；已有仅通行密钥账号不会自动获得密码。重复邮箱注册不能为其添加或重置密码。mixed 开关本身不迁移数据；本次已另行完成本地旧库到 D1 的导入。尚未实现云端账号的密码绑定／找回；Python 本机恢复命令不显示给 Workers 用户。密码路径的线上 CPU 开销尚未在真实 Workers Free 环境验收。
+现有凭据独立校验，沿用 PBKDF2 600,000 轮、同源检查、限流、会话与 CSRF；已有仅通行密钥账号不会自动获得密码。重复邮箱注册不能为其添加或重置密码。旧 Python 数据也不会因此迁移到 D1。尚未实现云端账号的密码绑定／找回；Python 本机恢复命令不显示给 Workers 用户。密码路径的线上 CPU 开销尚未在真实 Workers Free 环境验收。
 
 ## Passkey
 

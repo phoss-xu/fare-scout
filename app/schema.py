@@ -4,6 +4,8 @@ from . import alerts, journeys
 
 
 def initialize(db):
+    from . import passkey_store
+    passkey_store.initialize(db)
     db.executescript("""
       CREATE TABLE IF NOT EXISTS watches (
         id INTEGER PRIMARY KEY, config TEXT NOT NULL, created_at TEXT NOT NULL,

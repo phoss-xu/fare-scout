@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小熊猫出发 · 动画预览</title>
+<script src="/theme-init.js"></script>
+<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/themes.css"><link rel="stylesheet" href="/appearance.css"><link rel="stylesheet" href="/auth.css"><link rel="stylesheet" href="/auth-motion.css"><link rel="stylesheet" href="/auth-motion-preview.css">
+<script type="module" src="/auth-motion-preview.js"></script>
+</head>
+<body>
+<header class="preview-head"><a href="/" class="brand">fare scout.</a><span>旅行伙伴 · 动画预览</span></header>
+<section class="preview-controls" aria-label="动画演示控制">
+  <p>独立演示，不发送登录请求。表单使用示例内容，请勿填写真实密码。</p>
+  <div><label for="preview-outcome">演示情境</label><select id="preview-outcome"><option value="success">正常登录</option><option value="slow">等待 5 秒后成功</option><option value="error">登录失败后重试</option></select><button class="small-btn" id="preview-play" type="button">播放完整动画</button></div>
+</section>
+<section id="auth-view" class="auth-view">
+  <div class="auth-intro">
+    <img class="auth-scenery" src="/assets/places/forest.jpg" alt="京都岚山竹林">
+    <div class="auth-intro-copy"><h1>下一程，从这里开始。</h1><p class="auth-lead">留一点时间给远方。<br>让好价格，带你遇见下一处风景。</p></div>
+    <div class="auth-scene-caption"><span>01 / 日本 · 京都 · 岚山竹林</span><a href="https://unsplash.com/photos/fSAyrw46Tx4">摄影 Eleonora Albasi ↗</a><a href="https://unsplash.com/license">Unsplash License</a></div>
+  </div>
+  <div class="auth-card">
+    <p class="eyebrow">WELCOME BACK</p><h2>欢迎回来</h2>
+    <form id="auth-form" autocomplete="off">
+      <label>邮箱<input id="auth-email" type="email" required placeholder="traveler@example.test" autocomplete="off"></label>
+      <label>密码<input id="auth-password" type="password" required placeholder="演示密码，随意填写" autocomplete="off"></label>
+      <p id="auth-error" class="error" role="alert"></p>
+      <button id="auth-submit" type="button" class="primary wide">登录 · 预览</button>
+    </form>
+  </div>
+</section>
+<main id="workspace" class="preview-arrival" hidden tabindex="-1"><p class="eyebrow">LET’S GO SOMEWHERE</p><h1>出发吧，下一站见。</h1><p>这是成功转场演示，未执行真实登录。</p><button type="button" id="preview-reset" class="primary">再看一次</button><a href="/">回到实际登录页 ↗</a></main>
+</body>
+</html>

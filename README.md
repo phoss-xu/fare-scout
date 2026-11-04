@@ -13,8 +13,9 @@ npm run db:local
 npm run dev
 ```
 
-本地统一打开 http://localhost:8787（本地 D1，支持原账号的邮箱密码及 Passkey 登录）。真实查价需在 `.dev.vars` 开启 `QUERY_ENABLED=true`；验收期间保持 `MAIL_ENABLED=false`。
-原 Python 数据已迁入当前本地 D1，密码哈希保持不变；`fare_scout.db` 保留备份，不再同时运行 8765。云端账号保持独立。
+本地统一打开 http://localhost:8787，使用本地 D1；`npm run dev` 的 predev 会先补齐本地 D1 迁移，再准备静态资源，避免新代码启动后缺表。支持原账号的邮箱密码和 Passkey 登录（开发时使用 localhost）。真实查价需在 `.dev.vars` 开启 `QUERY_ENABLED=true`；验收期间保持 `MAIL_ENABLED=false`。
+原 Python 版与 `fare_scout.db` 保留作为兼容实现及迁移源；日常本地使用 Wrangler/D1，云端账号保持独立。
+本地待发布：登录页保留无框设计，可用 `AUTH_MODE=mixed` 同时显示通行密钥与邮箱密码入口；现有仅通行密钥账号不会自动获得密码。预览启动命令与边界见 docs/CLOUDFLARE.md「本地双登录模式」。
 运行方式、Passkey、验证边界及发布步骤见 [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md)。
 
 Workers 版新增只读管理后台：登录后访问 `/admin`，查看用户、查价任务、两类邮件队列和调度心跳。
@@ -92,15 +93,19 @@ Workers 版新增只读管理后台：登录后访问 `/admin`，查看用户、
 
 ## 本地试跑
 
-### 本地网页第一版
+### 旧 Python 本地版（兼容与调试）
 
-使用 Node.js 及项目已有依赖（首次运行先执行 `npm ci`）：
+旧服务入口保留；日常开发使用上方 Wrangler/D1 启动方式，不要同时写入旧库：
 
 ```bash
-npm run dev
+python3 -m app.server
 ```
 
-`.dev.vars` 使用 `AUTH_MODE="mixed"`（与 example 一致）。打开 http://localhost:8787，注册或登录后默认进入「搜特价」，也可切换「出行监控」创建监控。
+本地服务统一使用 **http://localhost:8787** 与 Wrangler 本地 D1。`.dev.vars.example` 默认 `AUTH_MODE="mixed"`，已有 `.dev.vars` 同样设置后运行 `npm run dev`；线上配置继续独立管理。
+
+旧 Python 的账号、密码哈希与出行数据已迁入当前本地 D1，旧 `fare_scout.db` 仅保留作为迁移源；不要再同时启动 8765 写入旧库。本次迁移没有修改账号密码。Python 的 `reset-password-link` 命令只作用于旧库，不再用于当前登录页。
+
+注册或登录后默认进入「搜特价」，也可切换「出行监控」创建监控。
 新监控默认自动进行首次查价，也可暂停后点击「查一次价格」。
 每个账号分别保存监控、价格记录、提醒和收件邮箱；发信服务由服务管理员统一配置。
 旧单人版账号需通过本机终端输出的初始化入口设置密码，已有数据保留在指定账号下。
@@ -143,6 +148,6 @@ Cloudflare 邮件自助验证与接收确认已正式上线，真实确认邮件
 
 地图采用 MapLibre GL JS 与 OpenFreeMap Liberty，目的地图片与紧凑价格气泡配合侧栏浏览，手机侧栏位于地图下方。`npm install` 后运行开发或构建命令会自动准备地图 vendor 文件；单独运行 Python 服务前可执行 `npm run assets:maps`。地图瓦片需要浏览器联网，加载失败可重试，报价侧栏仍可使用。数据与图片许可见 `app/static/assets/MAP-SOURCES.md`。
 
-本地新增「行程操作」（待发布）：卡片、登机牌、地图详情及每日推荐统一提供分享、收藏与降价提醒；「我的行程」按已收藏/监控中切换。收藏保存在账号，分享为无需登录查看的固定报价快照，可复制链接、调用系统分享或生成分享图；分享保留原始查询时间，不包含账号邮箱、预算与提醒偏好。固定日期单程也支持提醒，同机场同日期比较，不锁定航班号。D1 上线前需应用 `0011_trips.sql`，本轮未执行远端迁移或发布。架构与边界见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+本地目的地图库已扩至 334 个目的地、393 个机场入口，覆盖所有现有精选热门城市分组。搜索、地图、收藏、分享、机票机会与单个/多个目的地、国家/地区监控共用宽至少 1600px 的实拍和来源记录；按用户最新要求保留当前覆盖并优化已有照片效果，进度见 [目的地照片任务](docs/DESTINATION_PHOTOS.md)。
 
-登录背景播放真实旅行片段，按视频结束自然换片；右下角爱心收藏、碎心排除，偏好暂保存在当前浏览器，尚未跨设备同步。素材来源见 [CREDITS](app/static/assets/travel-films/CREDITS.md)，本地双登录边界见 [Cloudflare 文档](docs/CLOUDFLARE.md)。
+本地新增「行程操作」（待发布）：卡片、登机牌、地图详情及每日推荐统一提供分享、收藏与降价提醒；「我的行程」按已收藏/监控中切换。收藏保存在账号，分享为无需登录查看的固定报价快照，可复制链接、调用系统分享或生成分享图；分享保留原始查询时间，不包含账号邮箱、预算与提醒偏好。固定日期单程也支持提醒，同机场同日期比较，不锁定航班号。D1 上线前需应用 `0011_trips.sql`，本轮未执行远端迁移或发布。架构与边界见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。

@@ -1,3 +1,5 @@
+import {icon} from './ui-icons.js';
+import {loadDestinationPhotos} from './route-card-views.js';
 import {request} from './api.js';
 import {tr} from './i18n.js';
 import {dealCards} from './deal_views.js';
@@ -15,6 +17,7 @@ export function setupTripActions(refresh,toast) {
     savedStatus.textContent=savedTrips.length?tr('收藏保留当时的报价，预订前请核价。','Saved quotes are snapshots. Confirm prices before booking.'):tr('遇见想去的地方，点一下心形留在这里。','Tap the heart on a trip to keep it here.');
     saved.innerHTML=savedTrips.map(t=>dealCards([t.snapshot.offer],[t.snapshot.offer],t.snapshot.adults,false,{...t.snapshot,archived:true})).join('');
   }
+  loadDestinationPhotos().then(render);
   document.addEventListener('tripschange',()=>{syncTripButtons();render();});
   document.addEventListener('locationnameschange',render);
   subscribePreferences(()=>{syncTripButtons();render();});subscribeCurrency(render);
@@ -32,7 +35,7 @@ export function setupTripActions(refresh,toast) {
     try {
       const {snapshot:s}=await request('/api/shared-trips/'+encodeURIComponent(id));if(version!==epoch)return;
       const d=document.createElement('dialog');d.id='trip-import-dialog';d.className='trip-dialog';
-      const close=document.createElement('button');close.className='icon-btn';close.textContent='×';close.ariaLabel=tr('关闭','Close');close.onclick=()=>d.close();
+      const close=document.createElement('button');close.className='icon-btn';close.innerHTML=icon('close');close.ariaLabel=tr('关闭','Close');close.onclick=()=>d.close();
       d.append(close);const content=document.createElement('div');content.innerHTML=dealCards([s.offer],[s.offer],s.adults,false,{...s,archived:true});d.append(content);document.body.append(d);d.showModal();d.addEventListener('close',()=>d.remove(),{once:true});
       const url=new URL(location.href);url.searchParams.delete('trip');history.replaceState(null,'',url);
     }catch(e){if(version===epoch)toast(e.message);}

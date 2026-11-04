@@ -1,7 +1,7 @@
 """Authentication routes and session guard shared by API handlers."""
 import os
 
-from . import accounts, sessions
+from . import accounts, sessions, local_passkeys
 
 
 def current(handler):
@@ -18,6 +18,8 @@ def require(handler, write=False):
 
 
 def handle(handler, path, data):
+    if local_passkeys.handle(handler, path, data):
+        return True
     if path not in {"/api/auth/register", "/api/auth/login", "/api/auth/activate", "/api/auth/logout"}:
         return False
     old_token = sessions.token_from_cookie(handler.headers.get("Cookie"))
@@ -33,5 +35,5 @@ def handle(handler, path, data):
     user = action(data)
     remember = data.get("remember") is True
     token, csrf = sessions.issue(user["id"], old_token, remember)
-    handler.send(200, {"user": user, "csrf_token": csrf}, cookie=sessions.cookie_header(token, secure, remember))
+    handler.send(200, {"user": user, "csrf_token": csrf, "local_passkeys": True}, cookie=sessions.cookie_header(token, secure, remember))
     return True

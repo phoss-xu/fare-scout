@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>出发之前 · 登录背景设计 · Fare Scout</title>
+  <script src="/theme-init.js"></script>
+  <link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/themes.css">
+  <link rel="stylesheet" href="/login-scene.css">
+  <script type="module" src="/login-scene.js"></script>
+</head>
+<body class="scene-preview">
+  <header class="scene-heading"><a href="/">fare scout.</a><span>登录背景 / 出发之前</span></header>
+  <main class="scene-main">
+    <div class="travel-scene" data-period="sunset" role="img" aria-label="旅人背对镜头坐在木桌前，透过大窗眺望海湾、远山与机场">
+      <img class="scene-photo scene-golden" src="/assets/login-scene/golden.png" alt="" fetchpriority="high">
+      <img class="scene-photo scene-day" src="/assets/login-scene/day.png" alt="">
+      <img class="scene-photo scene-night" src="/assets/login-scene/night.png" alt="">
+      <div class="scene-atmosphere"></div>
+      <div class="flight-window" aria-hidden="true">
+        <span class="aircraft departing"><svg viewBox="0 0 80 28"><path d="M2 14 25 12 36 2 42 2 37 12 66 12Q78 13 78 15L37 17 42 26 36 26 25 17 6 18Z"/></svg></span>
+        <span class="aircraft arriving"><svg viewBox="0 0 80 28"><path d="M2 14 25 12 36 2 42 2 37 12 66 12Q78 13 78 15L37 17 42 26 36 26 25 17 6 18Z"/></svg></span>
+      </div>
+    </div>
+    <div class="scene-controls">
+      <div class="scene-status"><div><h1>出发之前</h1><p>房间里是生活，窗外是下一站。</p></div><output id="scene-clock" aria-live="off"></output></div>
+      <div class="periods" role="group" aria-label="预览不同时段">
+        <button data-period="auto" aria-pressed="true">跟随此刻</button>
+        <button data-period="sunrise" aria-pressed="false">日出</button><button data-period="morning" aria-pressed="false">清晨</button>
+        <button data-period="noon" aria-pressed="false">正午</button><button data-period="afternoon" aria-pressed="false">下午</button>
+        <button data-period="sunset" aria-pressed="false">落日</button><button data-period="evening" aria-pressed="false">傍晚</button>
+        <button data-period="night" aria-pressed="false">深夜</button><button data-period="predawn" aria-pressed="false">凌晨</button>
+      </div>
+      <div class="scene-notes"><span>飞机间歇经过 · 起飞与降落</span><button id="motion-toggle" aria-pressed="false">暂停飞机</button><span id="scene-error" role="status"></span></div>
+    </div>
+  </main>
+</body>
+</html>

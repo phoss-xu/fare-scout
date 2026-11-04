@@ -57,8 +57,9 @@ export function setupDeals(openWatch) {
     const choices=destinationChoices(result.offers,day);
     if(!choices.some(c=>c.key===destination)) destination='';
     const offers=sortedOffers(result.offers, form.elements.result_sort.value, day).filter(o=>!destination || (o.destination_id || o.outbound.to)===destination);
-    offerViews.render(offers, result.offers, result.config.adults,false,{...result.config,checked_at:result.checked_at,currencyInHeader:true});
+    offerViews.render(offers, result.offers, result.config.adults,false,{...result.config,checked_at:result.checked_at,currencyInHeader:false});
     const rail=panel.querySelector('#deal-destinations');
+    panel.querySelector('[data-destination-summary]').textContent=destination ? choices.find(c=>c.key===destination).name : tr(`所有目的地 · ${choices.length} 个`,`All destinations · ${choices.length}`);
     rail.innerHTML='<button type="button" data-deal-destination="" aria-pressed="'+String(!destination)+tr("\">所有目的地</button>","\">All destinations</button>")+choices.map(c=>`<button type="button" data-deal-destination="${escape(c.key)}" aria-pressed="${c.key===destination}"><span>${escape(c.name)}</span><strong>${fareNumber(c.price,result.config.currency)}${tr(' 起',' from')}</strong></button>`).join('');
     panel.querySelector('#deal-days').innerHTML=datePriceRail(result.offers,{day,destination,currency:result.config.currency});
     controls.querySelector('.deal-date-note').textContent=resultPriceNote(result,destination?choices.find(c=>c.key===destination)?.name:'');
@@ -79,7 +80,7 @@ export function setupDeals(openWatch) {
     const date = event.target.closest('[data-deal-day]');
     if (date && result) { day=date.dataset.dealDay; render(); panel.querySelector(`[data-deal-day="${day}"]`).focus({preventScroll:true}); }
     const city=event.target.closest('[data-deal-destination]');
-    if(city && result) {destination=city.dataset.dealDestination;render();panel.querySelectorAll('[data-deal-destination]').forEach(b=>{if(b.dataset.dealDestination===destination)b.focus();});}
+    if(city && result) {destination=city.dataset.dealDestination;render();const filter=panel.querySelector('.destination-filter');filter.open=false;filter.querySelector('summary').focus({preventScroll:true});}
     const watch = event.target.closest('[data-deal-watch]');
     if (watch && result) {
       const offer = result.offers[Number(watch.dataset.dealWatch)];

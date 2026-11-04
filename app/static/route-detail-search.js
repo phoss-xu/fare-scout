@@ -3,10 +3,10 @@ import {visibilityPoll} from './polling.js';
 import {getPreferences} from './preferences.js';
 import {tr} from './i18n.js';
 
-export function comparisonRequest(offer,context) {
+export function comparisonRequest(offer,context,filters={}) {
   return {comparison:true,date_mode:'fixed',trip_type:offer.inbound?'roundtrip':'oneway',
     origins:['airport:'+offer.outbound.from],destinations:['airport:'+offer.outbound.to],
-    start:offer.outbound.departureTime.slice(0,10),end:(offer.inbound?.departureTime || offer.outbound.departureTime).slice(0,10),
+    start:filters.outDate || offer.outbound.departureTime.slice(0,10),end:offer.inbound?(filters.inDate || offer.inbound.departureTime.slice(0,10)):(filters.outDate || offer.outbound.departureTime.slice(0,10)),
     adults:context.adults || 1,currency:offer.currency || context.currency || 'HKD',locale:getPreferences().language,
     max_stops:context.max_stops ?? -1,max_duration_hours:context.max_duration_hours || 0,budget:0,nights:[],weekdays:[]};
 }
@@ -24,11 +24,11 @@ export function routeDetailSearch({status,done}) {
     } catch(error){if(version===generation){poller.stop();job=undefined;status(false,error.message);}}
   },{delay:()=>1500});
   function cancel(){generation++;job=undefined;poller.stop();}
-  return {cancel,async start(offer,context) {
+  return {cancel,async start(offer,context,filters={}) {
     cancel();const version=generation;
     status(true,tr('正在查询这条航线，价格可能较上次变化。','Searching this route. Prices may have changed.'));
     try {
-      const result=await request('/api/deals',comparisonRequest(offer,context));
+      const result=await request('/api/deals',comparisonRequest(offer,context,filters));
       if(version!==generation)return;
       job={id:result.id,version};poller.start();
     } catch(error){if(version===generation)status(false,error.message);}

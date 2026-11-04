@@ -22,7 +22,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("Referrer-Policy", "no-referrer")
         if cookie:
-            self.send_header("Set-Cookie", cookie)
+            for value in cookie if isinstance(cookie, list) else [cookie]:
+                self.send_header("Set-Cookie", value)
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://images.unsplash.com https://tiles.openfreemap.org; connect-src 'self' https://api.frankfurter.dev https://images.unsplash.com https://tiles.openfreemap.org; worker-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
         self.end_headers()
@@ -33,7 +34,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(403, {"error": "请使用本机地址访问。"})
         path = urlsplit(self.path).path
         if path == "/api/auth/session":
-            return self.send(200, auth_http.current(self) or {"user": None})
+            return self.send(200, {**(auth_http.current(self) or {"user": None}), "local_passkeys": True})
         if path.startswith('/api/shared-trips/'):
             result = trips.shared(path.rsplit('/', 1)[-1])
             return self.send(200, result) if result else self.send(404, {'error': '分享不存在或已失效。'})
@@ -121,16 +122,27 @@ class Handler(BaseHTTPRequestHandler):
             if photo.suffix in (".jpg", ".png", ".webp"):
                 files[f"/assets/destinations/{photo.name}"] = (f"assets/destinations/{photo.name}", {".jpg":"image/jpeg", ".png":"image/png", ".webp":"image/webp"}[photo.suffix])
         files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("trip-snapshot", "trip-state", "trip-actions", "trip-dialogs", "trip-sharing", "shared-trip", "boarding-itinerary", "route-detail", "route-detail-model", "route-detail-views", "route-detail-search", "result-comparison")})
-        for name in ("auth-motion", "auth-red-panda", "auth-films", "auth-films-data", "film-preferences", "ui-icons", "local-passkeys", "password-confirmation"):
+        files["/boarding-itinerary.css"] = ("boarding-itinerary.css", "text/css")
+        files["/scenic-workspace.css"] = ("scenic-workspace.css", "text/css")
+        files["/product-ui.css"] = ("product-ui.css", "text/css")
+        files["/liquid-glass.css"] = ("liquid-glass.css", "text/css")
+        files["/discovery-layout.css"] = ("discovery-layout.css", "text/css")
+        files["/destination-photos.css"] = ("destination-photos.css", "text/css")
+        for name in ("auth-motion", "auth-red-panda", "auth-motion-preview"):
             files[f"/{name}.js"] = (f"{name}.js", "text/javascript")
-        for name in ("auth-motion", "auth-scene", "liquid-glass"):
+        for name in ("auth-motion", "auth-motion-preview"):
             files[f"/{name}.css"] = (f"{name}.css", "text/css")
+        files["/auth-motion-preview.html"] = ("auth-motion-preview.html", "text/html")
+        files["/auth-scene.css"] = ("auth-scene.css", "text/css")
+        files["/ui-icons.js"] = ("ui-icons.js", "text/javascript")
+        for name in ("auth-films", "auth-films-data", "film-preferences"):
+            files[f"/{name}.js"] = (f"{name}.js", "text/javascript")
         for film in (STATIC / "assets/travel-films").glob("*"):
             if film.suffix in (".mp4", ".jpg"):
                 files[f"/assets/travel-films/{film.name}"] = (f"assets/travel-films/{film.name}", "video/mp4" if film.suffix == ".mp4" else "image/jpeg")
-        files["/assets/mascot/red-panda-poses.png"] = ("assets/mascot/red-panda-poses.png", "image/png")
-        files["/assets/fingerprint.svg"] = ("assets/fingerprint.svg", "image/svg+xml")
-        files["/boarding-itinerary.css"] = ("boarding-itinerary.css", "text/css")
+        files["/assets/login-scene/possibilities-background.jpg"] = ("assets/login-scene/possibilities-background.jpg", "image/jpeg")
+        for name in ("red-panda-approved", "red-panda-poses"):
+            files[f"/assets/mascot/{name}.png"] = (f"assets/mascot/{name}.png", "image/png")
         files["/route-detail.css"] = ("route-detail.css", "text/css")
         files["/trip-actions.css"] = ("trip-actions.css", "text/css")
         files["/share.html"] = ("share.html", "text/html")
@@ -138,10 +150,14 @@ class Handler(BaseHTTPRequestHandler):
         files["/offer-views.css"] = ("offer-views.css", "text/css")
         files["/route-airports.json"] = ("route-airports.json", "application/json")
         files.update({f"/assets/places/{name}.jpg": (f"assets/places/{name}.jpg", "image/jpeg") for name in ("beach", "forest", "rice", "city", "sculpture", "harbour", "harbour.thumb", "beach.thumb", "forest.thumb", "rice.thumb", "city.thumb", "sculpture.thumb")})
+        files["/vendor/passkeys.js"] = ("vendor/passkeys.js", "text/javascript")
+        files["/password-confirmation.js"] = ("password-confirmation.js", "text/javascript")
+        files["/local-passkeys.js"] = ("local-passkeys.js", "text/javascript")
         files.update({f"/assets/manrope-{weight}.ttf": (f"assets/manrope-{weight}.ttf", "font/ttf") for weight in (400, 500, 600, 700)})
         files["/assets/fare-scout-serif-vf.woff2"] = ("assets/fare-scout-serif-vf.woff2", "font/woff2")
         files["/assets/fare-scout-sans-vf.woff2"] = ("assets/fare-scout-sans-vf.woff2", "font/woff2")
         files["/assets/airplane-tilt.svg"] = ("assets/airplane-tilt.svg", "image/svg+xml")
+        files["/assets/fingerprint.svg"] = ("assets/fingerprint.svg", "image/svg+xml")
         files["/assets/im-fell-english-400.ttf"] = ("assets/im-fell-english-400.ttf", "font/ttf")
         if path not in files:
             return self.send(404, {"error": "页面不存在。"})

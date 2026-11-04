@@ -111,7 +111,7 @@ class HTTPAuthTests(unittest.TestCase):
         self.assertEqual(status, 403)
         self.assertEqual(self.request('/api/auth/logout', {}, cookie, csrf)[0], 200)
         self.assertEqual(self.request('/api/state', cookie=cookie)[0], 401)
-        self.assertEqual(self.request('/api/auth/session', cookie=cookie)[1], {"user": None})
+        self.assertEqual(self.request('/api/auth/session', cookie=cookie)[1], {"user": None, "local_passkeys": True})
 
     def test_remembered_login_extends_cookie_and_server_session_to_thirty_days(self):
         status, body, cookie = self.request('/api/auth/login', {"email": "alice@example.com", "password": "alice-test-password", "remember": True})

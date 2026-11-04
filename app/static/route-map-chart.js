@@ -54,7 +54,7 @@ export function mountRouteChart(container,groups,geo,onSelect) {
   }
   function start(){mapFailures=0;return loadBasemap(abort.signal).then(result=>{
     if(!active)return;renderer=result.renderer;
-    map=new renderer.Map({container:surface,style:result.style,center:[114,20],zoom:3,renderWorldCopies:false,attributionControl:{compact:true},dragRotate:false,pitchWithRotate:false,localIdeographFontFamily:'"Fare Scout Map Sans", sans-serif',locale:{'NavigationControl.ZoomIn':tr('放大地图','Zoom in'),'NavigationControl.ZoomOut':tr('缩小地图','Zoom out'),'AttributionControl.ToggleAttribution':tr('地图来源','Toggle attribution'),'Map.Title':tr('机票地图','Flight map')}});
+    map=new renderer.Map({container:surface,style:result.style,center:[114,20],zoom:3,renderWorldCopies:false,attributionControl:{compact:true},dragRotate:false,pitchWithRotate:false,localIdeographFontFamily:getComputedStyle(document.documentElement).fontFamily,locale:{'NavigationControl.ZoomIn':tr('放大地图','Zoom in'),'NavigationControl.ZoomOut':tr('缩小地图','Zoom out'),'AttributionControl.ToggleAttribution':tr('地图来源','Toggle attribution'),'Map.Title':tr('机票地图','Flight map')}});
     map.addControl(new renderer.NavigationControl({showCompass:false}),'bottom-right');
     map.fitBounds(bounds,{padding:{top:65,bottom:65,left:60,right:60},maxZoom:6,duration:0});
     map.on('load',()=>{

@@ -19,7 +19,7 @@
 以 invocation ID 防止迟到结果覆盖新状态；`0010_admin.sql` 为增量表和索引。Python 版不提供管理入口。
 运行口径、授权配置、保留策略边界和面试问答见 [ADMIN.md](ADMIN.md)。
 
-本地 `npm run db:local && npm run dev`，地址 http://localhost:8787；数据库位于 `.wrangler/`。
+本地 `npm run dev`（predev 自动执行 `db:local` 补齐本地增量迁移并准备静态资源），地址 http://localhost:8787；数据库位于 `.wrangler/`。需要单独更新数据库时仍可执行 `npm run db:local`，不作用于远端 D1。
 SQLite 只读离线导出工具保留原库，副本的计划暂停、旧邮件取消，排除会话与凭据。
 用户选择云端空库，没有迁移旧数据；发布与验证详见 [CLOUDFLARE.md](CLOUDFLARE.md)。
 
@@ -62,6 +62,7 @@ Python 3.9+ 标准库本地服务，SQLite 持久化，原生 HTML/CSS/JavaScrip
 - Workers `tasks.js` 以单条 D1 UPDATE 原子领取任务并限制有效运行租约为 4，跨轮询请求共享；手动查询及当前轮询的搜索优先。HTTP 每次并行一批 4 组，Cron 沿用已提交的批次上限；保留现有超时、重试、租约恢复及迟到写入保护。Python `deal_source.py` 共用 4 个查价线程，`deals.py` 按完成顺序聚合，`deal_jobs.py` 在运行中发布部分报价。
 - `static/deals.js` / `deal_views.js` / `deals.css`：搜特价、已返回日期价格条、排序和转监控草稿；复用地点与航班详情组件。
 - `static/getaway.css`：搜特价风景首屏、跨区搜索条与机会排版；`deal_views.js` 依据已返回报价生成目的地导航和停留展示，`deals.js` 联动日期/目的地筛选，不引入新的查询或通知路径。
+- `static/discovery-layout.css`：首页最后加载的工作区布局层，统一搜索、结果工具和报价的对齐与字号；搜索后收起风景，手机优先展示价格，原生 details 收拢常用组合与目的地筛选。
 - `static/views.js`：监控、最新机会和采样记录；所有外部字符串转义。
 - `static/automation.js`：监控设置、提醒中心、已读状态和收件邮箱配置。
 - `static/auth.js`：登录、注册、初始化密码、退出，账号切换时清除旧视图。
@@ -206,6 +207,21 @@ Workers 静态资源优先直出，安全响应头由 `static/_headers` 维护�
 搜特价／每日推荐的登机牌和卡片由 `offer-views.js → route-detail.js` 打开详情面板；`route-detail-model.js` 按实际去返程机场及报价币种归组，`route-detail-views.js` 展示日期组合、完整报价方案、当地时间与中转、所选航段／行李和核价入口。手机为全屏面板，桌面为双栏；去返程始终选择数据源的完整组合。
 
 `route-detail-search.js → POST /api/deals` 复用已有账号隔离队列与轮询。新增可选 `comparison:true` 仅接受单组机场与固定日期，沿用人数、报价币种及中转／时长条件，不设发现预算上限。Python `deal_source.py` 和 Workers `provider.js` 此时传 `one_for_city:false`，按完整去返航程去重保留最低报价；Workers `runs.js` 同样保留不同航班组合，普通发现与监控聚合规则不变。补查更新该日期组合及其查询时间，失败／空结果保留旧报价并明确提示；关闭或切换日期后忽略迟到响应。补查不创建监控、价格采样、提醒或邮件，无新增数据库迁移。
+
+## Python 本地 Passkey（2026-11-03，本地待发布）
+
+`auth.js → local-passkeys.js → /api/auth/passkey/* → local_passkeys.py → passkey_store.py / SQLite`。
+`passkey_crypto.mjs` 是本机验证适配器，复用 `@simplewebauthn/server`，通过 stdin/stdout JSON 与 Python 通信，
+有超时与友好错误；不会把私钥、响应或完整异常写入日志。现有密码会话及恢复能力保留，
+设置中为当前账号绑定/列出/移除密钥，登录采用可发现凭据，不另建同邮箱账号。
+挑战绑定来源、浏览器和绑定会话，五分钟、一次性；本地 RP 为 localhost。
+依赖、边界和验证见 [ACCOUNTS.md](ACCOUNTS.md)。
+
+### 全局显示配置
+
+字体栈唯一入口为 `static/style.css` 的 `:root --family`，品牌文字、装饰标题、地图 UI、弹层、分享图与管理页均复用。`test_global_typography.mjs` 经 CSS 解析检查所有自有样式的字体所有权；组件只能调整字号、字重和行高。显示货币复用 `preferences.js → currency.js → format.js`，主题复用 `theme-init.js / appearance.js → themes.css`，分享与管理页同样加载全局入口。源报价和历史记录保留原币种，换算展示保留来源说明。
+
+目的地照片：`destination-photos.json` 为统一元数据，显式机场别名复用对应城市的实拍；`destination-photos.css` 负责卡片、登机牌和地图共用构图。收藏、公开分享、机票机会和监控异步加载同一目录，图片失败保留报价。`watchPhotos` 为多地点或国家/区域监控生成最多两张范围内的城市图例；依据地点目录中的 `city_code` / `country_code`，只解析带类型的国家成员，不通过名称推断范围。城市/机场别名去重，不同选择轮流取图；图例注明部分风景，不改变监控目的地。单图失败保留其他图，全部失败收起图例。地图详情不重复显示封面。`assets/destinations/CREDITS.md` 记录选片与来源。下载脚本默认只恢复缺失的已选原图：Unsplash 按目录宽度请求，Commons 使用已核对的 HTTPS 官方媒体 download_url，不需要 cdn_id；验证 JPEG 完整宽高后原子写入；`audit_destination_photos.py` 离线核对文件与覆盖缺口。长期覆盖进度见 `docs/DESTINATION_PHOTOS.md`。
 
 
 ## 本地登录与旅行素材（2026-11-04）

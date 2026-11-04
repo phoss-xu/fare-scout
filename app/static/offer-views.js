@@ -1,3 +1,5 @@
+import {loadDestinationPhotos} from './route-card-views.js';
+import {icon} from './ui-icons.js';
 import {setupRouteDetail} from './route-detail.js';
 import {tr} from './i18n.js';
 import {dealCards} from './deal_views.js';
@@ -10,7 +12,8 @@ function savedMode() {
 }
 /** Own presentation only; callers retain filtering, quote indexes and watch actions. */
 export function setupOfferViews(container) {
-  let mode=savedMode(),data,disposeMap=()=>{};
+  let mode=savedMode(),data,photos,disposeMap=()=>{};
+  loadDestinationPhotos().then(value=>{photos=value;if(data && mode!=='map')render();});
   const detail=setupRouteDetail(container,()=>data);
   const toolbar=document.createElement('div');toolbar.className='offer-view-toolbar';toolbar.hidden=true;
   const frame=container.parentElement.querySelector('.result-frame');
@@ -19,12 +22,12 @@ export function setupOfferViews(container) {
   function render() {
     disposeMap();disposeMap=()=>{};
     toolbar.hidden=!data?.offers.length;
-    toolbar.innerHTML=`<div role="group" aria-label="${tr('机票展示方式','Flight display style')}">${modes.map((value,i)=>`<button type="button" data-offer-view="${value}" aria-pressed="${mode===value}"><span aria-hidden="true">${['☷','▦','◎'][i]}</span> ${[tr('登机牌','Boarding passes'),tr('卡片','Cards'),tr('地图','Map')][i]}</button>`).join('')}</div>`;
+    toolbar.innerHTML=`<div role="group" aria-label="${tr('机票展示方式','Flight display style')}">${modes.map((value,i)=>`<button type="button" data-offer-view="${value}" aria-pressed="${mode===value}">${icon(value==='list'?'list':value==='cards'?'cards':'map')} ${[tr('登机牌','Boarding passes'),tr('卡片','Cards'),tr('地图','Map')][i]}</button>`).join('')}</div>`;
     container.dataset.offerView=mode;
     if(!data) return;
     if(mode==='map' && data.offers.length) {
       disposeMap=mountRouteMap(container,data);
-    } else container.innerHTML=dealCards(data.offers,data.all,data.adults,data.recommendation,{...data.context,routeDetail:true});
+    } else container.innerHTML=dealCards(data.offers,data.all,data.adults,data.recommendation,{...data.context,destinationPhotos:photos,routeDetail:true});
   }
   document.addEventListener('locationnameschange',render);
   toolbar.addEventListener('click',event=>{

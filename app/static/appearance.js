@@ -7,6 +7,8 @@ export function setupAppearance() {
   const choices = dialog.querySelector('#theme-choices');
   const status = dialog.querySelector('#appearance-status');
   const opacity = dialog.querySelector('#landscape-opacity');
+  const font = dialog.querySelector('#settings-font-choice');
+  font.addEventListener('change', () => setAppearance({font:font.value}));
   let previousOverflow;
   opacity.addEventListener('input', () => setAppearance({surfaceOpacity:Number(opacity.value)}));
   choices.replaceChildren(...themes.map(theme => {
@@ -34,6 +36,7 @@ export function setupAppearance() {
       button.setAttribute('aria-label',tr(theme.name,copy[0]));
     });
     choices.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.choiceTheme === value.theme)));
+    font.value = value.font;
     opacity.value = value.surfaceOpacity;
     dialog.querySelector('#landscape-opacity-value').value = `${value.surfaceOpacity}%`;
     opacity.setAttribute('aria-valuetext', `${value.surfaceOpacity}%`);

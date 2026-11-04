@@ -12,17 +12,19 @@ export function setupLandscape(panel) {
   function render(place) {
     currentPlace=place;
     scene.dataset.place = place.id; backdrop.setPlace(place);
-    photo.src = landscapeImage(place); photo.style.objectPosition = place.position;
-    for (const key of ['title','name','location','description','kind']) scene.querySelector(`#atlas-${key}`).textContent = place[key];
+    photo.src = landscapeImage(place); photo.alt = place.name; photo.style.objectPosition = place.position;
+    const workspacePhoto=document.querySelector('#workspace-scenery-photo');
+    if(workspacePhoto){workspacePhoto.src=photo.src;workspacePhoto.style.objectPosition=place.position;}
+    for (const key of ['title','name']) scene.querySelector(`#atlas-${key}`).textContent = place[key];
     if(place.id==='forest') {
-      scene.querySelector('#atlas-kind').textContent=tr(place.kind,'FOREST');
       scene.querySelector('#atlas-name').textContent=tr(place.name,'Arashiyama Bamboo Grove');
-      scene.querySelector('#atlas-location').textContent=tr(place.location,'Kyoto, Japan');
-      scene.querySelector('#atlas-description').textContent=tr(place.description,'Look up through the bamboo canopy, where green meets the sky.');
     }
-    const credit = scene.querySelector('#atlas-credit'), license = scene.querySelector('#atlas-license');
+    const credit = document.querySelector('#atlas-credit'), license = document.querySelector('#atlas-license');
     credit.href = place.source; credit.textContent = `${tr("摄影 ","Photo by ")}${place.author}${tr(" · 来源 ↗"," · Source ↗")}`;
     license.href = place.licenseUrl; license.textContent = place.license;
+    const source = scene.querySelector('#atlas-source');
+    source.href = place.source; source.textContent = credit.textContent;
+    source.title = place.license;
     actions.setPhoto(place);
   }
   async function refresh({force=false}={}) {

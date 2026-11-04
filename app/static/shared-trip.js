@@ -1,3 +1,4 @@
+import {loadDestinationPhotos} from './route-card-views.js';
 import {request} from './api.js';
 import {dealCards} from './deal_views.js';
 import {escape,time} from './format.js';
@@ -7,6 +8,7 @@ const status=document.querySelector('#shared-status'),container=document.querySe
 const id=new URLSearchParams(location.search).get('id');
 document.addEventListener('locationnameschange',()=>render());
 let snapshot;
+loadDestinationPhotos().then(render);
 function render(){if(snapshot)container.innerHTML=dealCards([snapshot.offer],[snapshot.offer],snapshot.adults,false,{...snapshot,archived:true,public:true});}
 try {
   if(!id)throw new Error(tr('分享链接不完整，请向发送者索取完整链接。','Incomplete share link. Ask the sender for the full link.'));

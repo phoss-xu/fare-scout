@@ -9,7 +9,7 @@
 .auth-intro::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,var(--paper),color-mix(in srgb,var(--paper) 65%,transparent) 35%,color-mix(in srgb,var(--paper) 16%,transparent));pointer-events:none}
 .auth-intro-copy{position:relative}
 .auth-intro .eyebrow{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--muted);margin:0 0 36px;max-width:100%}
-.auth-intro .auth-display{font:400 clamp(78px,8vw,118px)/.9 var(--display-family);letter-spacing:-3px;color:var(--ink);margin:0 0 28px}
+.auth-intro .auth-display{font:400 clamp(78px,8vw,118px)/.9 var(--family);letter-spacing:-3px;color:var(--ink);margin:0 0 28px}
 .auth-intro h1{font:500 clamp(25px,2.6vw,36px)/1.5 var(--family);letter-spacing:.5px;color:var(--ink);margin:0 0 16px;text-wrap:pretty}
 .auth-intro .auth-lead{font:400 14px/1.95 var(--family);color:var(--muted);margin:0}
 .auth-scene-caption{display:flex;flex-wrap:wrap;gap:8px 14px;padding-top:48px;color:var(--muted);font-size:9px;line-height:1.8;letter-spacing:.3px}
@@ -35,6 +35,11 @@
  .auth-card{justify-self:center;max-width:none;padding:24px;border-radius:18px}.auth-card h2{font-size:25px}.auth-card .eyebrow{margin-bottom:10px}.auth-hint{margin:10px 0 20px;min-height:0;font-size:12px}.auth-card form>label{margin-bottom:14px}.auth-card .primary{min-height:48px}.auth-footer{margin-top:12px;padding-top:12px;font-size:10px}.auth-switch{margin-top:8px}.account-bar{gap:var(--s-100)}.account-name{max-width:96px;font:var(--caption-5)}.account-bar .text-btn{font:var(--caption-5)}
 }
 @media(max-width:360px){.auth-intro .auth-display{font-size:58px}.auth-card{padding:20px}.auth-intro h1{font-size:21px}}
+.auth-recovery{margin-top:18px;font-size:12px;color:var(--muted);line-height:1.7}
+.auth-recovery summary{cursor:pointer;width:fit-content;color:var(--green);padding:6px 0}
+.auth-recovery p{max-width:44ch;margin:8px 0}
+.auth-recovery code{display:block;overflow-wrap:anywhere;white-space:normal;font-size:11px;background:var(--surface-soft);padding:12px;border-radius:8px}
+.local-passkey-login{width:100%;justify-content:center;min-height:46px;margin-top:12px}
 
 /* Authentication has one reading grid: quiet header, introduction, then form. */
 body:has(#auth-view:not([hidden])) .top{width:min(1180px,calc(100% - 64px));min-height:56px;margin:20px auto 0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none}

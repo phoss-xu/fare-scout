@@ -1,11 +1,10 @@
 .boarding-itinerary{display:none}
-#deals-panel .deal-results-grid[data-offer-view=list] .deal-card{grid-template-columns:minmax(0,1fr) 230px;gap:0 28px}
-#deals-panel [data-offer-view=list] .boarding-itinerary{display:block;grid-column:1;grid-row:2;min-width:0;margin:18px 0 0}
-.boarding-places{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:18px}
+#deals-panel [data-offer-view=list] .boarding-itinerary{display:block;grid-column:1;grid-row:1/3;min-width:0;margin:0}
+.boarding-places{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:12px}
 .boarding-place{display:flex;flex-direction:column;gap:5px;min-width:0;max-width:180px}
 .boarding-place:last-child{text-align:right;align-items:flex-end}
 .boarding-place>span{font-size:10px;color:var(--muted)}
-.boarding-place>strong{font:500 27px/1.3 var(--family);color:var(--ink);overflow-wrap:anywhere}
+.boarding-place>strong{font:500 25px/1.3 var(--family);color:var(--ink);overflow-wrap:anywhere}
 .boarding-place>b{font:500 15px/1.4 var(--family);letter-spacing:2px;color:var(--muted)}
 .boarding-place>small{font-size:10px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
 .boarding-leg{display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,1.5fr) minmax(0,1fr);align-items:start;gap:14px;padding:15px 0;border-top:1px solid var(--line)}
@@ -14,8 +13,8 @@
 .boarding-moment time{font:600 24px/1.2 var(--family);font-variant-numeric:tabular-nums;letter-spacing:-.7px}
 .boarding-moment>span{font:400 11px/1.5 var(--family);white-space:nowrap}
 .boarding-moment>small{font-size:10px;color:var(--muted);line-height:1.5}
-.boarding-connection{display:flex;flex-direction:column;align-items:center;gap:7px;width:min(100%,260px);min-width:0;justify-self:center;box-sizing:border-box;padding:10px 12px 11px;border:1px solid color-mix(in srgb,var(--green,#396b51) 16%,var(--line));border-radius:14px;background:linear-gradient(145deg,color-mix(in srgb,var(--white,#fff) 94%,var(--green,#396b51)),color-mix(in srgb,var(--paper,#f6f7f4) 88%,var(--white,#fff)));box-shadow:0 5px 16px color-mix(in srgb,var(--ink) 5%,transparent),inset 0 1px 0 color-mix(in srgb,var(--white,#fff) 90%,transparent);text-align:center}
-.boarding-route-control{display:flex;align-items:center;gap:7px;width:min(100%,220px);height:20px;color:var(--green,#396b51)}
+.boarding-connection{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;width:min(100%,220px);min-width:0;justify-self:center;box-sizing:border-box;padding:2px 0;text-align:center}
+.boarding-route-control{display:flex;align-items:center;gap:7px;width:100%;height:16px;color:var(--green,#396b51)}
 .boarding-route-end{width:5px;height:5px;border:1px solid currentColor;border-radius:50%;background:var(--surface,#fff);flex:0 0 auto}
 .boarding-route-track{position:relative;display:block;flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,currentColor 18%,transparent),color-mix(in srgb,currentColor 55%,transparent),color-mix(in srgb,currentColor 18%,transparent));overflow:visible}
 .boarding-route-track:before{content:"";position:absolute;inset:-3px 0;background:linear-gradient(90deg,transparent,color-mix(in srgb,currentColor 20%,transparent),transparent);filter:blur(3px);opacity:.7}
@@ -26,30 +25,59 @@
 .boarding-duration{font:600 12px/1.2 var(--family);letter-spacing:.1px;color:var(--ink);font-variant-numeric:tabular-nums}
 .boarding-direction{padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--green,#396b51) 9%,var(--white,#fff));font:600 9px/1.2 var(--family);color:var(--green,#396b51)}
 .boarding-flight-kind{padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--white,#fff) 85%,var(--green,#396b51));font:500 9px/1.2 var(--family);color:var(--muted)}
-.boarding-carriers{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:100%}
+.boarding-carriers{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;width:100%;max-width:100%}
 .boarding-carriers>span{max-width:100%;padding:4px 8px;border:1px solid color-mix(in srgb,var(--green,#396b51) 20%,var(--line));border-radius:6px;background:color-mix(in srgb,var(--green,#396b51) 6%,var(--white,#fff));font:500 9px/1.3 var(--family);color:var(--ink);overflow-wrap:anywhere}
 .boarding-time-note{font:400 9px/1.6 var(--family);color:var(--muted);margin:8px 0 14px}
 #deals-panel .deal-results-grid[data-offer-view=list] .card-top{grid-column:1;grid-row:1;flex-wrap:wrap}
 #deals-panel .deal-results-grid[data-offer-view=list] .deal-result-title>div:first-child,#deals-panel .deal-results-grid[data-offer-view=list] :is(.trip-dates,.compact-flight){display:none}
-#deals-panel .deal-results-grid[data-offer-view=list] .price{grid-column:2;grid-row:1/4;padding:22px 0 0 28px;overflow-wrap:anywhere}
+/* Auxiliary fare information lives on the detachable stub. */
+.ticket-face,.ticket-stub,.ticket-footer{display:contents}
+.ticket-tools{display:none}
+.ticket-time-note{display:none}
+#deals-panel .deal-results-grid[data-offer-view=cards] .deal-card{display:flex;flex-direction:column}
+#deals-panel [data-offer-view=cards] .deal-result-title{order:1}
+#deals-panel [data-offer-view=cards] .price{order:2}
+#deals-panel [data-offer-view=cards] .trip-experience{order:3}
+#deals-panel [data-offer-view=cards] :is(.trip-dates,.deal-date-note){order:4}
+#deals-panel [data-offer-view=cards] .compact-flight{order:5}
+#deals-panel [data-offer-view=cards] .ticket-baggage{order:6}
+#deals-panel [data-offer-view=cards] .deal-flight-more{order:7}
+#deals-panel [data-offer-view=cards] .card-bottom{order:8}
+#deals-panel [data-offer-view=cards] .trip-state-note{order:9}
+#deals-panel .deal-results-grid[data-offer-view=list]{grid-template-columns:minmax(0,680px)}
+#deals-panel .deal-results-grid[data-offer-view=list] .deal-card{display:block;padding:16px 18px;border-radius:10px}
+#deals-panel [data-offer-view=list] .ticket-face{display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:0 18px}
+#deals-panel .deal-results-grid[data-offer-view=list] .card-top{display:none}
+#deals-panel [data-offer-view=list] .ticket-tools{display:block;order:2}
+#deals-panel [data-offer-view=list] .ticket-footer{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-top:6px}
+#deals-panel [data-offer-view=list] .ticket-footer .trip-tools{margin:0}
+#deals-panel [data-offer-view=list] .ticket-footer .trip-state-note{margin:0;flex:1}
+#deals-panel [data-offer-view=list] .ticket-tools .trip-tools{justify-content:flex-end}
+#deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub{display:flex;flex-direction:column;grid-column:2;grid-row:1/3;min-width:0;padding-left:18px;border-left:1px dashed var(--line)}
+#deals-panel .deal-results-grid[data-offer-view=list] .deal-card .price{padding:0;border:0;font-size:30px;flex:none}
+#deals-panel [data-offer-view=list] .boarding-time-note{display:none}
+#deals-panel [data-offer-view=list] .ticket-time-note{display:block;font:400 10px/1.6 var(--family);color:var(--muted);margin:14px 0 0}
 #deals-panel .deal-results-grid[data-offer-view=list] .deal-date-note{grid-column:1;grid-row:3}
-#deals-panel .deal-results-grid[data-offer-view=list] .ticket-baggage{grid-column:1;grid-row:4}
-#deals-panel .deal-results-grid[data-offer-view=list] .deal-flight-more{grid-column:1;grid-row:5}
-#deals-panel .deal-results-grid[data-offer-view=list] .card-bottom{grid-column:2;grid-row:4/6;padding-left:28px}
-#deals-panel .deal-results-grid[data-offer-view=list] .deal-card::before,#deals-panel .deal-results-grid[data-offer-view=list] .deal-card::after{right:244px}
+#deals-panel .deal-results-grid[data-offer-view=list] .ticket-baggage{margin:8px 0 0;padding:8px 0 0;line-height:1.8}
+#deals-panel .deal-results-grid[data-offer-view=list] .deal-flight-more{margin:14px 0 0;border-top:1px dashed var(--line)}
+#deals-panel .deal-results-grid[data-offer-view=list] .card-bottom{padding:12px 0 0;border:0;margin-top:auto;gap:6px}
+#deals-panel .deal-results-grid[data-offer-view=list] .trip-state-note{margin:10px 0 0;font-size:9px}
+#deals-panel .deal-results-grid[data-offer-view=list] .deal-card::before,#deals-panel .deal-results-grid[data-offer-view=list] .deal-card::after{right:218px}
+#deals-panel [data-offer-view=list] .deal-flight-more .flight-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin:0}
+#deals-panel [data-offer-view=list] .deal-flight-more :is(.flight-local-note,.baggage-summary){grid-column:1/-1}
+#deals-panel [data-offer-view=list] .deal-flight-more .flight-route{grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr);gap:8px}
+#deals-panel [data-offer-view=list] .deal-flight-more .flight-endpoint time{font-size:22px}
 @media(max-width:760px){
- #deals-panel .deal-results-grid[data-offer-view=list] .deal-card{display:flex;flex-direction:column;padding:18px}
- #deals-panel [data-offer-view=list] .boarding-itinerary{order:2;margin-top:14px}
- #deals-panel [data-offer-view=list] .card-top{order:1}
+ #deals-panel .deal-results-grid[data-offer-view=list] .deal-card{display:flex;flex-direction:column;padding:16px}
+ #deals-panel [data-offer-view=list] .boarding-itinerary{margin-top:12px}
  #deals-panel .deal-results-grid[data-offer-view=list] .deal-result-title{display:contents}
- #deals-panel .deal-results-grid[data-offer-view=list] .price{order:4;max-width:none;text-align:left;padding:16px 0 0;border-left:0;border-top:1px dashed var(--line);margin-top:12px}
- #deals-panel .deal-results-grid[data-offer-view=list] .deal-date-note{order:3}
- #deals-panel .deal-results-grid[data-offer-view=list] .ticket-baggage{order:5}
- #deals-panel .deal-results-grid[data-offer-view=list] .deal-flight-more{order:6}
- #deals-panel .deal-results-grid[data-offer-view=list] .card-bottom{order:7;padding:12px 0 0;flex-wrap:wrap}
- #deals-panel [data-offer-view=list] .trip-state-note{order:8}
- .boarding-place>strong{font-size:23px}.boarding-places{gap:10px;margin-bottom:14px}
- .boarding-leg{grid-template-columns:minmax(0,1fr) minmax(90px,1.1fr) minmax(0,1fr);gap:8px;padding:14px 0}
+ #deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub{padding:16px 0 0;margin-top:12px;border-left:0;border-top:1px dashed var(--line)}
+ #deals-panel .deal-results-grid[data-offer-view=list] .price{max-width:none;text-align:left;margin:0}
+ #deals-panel .deal-results-grid[data-offer-view=list] .card-bottom{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between}
+ #deals-panel [data-offer-view=list] .ticket-face{display:flex;flex-direction:column}
+ #deals-panel [data-offer-view=list] .deal-flight-more .flight-overview{grid-template-columns:minmax(0,1fr)}
+ .boarding-place>strong{font-size:23px}.boarding-places{gap:10px;margin-bottom:12px}
+ .boarding-leg{grid-template-columns:minmax(0,1fr) minmax(90px,1.1fr) minmax(0,1fr);gap:8px;padding:12px 0}
  .boarding-moment time{font-size:22px}.boarding-moment>span{font-size:10px}.boarding-connection>span{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.boarding-route-track i,.boarding-route-track b{animation:none}.boarding-route-track i{transform:scaleX(.72)}.boarding-route-track b{left:72%}}

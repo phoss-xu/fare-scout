@@ -25,7 +25,7 @@ export function setupAuthFilms() {
       credit.title=`${tr(film.zh,film.en)} · ${film.author} / Pexels`;
       credit.setAttribute('aria-label',credit.title);
     }
-    toggle.textContent=paused?'▷':'Ⅱ';
+    toggle.innerHTML=icon(paused?'play':'pause');
     toggle.title=paused?tr('播放风景','Play scenery'):tr('暂停风景','Pause scenery');
     toggle.setAttribute('aria-label',toggle.title);toggle.setAttribute('aria-pressed',String(!paused));
     const liked=film && preferences.reaction(film.id)==='liked';

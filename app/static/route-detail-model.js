@@ -13,8 +13,14 @@ export function routeDates(offers) {
   for(const o of offers) {const key=datePair(o);dates.set(key,Math.min(dates.get(key) ?? Infinity,o.price));}
   return [...dates].sort(([a],[b])=>a.localeCompare(b));
 }
-export function routeOptions(offers,{date='',onlyDirect=false,sort='price'}={}) {
-  return offers.filter(o=>(!date || datePair(o)===date) && (!onlyDirect || direct(o))).slice().sort((a,b)=>
+export function routeOptions(offers,{date='',onlyDirect=false,sort='price',outDate='',inDate='',outFrom='',outTo='',inFrom='',inTo=''}={}) {
+  return offers.filter(o=>(!date || datePair(o)===date) && (!onlyDirect || direct(o)) && matches(o.outbound,outDate,outFrom,outTo) && (!o.inbound || matches(o.inbound,inDate,inFrom,inTo))).slice().sort((a,b)=>
     sort==='departure'?a.outbound.departureTime.localeCompare(b.outbound.departureTime) || a.price-b.price:
     sort==='duration'?totalDuration(a)-totalDuration(b) || a.price-b.price:a.price-b.price);
+}
+
+function matches(leg,date,from,to) {
+  const value=leg?.departureTime || '',clock=value.slice(11,16);
+  const timeMatch=from && to && from>to ? clock>=from || clock<=to : (!from || clock>=from) && (!to || clock<=to);
+  return (!date || value.slice(0,10)===date) && timeMatch;
 }

@@ -1,10 +1,8 @@
 /* Departure Club: editorial typography, navigation charts and paper tickets. */
-@font-face{font-family:"IM Fell English";font-style:normal;font-weight:400;font-display:swap;src:url('/assets/im-fell-english-400.ttf') format('truetype')}
-:root{--paper:#f4f2e9;--ink:#20241f;--muted:#6e7169;--green:#2048e5;--lime:#e5fb68;--line:#d9d9cd;--surface-soft:#eeeee4;--orange:#b54f26;--display-family:"IM Fell English",Georgia,serif}
 body{background:var(--paper)}
 .top,main,footer{max-width:1320px;width:calc(100% - 96px)}
 .top{background:none;border:0;border-bottom:1px solid var(--ink);border-radius:0;backdrop-filter:none;margin-top:0;padding:20px 0;min-height:94px}
-.brand{font-family:var(--display-family);font-weight:400;font-size:32px;letter-spacing:-.5px}.brand-icon{border-radius:50%;background:var(--ink);width:38px;height:38px}.brand-dot{color:var(--green)}
+.brand{font-family:var(--family);font-weight:400;font-size:32px;letter-spacing:-.5px}.brand-icon{border-radius:50%;background:var(--ink);width:38px;height:38px}.brand-dot{color:var(--green)}
 .tabs{background:none;border:0;border-radius:0;padding:0;gap:30px;margin:20px 0 0;box-shadow:none}
 .tabs button{border-radius:0;padding:12px 0;border-bottom:2px solid transparent;font-weight:500}
 .tabs button[aria-selected=true]{background:none;box-shadow:none;border-bottom-color:var(--ink)}
@@ -20,7 +18,7 @@ body{background:var(--paper)}
 .route-art{position:relative;overflow:hidden;background:#2349e9;min-height:390px;color:#eff2db;isolation:isolate;border-radius:2px}
 .orbit{position:absolute;border:1px solid #d0dcff66;border-radius:50%;width:480px;height:480px;left:60px;top:-43px;transform:rotate(-30deg)}
 .orbit-two{width:270px;left:165px}.orbit-three{width:100px;left:250px}.route-art::after{content:'';position:absolute;left:-10%;top:50%;width:120%;height:1px;background:#d0dcff66;transform:rotate(-30deg)}
-.art-word{position:absolute;font-family:var(--display-family);font-size:clamp(52px,6vw,86px);font-weight:400;letter-spacing:-1px;line-height:1;top:94px;left:35px;z-index:1}
+.art-word{position:absolute;font-family:var(--family);font-size:clamp(52px,6vw,86px);font-weight:400;letter-spacing:-1px;line-height:1;top:94px;left:35px;z-index:1}
 .art-north{position:absolute;top:24px;left:28px;font-size:10px;letter-spacing:3px}.art-caption{position:absolute;bottom:24px;left:28px;letter-spacing:2px;font-size:9px}
 .art-plane{position:absolute;right:24px;top:24px;font-size:90px;font-weight:400;line-height:1;color:var(--lime)}
 .art-sticker{position:absolute;bottom:28px;right:25px;background:var(--lime);color:var(--ink);width:95px;height:95px;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(9deg);font-size:12px;border-radius:50%;z-index:2}.art-sticker b{font-size:22px;margin-top:3px}

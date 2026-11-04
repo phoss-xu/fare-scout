@@ -1,3 +1,4 @@
+import {icon} from './ui-icons.js';
 import {request} from './api.js';
 import {tr} from './i18n.js';
 import {currencyLabel} from './currency.js';
@@ -8,7 +9,7 @@ import {shareURL,shareMarkup,bindShare} from './trip-sharing.js';
 function dialog(id,title) {
   let d=document.getElementById(id);if(!d){d=document.createElement('dialog');d.id=id;d.className='trip-dialog';document.body.append(d);}
   d.setAttribute('aria-labelledby',id+'-title');
-  d.innerHTML=`<div class="dialog-head"><div><p class="eyebrow">FARE SCOUT / YOUR NEXT TRIP</p><h2 id="${id}-title">${title}</h2></div><button type="button" class="icon-btn" aria-label="${tr('关闭','Close')}">×</button></div><div class="trip-dialog-body"></div>`;
+  d.innerHTML=`<div class="dialog-head"><div><p class="eyebrow">FARE SCOUT / YOUR NEXT TRIP</p><h2 id="${id}-title">${title}</h2></div><button type="button" class="icon-btn" aria-label="${tr('关闭','Close')}">${icon('close')}</button></div><div class="trip-dialog-body"></div>`;
   d.querySelector('.icon-btn').onclick=()=>d.close();return d;
 }
 export async function openShare(snapshot,isCurrent=()=>true) {

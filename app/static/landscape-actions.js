@@ -16,7 +16,7 @@ function safeSource(value) {
 }
 export function setupLandscapeActions(scene) {
   const heart = scene.querySelector('#atlas-like'), download = scene.querySelector('#atlas-download');
-  const status = scene.querySelector('#atlas-action-status'), list = scene.querySelector('#atlas-likes');
+  const status = scene.querySelector('#atlas-action-status'), list = document.querySelector('#atlas-likes');
   let photo;
   document.addEventListener('languagechange',()=>sync());
   function sync() {
@@ -24,7 +24,7 @@ export function setupLandscapeActions(scene) {
     heart.setAttribute('aria-pressed', String(liked));
     const label = liked ? tr('取消喜欢','Unlike') : tr('喜欢','Like');
     heart.setAttribute('aria-label', label); heart.title = label;
-    scene.querySelector('#atlas-likes-count').textContent = tr(`我的喜欢（${likes.length}）`,`My favourites (${likes.length})`);
+    document.querySelector('#atlas-likes-count').textContent = tr(`我的喜欢（${likes.length}）`,`My favourites (${likes.length})`);
     list.replaceChildren();
     if (!likes.length) list.textContent = tr("暂无喜欢","No favourites yet");
     for (const item of [...likes].reverse()) {
@@ -43,7 +43,7 @@ export function setupLandscapeActions(scene) {
     try { status.textContent = toggleLike(photo) ? tr("已喜欢","Added to favourites") : tr("已取消喜欢","Removed from favourites."); sync(); }
     catch (error) { console.warn('Landscape like failed', error.name); status.textContent = tr("保存失败，请重试","Could not save · Retry"); }
   });
-  // Download the licensed displayed size. The original and its terms remain linked beside it.
+  // Download the licensed displayed size. The original and its terms remain available in scenery settings.
   download.addEventListener('click', async () => {
     if (!photo?.downloadUrl || download.disabled) return;
     const selected = photo; download.disabled = true; status.textContent = tr("正在准备图片…","Preparing image…");

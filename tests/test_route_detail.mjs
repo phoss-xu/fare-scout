@@ -37,3 +37,16 @@ test('route follow-up requests keep selected airport dates, travellers and sourc
  assert.equal(data.end,base.inbound.departureTime.slice(0,10));assert.equal(data.max_stops,1);
  const one=comparisonRequest({...base,inbound:null},{});assert.equal(one.trip_type,'oneway');assert.equal(one.end,one.start);
 });
+test('independent date and local time filters support overnight windows',()=>{
+ assert.deepEqual(routeOptions([base,late],{outDate:'2099-11-16',inDate:'2099-11-18',outFrom:'21:00',outTo:'06:00',inFrom:'02:00',inTo:'04:00'}),[late]);
+ assert.deepEqual(routeOptions([late],{inDate:'2099-11-19'}),[]);
+ assert.deepEqual(routeOptions([late],{outFrom:'08:00',outTo:'20:00'}),[]);
+ assert.deepEqual(routeOptions([late],{inFrom:'04:00'}),[]);
+});
+test('custom search dates override the displayed itinerary without changing source offer',async()=>{
+ const {comparisonRequest}=await import('../app/static/route-detail-search.js');
+ const data=comparisonRequest(base,{}, {outDate:'2099-12-01',inDate:'2099-12-08'});
+ assert.equal(data.start,'2099-12-01');assert.equal(data.end,'2099-12-08');
+ const single=comparisonRequest({...base,inbound:null},{},{outDate:'2099-12-03',inDate:'2099-12-08'});
+ assert.equal(single.start,single.end);
+});

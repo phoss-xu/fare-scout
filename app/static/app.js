@@ -1,3 +1,4 @@
+import {loadDestinationPhotos} from './route-card-views.js';
 import {setupTripActions} from './trip-actions.js';
 import {updateTripState} from './trip-state.js';
 import {visibilityPoll} from './polling.js';
@@ -68,11 +69,20 @@ async function refresh() {
     refreshFailed=true;
     if (requestGeneration !== generation) return;
     if (error.status === 401) { showSession(null); return; }
-    $('#page-error').textContent = tr("暂时连接不上服务，页面会自动重试。","Cannot reach the service. Retrying automatically.");
+    $('#page-error').textContent = error.status
+      ? tr('暂时无法读取行程数据，页面会自动重试。','Could not load your trip data. Retrying automatically.')
+      : tr("暂时连接不上服务，页面会自动重试。","Cannot reach the service. Retrying automatically.");
     $('#page-error').hidden = false;
-    $('#summary').textContent = tr("连接中断","Connection lost");
+    $('#summary').textContent = error.status
+      ? tr('数据暂时无法读取','Trip data unavailable')
+      : tr("连接中断","Connection lost");
   } finally { refreshing = false; }
 }
+loadDestinationPhotos().then(()=>{
+  if(!state)return;
+  $('#watches').innerHTML=watchCards(state)+removedItems(state,'watches');
+  $('#offers').innerHTML=offerCards(state)+removedItems(state,'offers');
+});
 setupLanguage();
 setupWorkspace();
 setupAppearance();

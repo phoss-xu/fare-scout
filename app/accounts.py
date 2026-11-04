@@ -99,25 +99,38 @@ def setup_token(email, replace=True):
     return token
 
 
+def recovery_token(email):
+    """Issue a 15-minute password reset capability from the local terminal only."""
+    token = secrets.token_urlsafe(32)
+    with store.connect() as db:
+        row = db.execute("SELECT id FROM users WHERE email=?", (canonical_email(email),)).fetchone()
+        if not row:
+            raise ValueError("该账号不存在。")
+        db.execute("DELETE FROM setup_tokens WHERE user_id=?", (row["id"],))
+        db.execute("INSERT INTO setup_tokens VALUES(?,?,?)", (hashlib.sha256(token.encode()).hexdigest(), row["id"], time.time() + 900))
+    return token
+
+
 def activate(data):
     token = data.get("token")
     if not isinstance(token, str) or len(token) > 128:
-        raise AuthError("初始化入口无效或已过期。", 400)
+        raise AuthError("设置密码入口无效或已过期。", 400)
     token_hash = hashlib.sha256(token.encode()).hexdigest()
     with store.connect() as db:
         row = db.execute("""SELECT u.* FROM setup_tokens t JOIN users u ON u.id=t.user_id
-            WHERE t.token_hash=? AND t.expires_at>? AND u.password_hash IS NULL""", (token_hash, time.time())).fetchone()
+            WHERE t.token_hash=? AND t.expires_at>?""", (token_hash, time.time())).fetchone()
     if not row:
-        raise AuthError("初始化入口无效或已过期。", 400)
+        raise AuthError("设置密码入口无效或已过期。", 400)
     hashed = passwords.hash_password(passwords.validate(data.get("password")))
     with store.connect() as db:
         # Conditional update ensures concurrent requests cannot reuse a setup capability.
-        changed = db.execute("""UPDATE users SET password_hash=? WHERE id=? AND password_hash IS NULL
+        changed = db.execute("""UPDATE users SET password_hash=? WHERE id=?
             AND EXISTS(SELECT 1 FROM setup_tokens WHERE token_hash=? AND expires_at>?)""",
                              (hashed, row["id"], token_hash, time.time())).rowcount
         if not changed:
-            raise AuthError("初始化入口已使用，请直接登录。", 400)
+            raise AuthError("设置密码入口已使用，请直接登录。", 400)
         db.execute("DELETE FROM setup_tokens WHERE user_id=?", (row["id"],))
+        db.execute("DELETE FROM sessions WHERE user_id=?", (row["id"],))
     return public_user(row)
 
 
@@ -137,8 +150,13 @@ if __name__ == "__main__":
     import argparse
     import getpass
     parser = argparse.ArgumentParser(description="本机账号管理")
-    parser.add_argument("command", choices=["set-password"])
+    parser.add_argument("command", choices=["set-password", "reset-password-link"])
     parser.add_argument("email")
+    parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
-    set_password(args.email, getpass.getpass("新密码（输入隐藏）："))
-    print("密码已设置，旧会话和初始化入口已失效。")
+    if args.command == "reset-password-link":
+        token = recovery_token(args.email)
+        print(f"重设密码入口（15 分钟内有效，仅可使用一次）：http://localhost:{args.port}/setup#token={token}")
+    else:
+        set_password(args.email, getpass.getpass("新密码（输入隐藏）："))
+        print("密码已设置，旧会话和初始化入口已失效。")

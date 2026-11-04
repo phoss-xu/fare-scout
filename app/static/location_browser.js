@@ -1,3 +1,4 @@
+import {icon} from './ui-icons.js';
 import {tr} from './i18n.js';
 import {request} from './api.js';
 import {escape} from './format.js';
@@ -8,6 +9,7 @@ export function locationBrowser({label,multiple,values,choose}) {
   const dialog=document.createElement('dialog'), id=`location-browser-${++count}`;
   dialog.className='location-dialog';dialog.setAttribute('aria-labelledby',id);
   dialog.innerHTML=`<div class="dialog-head"><div><h2 id="${id}${tr("\">选择","\">Choose ")}${label}${tr("</h2></div><button type=\"button\" class=\"icon-btn\" data-lb-close aria-label=\"关闭地点选择\">×</button></div><input class=\"location-browser-search\" type=\"search\" aria-label=\"在地点浏览器搜索","</h2></div><button type=\"button\" class=\"icon-btn\" data-lb-close aria-label=\"Close location picker\">×</button></div><input class=\"location-browser-search\" type=\"search\" aria-label=\"Search locations: ")}${label}${tr("\" placeholder=\"输入城市、国家、机场或代码\"><nav class=\"location-categories\" aria-label=\"地点分类\"></nav><p class=\"location-browser-note\" role=\"status\"></p><div class=\"location-browser-body\"></div><div class=\"location-browser-footer\"><span class=\"location-selection-summary\"></span><button type=\"button\" class=\"primary\" data-lb-close>完成选择</button></div>","\" placeholder=\"Enter a city, country, airport or code\"><nav class=\"location-categories\" aria-label=\"Location categories\"></nav><p class=\"location-browser-note\" role=\"status\"></p><div class=\"location-browser-body\"></div><div class=\"location-browser-footer\"><span class=\"location-selection-summary\"></span><button type=\"button\" class=\"primary\" data-lb-close>Done</button></div>")}`;
+  dialog.querySelector('.icon-btn').innerHTML=icon('close');
   document.body.append(dialog);
   const input=dialog.querySelector('input'), nav=dialog.querySelector('nav');
   function chrome() {

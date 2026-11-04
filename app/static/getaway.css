@@ -18,7 +18,7 @@
 .atlas-caption{align-self:end;justify-self:end;width:100%;max-width:295px;border-top:0;padding:20px 0 14px;margin-bottom:32px;text-shadow:0 1px 15px #152a25}
 .caption-index{font-size:8px;letter-spacing:1px;color:var(--scene-muted)}
 #deals-panel .atlas-location{color:var(--scene-ink);font-size:10px;letter-spacing:2px;margin:20px 0 8px}
-#deals-panel #atlas-title{font:400 clamp(29px,3.5vw,46px)/1.15 var(--display-family);letter-spacing:-1px;margin:0 0 8px;overflow-wrap:anywhere;color:var(--scene-ink)}
+#deals-panel #atlas-title{font:400 clamp(29px,3.5vw,46px)/1.15 var(--family);letter-spacing:-1px;margin:0 0 8px;overflow-wrap:anywhere;color:var(--scene-ink)}
 #deals-panel #atlas-name{font:400 14px/1.6 var(--family);letter-spacing:2px;color:var(--scene-ink)}
 #deals-panel .atlas-description{font-size:11px;line-height:1.8;color:var(--scene-muted);max-width:25em;margin:10px 0;text-shadow:none}
 #deals-panel .atlas-bottom{border-top:0;padding-top:14px;gap:14px}

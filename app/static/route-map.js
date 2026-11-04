@@ -28,9 +28,9 @@ export function mountRouteMap(container,data) {
     }
     function select(index) {
       const group=groups[index];chart.select(index);browse.hidden=true;detail.hidden=false;
-      detail.innerHTML=`<button type="button" class="map-back" data-map-back>← ${tr('全部目的地','All destinations')}</button>${destinationHero(group,photos)}${group.offers.length>1?`<label class="route-date-picker">${tr('选择出行日期','Choose travel dates')}<select aria-label="${tr('地图出行日期','Map travel dates')}">${group.offers.map((o,i)=>`<option value="${i}">${escape(o.outbound.departureTime.slice(0,10))}${o.inbound?' → '+escape(o.inbound.departureTime.slice(0,10)):''} · ${escape(amount(o.price,o.currency || data.context?.currency))}</option>`).join('')}</select></label>`:''}<div class="route-popup-offer">${dealCards([group.offers[0]],data.all,data.adults,data.recommendation,data.context)}</div>`;
+      detail.innerHTML=`<button type="button" class="map-back" data-map-back>← ${tr('全部目的地','All destinations')}</button>${destinationHero(group,photos)}${group.offers.length>1?`<label class="route-date-picker">${tr('选择出行日期','Choose travel dates')}<select aria-label="${tr('地图出行日期','Map travel dates')}">${group.offers.map((o,i)=>`<option value="${i}">${escape(o.outbound.departureTime.slice(0,10))}${o.inbound?' → '+escape(o.inbound.departureTime.slice(0,10)):''} · ${escape(amount(o.price,o.currency || data.context?.currency))}</option>`).join('')}</select></label>`:''}<div class="route-popup-offer">${dealCards([group.offers[0]],data.all,data.adults,data.recommendation,{...data.context,destinationPhotos:{}})}</div>`;
       detail.querySelector('.map-back').focus({preventScroll:true});
-      detail.querySelector('select')?.addEventListener('change',event=>{detail.querySelector('.route-popup-offer').innerHTML=dealCards([group.offers[Number(event.target.value)]],data.all,data.adults,data.recommendation,data.context);});
+      detail.querySelector('select')?.addEventListener('change',event=>{detail.querySelector('.route-popup-offer').innerHTML=dealCards([group.offers[Number(event.target.value)]],data.all,data.adults,data.recommendation,{...data.context,destinationPhotos:{}});});
     }
     chart=mountRouteChart(canvas,groups,geo,select);
     search.addEventListener('input',renderList);renderList();

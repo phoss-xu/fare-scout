@@ -2,6 +2,13 @@ import {escape} from './format.js';
 
 /** Shared action symbols; labels remain available to assistive technology and tooltips. */
 export const icons={
+ close:'<path d="m6 6 12 12M6 18 18 6"/>',
+ more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+ play:'<path d="m8 4 12 8-12 8Z"/>',
+ pause:'<path d="M8 4v16M16 4v16"/>',
+ list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/>',
+ cards:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+ map:'<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Zm6-3v15m6-12v15"/>',
  heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
  heartBroken:'<path d="m12 4-2 4 4 3-4 3 2 7M8.5 4.2A5.5 5.5 0 0 0 3.1 13L12 21l8.9-8a5.5 5.5 0 0 0-5.4-8.8"/>',
  share:'<path d="M12 16V3m-5 5 5-5 5 5M5 13v7h14v-7"/>',

@@ -8,11 +8,12 @@
     "build": "wrangler deploy --dry-run --outdir dist",
     "test:workers": "node --test cloudflare/tests/*.test.mjs",
     "test:frontend": "node --test tests/*.mjs",
-    "predev": "python3 scripts/build_cloudflare_data.py && npm run assets:passkeys && npm run assets:maps",
+    "predev": "npm run db:local && python3 scripts/build_cloudflare_data.py && npm run assets:passkeys && npm run assets:maps",
     "prebuild": "python3 scripts/build_cloudflare_data.py && npm run assets:passkeys && npm run assets:maps",
     "test:source": "node cloudflare/tests/live-source.mjs",
     "assets:passkeys": "node scripts/build_passkeys.mjs",
-    "assets:maps": "node scripts/build_maps.mjs"
+    "assets:maps": "node scripts/build_maps.mjs",
+    "test:local-passkeys": "node --test tests/local-passkeys.integration.js"
   },
   "dependencies": {
     "@noble/hashes": "^2.4.0",
