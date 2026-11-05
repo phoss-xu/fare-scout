@@ -7,3 +7,20 @@
 .place-anywhere>.place-title,.place-anywhere>.place-search,.place-anywhere>.place-selected,.place-anywhere>.place-results,.place-anywhere>.place-message{display:none}
 .place-card{display:flex;align-items:center;width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;background:var(--white)}.place-card .place-current{flex:1;min-width:0;border:0;min-height:78px;padding-right:4px}.place-card .place-current small{overflow-wrap:anywhere}.place-card:has(.place-current:hover){border-color:var(--green)}.place-card-remove{flex:none;display:grid;place-items:center;width:28px;min-height:36px;margin-right:4px;border:0;border-radius:4px;background:none;color:var(--muted);font-size:18px}.place-card-remove:hover,.place-card-remove:focus-visible{background:var(--surface-soft);color:var(--green)}.place-add{border:0;background:none;color:var(--green);font:var(--caption-5);padding:6px 0;min-height:32px}.place-add:hover{text-decoration:underline}
 @media(max-width:760px){.place-card{align-items:start}.place-card .place-current{min-height:94px}.place-card-remove{margin-top:4px;width:24px}.place-card .place-change{margin-top:auto}}
+.destination-discovery{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.destination-discovery-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.destination-discovery-heading strong{font-size:14px;font-weight:500}
+.destination-discovery-heading small{font-size:11px;color:var(--muted)}
+.destination-discovery nav{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.destination-discovery button{min-height:36px;padding:6px 10px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--ink);font-size:13px}
+.destination-discovery nav button{font-size:12px;color:var(--muted)}
+.destination-discovery button:hover,.destination-discovery button:focus-visible{background:var(--surface-soft);color:var(--green)}
+.destination-discovery button[aria-pressed=true]{background:var(--surface-soft);color:var(--green);border-color:var(--line)}
+.destination-discovery-countries{display:grid;gap:6px}
+.destination-discovery-country{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:baseline;gap:8px}
+.destination-discovery-country>span{color:var(--muted);font-size:12px;padding-top:8px;overflow-wrap:anywhere}
+.destination-discovery-country>div{display:flex;flex-wrap:wrap;gap:2px}
+.destination-discovery [role=status]{font-size:12px;color:var(--muted);margin:8px 0 0}
+.destination-discovery [role=status]:empty{display:none}
+@media(max-width:760px){.destination-discovery-heading{flex-wrap:wrap}.destination-discovery-country{grid-template-columns:60px minmax(0,1fr);gap:4px}.destination-discovery button{min-height:44px;padding:8px}.destination-discovery nav{gap:2px}}
+@media(min-width:761px){.journey-destination .journey-editor{max-height: min(680px,calc(100dvh - 40px));overflow-y:auto;overscroll-behavior:contain}}

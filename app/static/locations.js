@@ -1,6 +1,7 @@
 import {tr} from './i18n.js';
 import {request} from './api.js';
 import {escape} from './format.js';
+import {destinationDiscovery} from './destination-discovery.js';
 import {locationBrowser} from './location_browser.js';
 import {subscribeHistory,rememberLocation} from './location_history.js';
 const names={get country(){return tr("国家/地区","Country/region");},get city(){return tr("城市","City");},get airport(){return tr("机场","Airport");},get group(){return tr("范围","Scope");}};
@@ -14,6 +15,7 @@ export function picker(root,multiple,changed=()=>{},{editableSelection=false,max
   const chips=root.querySelector('.place-selected'), message=root.querySelector('.place-message');
   const browser=locationBrowser({label,multiple,values:()=>selected.map(row=>row.id),choose});
   const recent=root.querySelector('.place-recent'),role=label==='出发地'?'origin':'destination';
+  const discovery=multiple && label==='目的地'?destinationDiscovery(root,{values:()=>selected.map(row=>row.id),choose}):null;
   let history=[];
   function renderHistory(){
     const rows=history.filter(row=>!selected.some(item=>item.id===row.id));
@@ -39,7 +41,7 @@ export function picker(root,multiple,changed=()=>{},{editableSelection=false,max
     const compact=editableSelection && selected.length && !editing;
     root.querySelector('.place-search').hidden=false;
     chips.innerHTML=compact?selected.map(card).join('')+(multiple?`${tr("<button type=\"button\" class=\"place-add\" data-browse>＋ 添加","<button type=\"button\" class=\"place-add\" data-browse>＋ Add ")}${labelText()}</button>`:''):selected.map(row=>`<span class="place-chip"><span>${escape(row.name)} <small>${names[row.kind]} · ${row.code}</small></span><button type="button" data-remove="${row.id}${tr("\" aria-label=\"移除","\" aria-label=\"Remove ")}${escape(row.name)}">×</button></span>`).join('');
-    renderHistory();changed();
+    renderHistory();discovery?.render();changed();
   }
   function choose(row,toggle=false) {
     const exists=selected.some(item=>item.id===row.id);

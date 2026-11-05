@@ -105,6 +105,7 @@ class Handler(BaseHTTPRequestHandler):
                  "/settings.css": ("settings.css", "text/css"),
                  "/assets/coast-dawn.jpg": ("assets/coast-dawn.jpg", "image/jpeg"),
                  "/nights.js": ("nights.js", "text/javascript"), "/nights.css": ("nights.css", "text/css"),
+                 "/destination-discovery.js": ("destination-discovery.js", "text/javascript"),
                  "/location_browser.js": ("location_browser.js", "text/javascript"),
                  "/location_browser.css": ("location_browser.css", "text/css"),
                  "/api.js": ("api.js", "text/javascript"), "/views.js": ("views.js", "text/javascript"),
