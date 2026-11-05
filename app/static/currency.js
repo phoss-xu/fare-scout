@@ -4,8 +4,8 @@ let rates={HKD:{rate:1,date:null}},status='idle',pending;
 const listeners=new Set();
 export function exchangeState() {return {status,...rates[getPreferences().currency]};}
 export function subscribeCurrency(listener) {listeners.add(listener);return ()=>listeners.delete(listener);}
-export async function ensureRates() {
-  if(getPreferences().currency==='HKD') return;
+export async function ensureRates(source='HKD') {
+  if(getPreferences().currency==='HKD' && source==='HKD') return;
   if(pending) return pending;
   status='loading';listeners.forEach(fn=>fn());
   pending=(async()=>{
@@ -15,6 +15,8 @@ export async function ensureRates() {
   })();
   return pending;
 }
+const symbols={CNY:'¥',JPY:'¥',USD:'$',HKD:'HK$',EUR:'€',GBP:'£',SGD:'S$',AUD:'A$',CAD:'C$'};
+export const currencySymbol=code=>symbols[code] || code;
 const labels={HKD:'港币',CNY:'人民币',USD:'美元',EUR:'欧元',JPY:'日元',GBP:'英镑',SGD:'新加坡元',AUD:'澳元',CAD:'加元'};
 export function currencyLabel(code) {return getPreferences().language==='zh-CN'?(labels[code] || code):code;}
 export function displayAmount(value,source='HKD') {

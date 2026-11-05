@@ -1,6 +1,7 @@
 import {removedOffers} from './observation-history.js';
 import {alertPage} from './alert-pages.js';
 import {cleanSourceCache} from './source-cache.js';
+import {priceHistory,cleanPriceHistory} from './price-history.js';
 import * as trips from './trips.js';
 import * as searchPresets from './search-presets.js';
 import {ApiError,ensure,report} from './db.js';
@@ -32,6 +33,7 @@ async function api(request,env,ctx) {
     if(path==='/api/auth/session') return json({...await current(request,db)||{user:null},auth_mode:env.AUTH_MODE||'password',auth_methods:enabledAuthMethods(env)});
     if(path.startsWith('/api/shared-trips/')) return json(await trips.shared(db,path.slice('/api/shared-trips/'.length)));
     const user=await requireUser(request,db);
+    if(path.startsWith('/api/price-history/')) return json(await priceHistory(db,user.id,path.slice('/api/price-history/'.length)));
     if(path==='/api/trips') return json(await trips.listed(db,user.id));
     if(path==='/api/removed-offers') return json(await removedOffers(db,user.id,url.searchParams.get('before')));
     if(path==='/api/alerts') return json(await alertPage(db,user.id,url.searchParams.get('before')));
@@ -115,6 +117,7 @@ export default {
   async scheduled(controller,env,ctx) {
     return trackScheduled(env,async()=>{
       await cleanSourceCache(env.DB);
+      await cleanPriceHistory(env.DB);
       await schedule(env.DB,env.QUERY_ENABLED==='true');
       await dailyTick(env);
       // Bounded network work, with pending and retry tasks left durably for the next trigger.

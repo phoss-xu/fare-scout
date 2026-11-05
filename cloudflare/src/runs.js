@@ -2,6 +2,7 @@ import {all,first,batch,run,now,ensure} from './db.js';
 import {jobs,today} from './domain.js';
 import {origins,destinations,resolve} from './locations.js';
 import {watch} from './store.js';
+import {annotatePrices} from './price-history.js';
 export async function enqueueWatch(db,id,automatic=false) {
   const c=await watch(db,id);
   if(!c || c.deleted_at || (automatic && !c.auto_enabled)) return null;
@@ -40,10 +41,10 @@ export async function dealResult(db,id,userId) {
   const checked=tasks.filter(t=>t.status==='done' && t.source_checked_at).map(t=>t.source_checked_at).sort();
   for(const task of tasks) for(const o of JSON.parse(task.offers||'[]')) {
     const airport=resolve('airport:'+o.outbound.to),key=config.comparison?JSON.stringify([o.outbound,o.inbound || null]):(airport.city_code || airport.code)+(config.date_pairs?'|'+o.outbound.departureTime.slice(0,10)+'|'+o.inbound.departureTime.slice(0,10):'');
-    if(!best.has(key)||o.price<best.get(key).price) best.set(key,o);
+    if(!best.has(key)||o.price<best.get(key).price) best.set(key,{...o,_checked_at:task.source_checked_at});
   }
   return {id,status:row.status,config:JSON.parse(row.config),completed:tasks.filter(t=>['done','error','cancelled'].includes(t.status)).length,total:row.total,
-    failures:tasks.filter(t=>t.status==='error').length,offers:[...best.values()].sort((a,b)=>a.price-b.price),source:'Kiwi',checked_at:checked[0]||row.finished_at,cached:tasks.some(t=>t.cache_hit)};
+    failures:tasks.filter(t=>t.status==='error').length,offers:await annotatePrices(db,userId,config,[...best.values()].sort((a,b)=>a.price-b.price)),source:'Kiwi',checked_at:checked[0]||row.finished_at,cached:tasks.some(t=>t.cache_hit)};
 }
 export async function finalize(db,id) {
   const r=await first(db,"SELECT * FROM search_runs WHERE id=? AND status='running'",[id]);

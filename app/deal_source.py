@@ -3,7 +3,7 @@ import math
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
-from . import locations
+from . import locations, time_windows
 
 # Shared across local discovery runs, rather than a new pool for each account.
 POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix='fare-deal-source')
@@ -31,6 +31,10 @@ def query(config, origin, scope, kiwi_factory, accepts):
         args['price_to'] = math.floor(config['budget'])
     if config['weekdays']:
         args['fly_days'] = ','.join(str((day+1) % 7) for day in config['weekdays'])
+    if config.get('time_windows'):
+        for key in ('nights_in_dst_from', 'nights_in_dst_to', 'fly_days'):
+            args.pop(key, None)
+        args.update(time_windows.arguments(config, fmt))
     if config.get('comparison'):
         args['one_for_city'] = False
     kiwi = kiwi_factory()

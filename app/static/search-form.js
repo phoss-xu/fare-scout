@@ -1,6 +1,7 @@
 import {getPreferences,setPreferences} from './preferences.js';
 import {tr} from './i18n.js';
 import {selectedNights} from './nights.js';
+import {captureWindows,restoreWindows} from './time-windows.js';
 import {selectedWeekends} from './travel-dates.js';
 
 export function captureSearch(form, origin, destinations) {
@@ -16,6 +17,13 @@ export function captureSearch(form, origin, destinations) {
     if(!data.date_pairs.length) throw new Error(tr('请至少选择一个周末。','Select at least one weekend.'));
     data.date_mode='fixed';data.start=data.date_pairs[0].start;data.end=data.date_pairs.at(-1).end;
   } else delete data.date_pairs;
+  if(data.date_mode==='windows') {
+    data.time_windows=captureWindows(form);
+    data.start=data.time_windows.outbound.start.slice(0,10);
+    data.end=(data.time_windows.inbound || data.time_windows.outbound).end.slice(0,10);
+    data.nights=[];data.weekdays=[];
+  }
+  for(const key of Object.keys(data)) if(/^(outbound|inbound)_/.test(key) || key==='return_basis') delete data[key];
   return data;
 }
 
@@ -27,6 +35,7 @@ export async function restoreSearch(form, origin, destinations, config, isCurren
   if(form.elements.trip_type) form.elements.trip_type.value=config.trip_type || 'roundtrip';
   form.elements.date_mode.value=config.date_pairs?'weekends':config.date_mode;
   form.elements.date_pairs.value=JSON.stringify(config.date_pairs || []);
+  restoreWindows(form,config.time_windows);
   form.elements.anywhere.checked=!config.destinations.length;
   for(const [name,values] of [['night',config.nights],['weekday',config.weekdays]]) {
     form.querySelectorAll(`[name=${name}]`).forEach(box=>box.checked=values.includes(Number(box.value)));

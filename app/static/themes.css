@@ -7,9 +7,9 @@
 :root[data-theme=night],.theme-choice[data-choice-theme=night]{--theme-bg:#1F2926;--theme-surface:#293530;--theme-text:#E5E8DC;--theme-muted:#B1C0B3;--theme-accent:#B7CFB3;--theme-on-accent:#1F2926;--theme-soft:#394D40;}
 
 :root{--theme-bg:#F4F2E9;--theme-surface:#FFFCF5;--theme-text:#293D31;--theme-muted:#66705F;--theme-accent:#254EDD;--theme-on-accent:#FFFFFF;--theme-soft:#E8EDDE}
-:root[data-theme]{--paper:var(--theme-bg);--white:var(--theme-surface);--ink:var(--theme-text);--muted:var(--theme-muted);--green:var(--theme-accent);--lime:var(--theme-soft);--surface-soft:var(--theme-soft);--on-accent:var(--theme-on-accent);--line:color-mix(in srgb,var(--ink) 20%,var(--paper));--hover:color-mix(in srgb,var(--green) 88%,var(--ink));--subtle:color-mix(in srgb,var(--surface-soft) 45%,var(--white));--date-bg:var(--surface-soft);--date-ink:var(--ink);--danger:#A13E27;--positive:#315F4C;--orange:#965021;color-scheme:light}
+:root[data-theme]{--paper:var(--theme-bg);--white:var(--theme-surface);--ink:var(--theme-text);--muted:var(--theme-muted);--green:var(--theme-accent);--lime:var(--theme-soft);--surface-soft:var(--theme-soft);--on-accent:var(--theme-on-accent);--line:color-mix(in srgb,var(--ink) 20%,var(--paper));--hover:color-mix(in srgb,var(--green) 88%,var(--ink));--subtle:color-mix(in srgb,var(--surface-soft) 45%,var(--white));--date-bg:var(--surface-soft);--date-ink:var(--ink);--danger:#A13E27;--fare:#B8202B;--positive:#315F4C;--orange:#965021;color-scheme:light}
 :root[data-theme=paper]{--date-bg:#FFF0CF;--date-ink:#58451D}
-:root[data-theme=night]{--danger:#F1A08A;--positive:#B7CFB3;--orange:#E5BC81;color-scheme:dark}
+:root[data-theme=night]{--danger:#F1A08A;--fare:#FFA49B;--positive:#B7CFB3;--orange:#E5BC81;color-scheme:dark}
 .primary,.search-submit{background:var(--green);border-color:var(--green);color:var(--on-accent)}
 .primary:hover:not(:disabled),.search-submit:hover:not(:disabled){background:var(--hover);color:var(--on-accent)}
 .error,.danger-btn{color:var(--danger)}.price,.badge,.success{color:var(--positive)}

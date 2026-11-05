@@ -1,7 +1,7 @@
-import {displayAmount} from './currency.js';
+import {displayAmount,currencySymbol} from './currency.js';
 export function bubblePrice(value,currency) {
-  const p=displayAmount(value,currency),symbols={CNY:'¥',JPY:'¥',USD:'$',HKD:'HK$',EUR:'€',GBP:'£',SGD:'S$',AUD:'A$',CAD:'C$'};
-  return `${p.converted?'≈ ':''}${symbols[p.code] || p.code}${p.amount.replace(/\.00$/,'')}`;
+  const p=displayAmount(value,currency);
+  return `${p.converted?'≈ ':''}${currencySymbol(p.code)}${p.amount.replace(/\.00$/,'')}`;
 }
 /** Select readable price pins at their real positions; density grows with the viewport. */
 export function bubbleLayout(points,width,height,selected=-1,reserved=[]) {

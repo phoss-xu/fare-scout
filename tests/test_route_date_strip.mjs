@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {dateWindow,shiftDay,dateStrip,queryPair} from '../app/static/route-date-strip.js';
 const base=JSON.parse(readFileSync(new URL('./fixtures/trip-snapshot.json',import.meta.url))).offer;
 test('adjacent dates stay continuous through months, leap days and years',()=>{
- assert.deepEqual(dateWindow('2028-03-01'),['2028-02-27','2028-02-28','2028-02-29','2028-03-01','2028-03-02','2028-03-03','2028-03-04']);
+ assert.deepEqual(dateWindow('2028-03-01'),['2028-02-28','2028-02-29','2028-03-01','2028-03-02','2028-03-03']);
  assert.equal(shiftDay('2026-12-31',1),'2027-01-01');
  assert.equal(shiftDay('2027-01-01',-7),'2026-12-25');
  assert.equal(shiftDay('invalid',1),'');
@@ -12,20 +12,20 @@ test('adjacent dates stay continuous through months, leap days and years',()=>{
 test('nearby days distinguish observed prices, unqueried days and a completed empty query',()=>{
  const state={outDate:'2099-11-14',inDate:'2099-11-15',today:'2099-11-12',checkedPairs:{'2099-11-13/2099-11-15':0}};
  const html=dateStrip([base],base,state,false,'HKD');
- assert.equal((html.match(/data-rd-day="2099/g)||[]).length,7);
+ assert.equal((html.match(/data-rd-day="2099/g)||[]).length,5);
  assert.match(html,/data-rd-day="2099-11-14"[^>]+aria-pressed="true"/);
- assert.match(html,/港币 1,234/);assert.match(html,/无匹配/);assert.match(html,/>查价<\/strong>/);
- assert.match(html,/data-rd-day="2099-11-11"[^>]+disabled/);
- assert.match(html,/data-rd-day="2099-11-17"[^>]+disabled/);
+ assert.match(html,/fare-value">1,234<\/span>/);assert.doesNotMatch(html,/港币|人民币/);assert.match(html,/无匹配/);assert.match(html,/>查价<\/strong>/);
+ assert.match(html,/data-rd-day="2099-11-12"[^>]+aria-pressed/);
+ assert.match(html,/data-rd-day="2099-11-16"[^>]+disabled/);
  assert.equal(queryPair(state),'2099-11-14/2099-11-15');
  const returning=dateStrip([base],base,state,true,'HKD');
  assert.match(returning,/data-rd-day="2099-11-13"[^>]+disabled/);
- assert.match(returning,/保持去程日期/);
+ assert.match(returning,/data-rd-day="2099-11-15"[^>]+aria-pressed="true"/);
 });
 test('switching outbound and return dates keeps each comparison on the other selected date',()=>{
  const differentReturn={...base,price:1,inbound:{...base.inbound,departureTime:'2099-11-19T08:00:00'}};
  const state={outDate:'2099-11-14',inDate:'2099-11-15',today:'2099-01-01'};
- assert.doesNotMatch(dateStrip([base,differentReturn],base,state,false,'HKD'),/>港币 1<\/strong>/);
+ assert.doesNotMatch(dateStrip([base,differentReturn],base,state,false,'HKD'),/>1<\/strong>/);
  const one={...base,inbound:null};
  assert.match(dateStrip([one],one,{outDate:'2099-11-14',today:'2099-01-01'},false,'HKD'),/单程起/);
 });

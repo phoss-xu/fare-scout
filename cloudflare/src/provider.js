@@ -1,5 +1,6 @@
 import {resolve,label} from './locations.js';
 import {matches,accepts,routeKey,plusDays} from './domain.js';
+import {windowArguments} from './time-windows.js';
 import {suitable} from './travel-time.js';
 export class SourceError extends Error {
   constructor(code,retryable=false) { super(code); this.code=code;this.retryable=retryable; }
@@ -24,6 +25,10 @@ export function argumentsFor(c,j,discovery) {
   if(c.trip_type==='oneway') {
     for(const key of ['returnDate','returnDateTo','nights_in_dst_from','nights_in_dst_to']) delete args[key];
     args.one_for_city=true;
+  }
+  if(discovery && c.time_windows) {
+    for(const key of ['nights_in_dst_from','nights_in_dst_to','fly_days']) delete args[key];
+    Object.assign(args,windowArguments(c,fmt,plusDays));
   }
   if(discovery && c.comparison) args.one_for_city=false;
   return args;

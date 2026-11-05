@@ -1,4 +1,5 @@
 import {ensure} from './db.js';
+import {validateWindows,acceptsWindows} from './time-windows.js';
 import {selections, expand, origins, destinations, resolve, contains} from './locations.js';
 export const today = () => new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 export const plusDays = (date, days) => new Date(Date.parse(date+'T00:00:00Z')+days*86400000).toISOString().slice(0,10);
@@ -23,6 +24,8 @@ export function validate(d, discovery = false) {
   const trip_type=d.trip_type ?? 'roundtrip';
   ensure(['roundtrip','oneway'].includes(trip_type), '请选择有效的行程类型。');
   const oneWay=trip_type==='oneway';
+  const timeWindows=discovery && d.date_mode==='windows'?validateWindows(d.time_windows,oneWay):null;
+  if(timeWindows) d={...d,start:timeWindows.outbound.start.slice(0,10),end:(timeWindows.inbound || timeWindows.outbound).end.slice(0,10)};
   if(oneWay && (d.date_mode==='fixed' || !discovery)) d={...d,end:d.start};
   const currency=d.currency ?? 'HKD';
   ensure(['HKD','CNY','USD','EUR','JPY','GBP','SGD','AUD','CAD'].includes(currency),'请选择支持的报价货币。');
@@ -41,13 +44,17 @@ export function validate(d, discovery = false) {
   if(oneWay) config.trip_type='oneway';
   if (discovery) {
     const date_mode=d.date_mode ?? 'range';
-    ensure(['range','fixed'].includes(date_mode), '请选择固定往返或灵活日期。');
+    ensure(['range','fixed','windows'].includes(date_mode), '请选择有效的日期方式。');
+    if(timeWindows) {
+      for(const w of Object.values(timeWindows)) ensure(w.start.slice(0,10)>=today() && w.end.slice(0,10)<=plusDays(today(),365) && w.end.slice(0,10)<=plusDays(w.start.slice(0,10),180),'请选择未来一年内的时间范围，单次跨度不超过 180 天。');
+      config.time_windows=timeWindows;
+    }
     let min_nights=number(d.min_nights,2),max_nights=number(d.max_nights,5),weekdays=d.weekdays ?? [];
     ensure(os.length*Math.max(1,ds.length)<=120, '这次选择超过 120 组出发地与目的地组合，请缩小范围。');
     ensure(end<=plusDays(start,180) && end<=plusDays(today(),365), '请选择未来一年内的出发时间，单次日期跨度不超过 180 天。');
     const selected=d.nights !== undefined ? d.nights : (Number.isInteger(min_nights) && Number.isInteger(max_nights) && min_nights>=1 && max_nights<=10 && min_nights<=max_nights ? Array.from({length:max_nights-min_nights+1},(_,i)=>min_nights+i) : []);
-    ensure(oneWay || date_mode==='fixed' || (Array.isArray(selected) && selected.length>0 && selected.every(n=>Number.isInteger(n)&&n>=1&&n<=10)), '请勾选 1–10 晚中的至少一项。');
-    const nights=oneWay || date_mode==='fixed'?[]:[...new Set(selected)].sort((a,b)=>a-b);
+    ensure(oneWay || date_mode!=='range' || (Array.isArray(selected) && selected.length>0 && selected.every(n=>Number.isInteger(n)&&n>=1&&n<=10)), '请勾选 1–10 晚中的至少一项。');
+    const nights=oneWay || date_mode!=='range'?[]:[...new Set(selected)].sort((a,b)=>a-b);
     min_nights=nights.length?Math.min(...nights):0;max_nights=nights.length?Math.max(...nights):0;
     ensure(Array.isArray(weekdays) && weekdays.every(n=>Number.isInteger(n)&&n>=0&&n<7), '请检查出发星期。');
     if(d.date_pairs!==undefined) {
@@ -66,7 +73,7 @@ export function validate(d, discovery = false) {
       ensure(date_mode==='fixed' && !config.date_pairs && os.length===1 && ds.length===1 && os[0].kind==='airport' && ds[0].kind==='airport','航线方案比较请选择一组机场与固定日期。');
       config.comparison=true;
     }
-    Object.assign(config,{locale:['zh-CN','en'].includes(d.locale)?d.locale:'zh-CN',trip_type,date_mode,nights,min_nights,max_nights,weekdays:date_mode==='fixed'?[]:[...new Set(weekdays)].sort()});
+    Object.assign(config,{locale:['zh-CN','en'].includes(d.locale)?d.locale:'zh-CN',trip_type,date_mode,nights,min_nights,max_nights,weekdays:date_mode!=='range'?[]:[...new Set(weekdays)].sort()});
   }
   return config;
 }
@@ -89,11 +96,14 @@ export function matches(offer,c,j) {
   return [out,back].every(leg=>Number.isInteger(leg.stops) && leg.stops>=0 && (c.max_stops<0 || leg.stops<=c.max_stops) && Number.isFinite(leg.durationSeconds) && leg.durationSeconds>0 && (!c.max_duration_hours || leg.durationSeconds<=c.max_duration_hours*3600));
 }
 export function accepts(offer,c,j) {
+  if(!acceptsWindows(offer,c)) return false;
   if(c.trip_type==='oneway') return acceptsOneWay(offer,c,j);
   const out=offer.outbound,back=offer.inbound;
   if (!out || !back || !localTime(out.arrivalTime)) return false;
   const dep=out.departureTime?.slice(0,10),ret=back.departureTime?.slice(0,10),nights=(Date.parse(ret)-Date.parse(out.arrivalTime.slice(0,10)))/86400000;
-  if (c.date_mode==='fixed') {
+  if(c.date_mode==='windows') {
+    if(c.budget && offer.price>c.budget) return false;
+  } else if (c.date_mode==='fixed') {
     const selected=c.date_pairs ? (j.window ? j.window.start===dep && j.window.end===ret : c.date_pairs.some(p=>p.start===dep && p.end===ret)) : dep===c.start && ret===c.end;
     if(!selected || (c.budget && offer.price>c.budget)) return false;
   } else if (!(dep>=c.start && dep<=c.end) || (c.weekdays.length && !c.weekdays.includes(weekday(dep))) || !(nights>=c.min_nights && nights<=c.max_nights) || (c.nights && !c.nights.includes(nights)) || (c.budget && offer.price>c.budget)) return false;
@@ -101,6 +111,7 @@ export function accepts(offer,c,j) {
 }
 function acceptsOneWay(offer,c,j) {
   const out=offer.outbound;
+  if(!acceptsWindows(offer,c)) return false;
   if(!out || offer.inbound || ![out.departureTime,out.arrivalTime].every(localTime)) return false;
   const dep=out.departureTime.slice(0,10);
   if(!(dep>=c.start && dep<=c.end) || (c.date_mode==='fixed' && dep!==c.start) || (c.weekdays.length && !c.weekdays.includes(weekday(dep)))) return false;

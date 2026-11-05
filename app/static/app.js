@@ -1,3 +1,4 @@
+import {setupDateInputs} from './date-input-picker.js';
 import {loadDestinationPhotos} from './route-card-views.js';
 import {setupTripActions} from './trip-actions.js';
 import {updateTripState} from './trip-state.js';
@@ -103,6 +104,7 @@ async function openWatch(data) {
   $('#create-dialog').showModal();
 }
 const discovery = setupDeals(openWatch);
+setupDateInputs();
 $('#new-watch').addEventListener('click', () => $('#create-dialog').showModal());
 document.addEventListener('click', async event => {
   const moreRemoved=event.target.closest('[data-removed-more]');

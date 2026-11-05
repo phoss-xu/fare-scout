@@ -66,6 +66,9 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError as exc:
                 return self.send(400, {"error": str(exc)})
         files = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
+                 "/price-history.js": ("price-history.js", "text/javascript"),
+                 "/price-history-view.js": ("price-history-view.js", "text/javascript"),
+                 "/price-history.css": ("price-history.css", "text/css"),
                  "/setup": ("index.html", "text/html"), "/auth.js": ("auth.js", "text/javascript"),
                  "/auth.css": ("auth.css", "text/css"),
                  "/flights.js": ("flights.js", "text/javascript"), "/format.js": ("format.js", "text/javascript"),
@@ -91,8 +94,13 @@ class Handler(BaseHTTPRequestHandler):
                  "/landscape.css": ("landscape.css", "text/css"),
                  "/getaway.css": ("getaway.css", "text/css"),
                  "/date-editor.css": ("date-editor.css", "text/css"),
+                 "/date-input-picker.js": ("date-input-picker.js", "text/javascript"),
+                 "/date-range-calendar.js": ("date-range-calendar.js", "text/javascript"),
+                 "/date-range-calendar.css": ("date-range-calendar.css", "text/css"),
                  "/date-editor-polish.css": ("date-editor-polish.css", "text/css"),
                  "/travel-dates.js": ("travel-dates.js", "text/javascript"),
+                 "/time-windows.js": ("time-windows.js", "text/javascript"),
+                 "/time-windows.css": ("time-windows.css", "text/css"),
                  "/search-presets.js": ("search-presets.js", "text/javascript"),
                  "/search-form.js": ("search-form.js", "text/javascript"),
                  "/search-presets.css": ("search-presets.css", "text/css"),
@@ -123,7 +131,7 @@ class Handler(BaseHTTPRequestHandler):
         for photo in (STATIC / "assets/destinations").glob("*"):
             if photo.suffix in (".jpg", ".png", ".webp"):
                 files[f"/assets/destinations/{photo.name}"] = (f"assets/destinations/{photo.name}", {".jpg":"image/jpeg", ".png":"image/png", ".webp":"image/webp"}[photo.suffix])
-        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("trip-snapshot", "trip-state", "trip-actions", "trip-dialogs", "trip-sharing", "shared-trip", "boarding-itinerary", "route-detail", "route-detail-model", "route-detail-views", "route-leg-picker", "route-date-strip", "route-detail-search", "result-comparison")})
+        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("trip-snapshot", "trip-state", "trip-actions", "trip-dialogs", "trip-sharing", "shared-trip", "boarding-itinerary", "route-detail", "route-detail-model", "route-detail-views", "route-leg-picker", "route-date-strip", "route-detail-search", "route-detail-prefetch", "result-comparison")})
         files["/boarding-itinerary.css"] = ("boarding-itinerary.css", "text/css")
         files["/scenic-workspace.css"] = ("scenic-workspace.css", "text/css")
         files["/product-ui.css"] = ("product-ui.css", "text/css")
@@ -136,6 +144,8 @@ class Handler(BaseHTTPRequestHandler):
             files[f"/{name}.css"] = (f"{name}.css", "text/css")
         files["/auth-motion-preview.html"] = ("auth-motion-preview.html", "text/html")
         files["/auth-scene.css"] = ("auth-scene.css", "text/css")
+        files.update({f"/{name}.js": (f"{name}.js", "text/javascript") for name in ("releases", "changelog")})
+        files["/changelog.css"] = ("changelog.css", "text/css")
         files["/ui-icons.js"] = ("ui-icons.js", "text/javascript")
         for name in ("auth-films", "auth-films-data", "film-preferences"):
             files[f"/{name}.js"] = (f"{name}.js", "text/javascript")

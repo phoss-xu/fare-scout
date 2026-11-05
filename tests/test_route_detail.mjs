@@ -69,7 +69,7 @@ test('return price differences use compatible complete quotes, and booking follo
  const unrelated={...base,price:100,outbound:{...base.outbound,departureTime:'2099-11-14T09:00:00'}};
  const html=routeDetailMarkup([base,alternate,unrelated],alternate,{adults:2},{outDate:'2099-11-14',inDate:'2099-11-15',sort:'price'});
  assert.match(html,/data-rd-outbound=/);assert.match(html,/选择返程/);
- assert.match(html,/不加价/);assert.match(html,/\+港币 266/);
+ assert.match(html,/aria-pressed="true"/);assert.match(html,/fare-symbol">\+HK\$<\/small><span class="fare-value">266/);
  assert.match(html,/href="https:\/\/example.test\/alternate"/);
  assert.match(html,/class="rd-itinerary" >/,'flight details start collapsed');
  assert.match(html,/1,500/);

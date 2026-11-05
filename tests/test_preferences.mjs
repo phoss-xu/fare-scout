@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {normalizePreferences,getPreferences,setPreferences,PREFERENCES_KEY} from '../app/static/preferences.js';
 import {validateRates,loadRates} from '../app/static/exchange-rates.js';
 import {displayAmount,ensureRates} from '../app/static/currency.js';
-import {price} from '../app/static/format.js';
+import {price,farePrice} from '../app/static/format.js';
 import {dealCards} from '../app/static/deal_views.js';
 
 const now=Date.parse('2026-11-02T08:00:00Z');
@@ -40,6 +40,7 @@ test('display conversion preserves source prices, original amount, date and Engl
   localStorage.setItem('fare-scout:exchange-rates',JSON.stringify({fetchedAt:realNow,rows:rows.map(row=>({...row,date}))}));
   setPreferences({language:'en',currency:'USD'});await ensureRates();
   assert.deepEqual(displayAmount(800),{code:'USD',date,converted:true,amount:'100'});
+  assert.match(farePrice(800,'HKD',false,true),/≈ \$/);assert.match(farePrice(800,'HKD',false,true),/Source quote HKD 800/);
   assert.match(price(800),/≈ USD/);assert.match(price(800),/Source quote HKD 800/);assert.match(price(800),new RegExp(date));
   const leg={from:'HKG',to:'SIN',departureTime:'2026-11-07T01:00:00',arrivalTime:'2026-11-07T05:00:00',durationSeconds:14400,stops:0};
   const offer={price:800,bookingUrl:'https://example.test/booking',outbound:leg,inbound:{...leg,from:'SIN',to:'HKG',departureTime:'2026-11-09T01:00:00',arrivalTime:'2026-11-09T05:00:00'}};
@@ -52,7 +53,9 @@ test('display conversion preserves source prices, original amount, date and Engl
 test('native selected currency is never converted twice and Chinese currency labels avoid raw codes',()=>{
   setPreferences({language:'zh-CN',currency:'CNY'});
   assert.deepEqual(displayAmount(599,'CNY'),{code:'CNY',date:null,converted:false,amount:'599'});
+  assert.match(farePrice(599,'CNY'),/fare-symbol">¥/);
   assert.match(price(599,'CNY'),/人民币/);assert.doesNotMatch(price(599,'CNY'),/≈|HKD|HK\$|CNY|参考汇率/);
   setPreferences({currency:'EUR'});
   assert.equal(displayAmount(599,'CNY').code,'CNY');
+  assert.match(farePrice(599,'CNY'),/title="CNY"/);assert.doesNotMatch(farePrice(599,'CNY'),/€/);
 });

@@ -38,6 +38,6 @@ export function setupOfferViews(container) {
   });
   return {
     render(offers,all,adults,recommendation=false,context={}){detail.close();data={offers,all,adults,recommendation,context};render();},
-    clear(){detail.close();disposeMap();disposeMap=()=>{};data=undefined;toolbar.hidden=true;delete container.dataset.offerView;}
+    clear(){detail.reset();disposeMap();disposeMap=()=>{};data=undefined;toolbar.hidden=true;delete container.dataset.offerView;}
   };
 }

@@ -6,6 +6,7 @@ import {today,policy} from './domain.js';
 import {label,stats} from './locations.js';
 import {mailStatus} from './mail.js';
 import {dailyState} from './daily.js';
+import {annotatePrices} from './price-history.js';
 const WATCH = 'SELECT w.*,s.* FROM watches w JOIN schedules s ON s.watch_id=w.id';
 export function decode(row) {
   return row && {...JSON.parse(row.config),...row,running:!!row.running,auto_enabled:!!row.auto_enabled,alerts_enabled:!!row.alerts_enabled};
@@ -57,6 +58,11 @@ export async function state(env,user) {
     dailyState(db,user.id),mailStatus(env,user.notification_email,user.id)
   ]);
   const watches=watchRows.map(decode),alerts=alertData.alerts;
+  const configs=new Map(watches.map(w=>[w.id,w]));
+  const priced=observations.filter(o=>o.offer);
+  const annotated=await annotatePrices(db,user.id,priced.map(o=>configs.get(o.watch_id)),priced.map(o=>({...o.offer,_checked_at:o.checked_at})));
+  const byId=new Map(priced.map((row,i)=>[row.id,annotated[i]]));
+  for(const row of observations)if(row.offer)row.offer=byId.get(row.id);
   const codes=new Set();
   for(const a of alerts) codes.add(a.destination);
   for(const w of watches) { codes.add(w.origin);for(const d of w.destinations) codes.add(d); }

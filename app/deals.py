@@ -2,7 +2,7 @@
 import math
 from datetime import date, datetime, timedelta
 
-from . import locations, location_scopes
+from . import locations, location_scopes, time_windows
 from .domain import matches, today, validate as validate_watch
 from .provider import Kiwi
 
@@ -12,11 +12,14 @@ def validate(data):
     if trip_type not in ('roundtrip', 'oneway'):
         raise ValueError('请选择有效的行程类型。')
     one_way = trip_type == 'oneway'
+    windows = time_windows.validate(data.get('time_windows'), one_way) if data.get('date_mode') == 'windows' else None
+    if windows:
+        data = dict(data, start=windows['outbound']['start'][:10], end=windows.get('inbound', windows['outbound'])['end'][:10])
     if one_way and data.get('date_mode') == 'fixed':
         data = dict(data, end=data.get('start'))
     date_mode = data.get('date_mode', 'range')
-    if date_mode not in ('range', 'fixed'):
-        raise ValueError('请选择固定往返或灵活日期。')
+    if date_mode not in ('range', 'fixed', 'windows'):
+        raise ValueError('请选择有效的日期方式。')
     raw = data.get('destinations', [])
     if not isinstance(raw, list) or len(raw) > 100:
         raise ValueError('每次最多选择 100 个目的地范围，也可以选择不限目的地。')
@@ -67,12 +70,19 @@ def validate(data):
     if comparison and (date_mode != 'fixed' or date_pairs is not None or len(origins) != 1 or len(scopes) != 1
                        or origins[0]['kind'] != 'airport' or scopes[0]['kind'] != 'airport'):
         raise ValueError('航线方案比较请选择一组机场与固定日期。')
-    return dict(base, **({'comparison':True} if comparison else {}), locale=data.get('locale') if data.get('locale') in ('zh-CN','en') else 'zh-CN', **({'date_pairs':date_pairs} if date_pairs is not None else {}), origin_locations=origins, origin_selections=origin_rows, destination_selections=destination_rows, destination_locations=scopes, destinations=[r['code'] for r in scopes],
+    if windows:
+        for window in windows.values():
+            first, last = date.fromisoformat(window['start'][:10]), date.fromisoformat(window['end'][:10])
+            if first < today() or last > today()+timedelta(days=365) or (last-first).days > 180:
+                raise ValueError('请选择未来一年内的时间范围，单次跨度不超过 180 天。')
+    return dict(base, **({'time_windows':windows} if windows else {}), **({'comparison':True} if comparison else {}), locale=data.get('locale') if data.get('locale') in ('zh-CN','en') else 'zh-CN', **({'date_pairs':date_pairs} if date_pairs is not None else {}), origin_locations=origins, origin_selections=origin_rows, destination_selections=destination_rows, destination_locations=scopes, destinations=[r['code'] for r in scopes],
                 min_nights=low, max_nights=high, nights=nights, date_mode=date_mode, trip_type=trip_type,
                 weekdays=sorted(set(weekdays)) if date_mode == 'range' else [])
 
 
 def accepts(offer, config, scope, origin=None):
+    if not time_windows.accepts(offer, config):
+        return False
     if config.get('trip_type') == 'oneway':
         from .oneway import accepts as accepts_oneway
         return accepts_oneway(offer, config, scope, origin)
@@ -85,8 +95,8 @@ def accepts(offer, config, scope, origin=None):
             if not any(dep.isoformat()==p['start'] and ret.isoformat()==p['end'] for p in config['date_pairs']):
                 return False
             config = config | {'start':dep.isoformat(),'end':ret.isoformat()}
-        fixed = config.get('date_mode') == 'fixed'
-        if fixed and (dep.isoformat() != config['start'] or ret.isoformat() != config['end']):
+        fixed = config.get('date_mode') in ('fixed', 'windows')
+        if config.get('date_mode') == 'fixed' and (dep.isoformat() != config['start'] or ret.isoformat() != config['end']):
             return False
         if not config['start'] <= dep.isoformat() <= config['end']:
             return False

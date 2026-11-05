@@ -1,3 +1,4 @@
+import {priceLevelLabel} from './price-history-view.js';
 import {tr} from './i18n.js';
 import {getPreferences} from './preferences.js';
 import {routeName,clusterPoints} from './route-projection.js';
@@ -31,7 +32,7 @@ export function mountRouteChart(container,groups,geo,onSelect) {
     }
     labels.forEach(point=>{
       const button=document.createElement('button');button.type='button';button.className='fare-bubble';button.textContent=bubblePrice(point.price,point.currency);
-      button.dataset.routeIndex=point.index;button.setAttribute('aria-label',`${routeName(groups[point.index])} · ${bubblePrice(point.price,point.currency)}`);button.setAttribute('aria-pressed',String(selected===point.index));button.title=routeName(groups[point.index]);
+      button.dataset.routeIndex=point.index;button.dataset.priceLevel=groups[point.index].offers[0].price_history?.level || '';button.setAttribute('aria-label',`${routeName(groups[point.index])} · ${bubblePrice(point.price,point.currency)}`);button.setAttribute('aria-pressed',String(selected===point.index));button.title=routeName(groups[point.index])+' · '+priceLevelLabel(button.dataset.priceLevel);
       button.onclick=()=>onSelect(point.index);marker(point,button,'bottom',[0,-8]);
     });
     clusterPoints(points.filter(p=>!labeled.has(p.index)),38).forEach(cluster=>{

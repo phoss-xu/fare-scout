@@ -4,6 +4,7 @@ import {querySource} from './source-cache.js';
 import {routeKey} from './domain.js';
 import {watch} from './store.js';
 import {finalize} from './runs.js';
+import {sampleQueries} from './price-history.js';
 // Every write, including observations and trigger-generated alerts, uses this fencing predicate.
 const ACTIVE = `EXISTS(SELECT 1 FROM search_tasks t JOIN search_runs r ON r.id=t.run_id
  WHERE t.id=? AND t.lease_token=? AND t.status='running' AND t.lease_until>? AND r.status='running'
@@ -11,6 +12,7 @@ const ACTIVE = `EXISTS(SELECT 1 FROM search_tasks t JOIN search_runs r ON r.id=t
  WHERE w.id=r.watch_id AND w.deleted_at IS NULL AND (r.automatic=0 OR s.auto_enabled=1))))`;
 async function record(db,task,c,job,offers,errorCode,sourceResult) {
   const timestamp=now(),queries=[],args=[task.id,task.lease_token,timestamp];
+  if(!errorCode) queries.push(...await sampleQueries(job.window?{...c,...job.window}:c,offers,sourceResult?.checkedAt || timestamp,ACTIVE,args));
   if(task.kind==='watch') {
     const searchId=((c.origin_locations||[]).length>1?job.origin_id+'|':'')+(job.location_id||'airport:'+job.destination);
     const batchId=task.id;

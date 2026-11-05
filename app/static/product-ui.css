@@ -57,7 +57,7 @@ body .settings-symbol svg{width:22px;height:22px}
 body .settings-summary strong{font-weight:400}
 body :is(.rd-date-rail button,.rd-option,.rd-selected,.rd-custom-dates fieldset){border-radius:var(--ui-radius);border-color:var(--ui-edge);box-shadow:none}
 body :is(.rd-date-rail [aria-pressed=true],.rd-option[aria-pressed=true]){background:var(--surface-soft);color:var(--ink);border-color:var(--green);box-shadow:none}
-body :is(.rd-date-rail [aria-pressed=true] strong,.rd-option-heading>strong,.rd-total>strong){color:var(--green);font-weight:500}
+body :is(.rd-date-rail strong:has(.fare-amount),.rd-option-heading>strong,.rd-total>strong){color:var(--fare);font-weight:700}
 body :is(.rd-book,.rd-load,.map-overview){min-height:44px;border:1px solid var(--ui-edge);border-radius:var(--ui-radius);background:var(--ui-control);color:var(--ink);box-shadow:none}
 body :is(.rd-book,.rd-load,.map-overview):hover{background:var(--surface-soft);border-color:var(--muted)}
 body .rd-footer{box-shadow:none}

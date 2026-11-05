@@ -1,3 +1,5 @@
+import {priceInsight} from './price-history-view.js';
+import {setupPriceHistory} from './price-history.js';
 import {offerPhoto,watchPhotos} from './route-card-views.js';
 import {registerTrip,tripTools,tripAlert,tripNote} from './trip-state.js';
 import {tr} from './i18n.js';
@@ -46,6 +48,7 @@ function bookingLink(value) {
   return tr("<span class=\"muted\">暂无核价链接</span>","<span class=\"muted\">No booking link available</span>");
 }
 export function offerCards(state) {
+  setupPriceHistory();
   return latest(state.observations).filter(o => o.status === 'ok' && !o.dismissed_at).map(o => {
     const w = state.watches.find(w => w.id === o.watch_id);
     const offer = o.offer;
@@ -54,7 +57,7 @@ export function offerCards(state) {
     const arrival = offer.outbound?.arrivalTime;
     const leave = offer.inbound?.departureTime;
     const hours = arrival && leave && offer.outbound?.to === offer.inbound?.from ? (new Date(leave) - new Date(arrival)) / 3600000 : NaN;
-    return `<article class="card">${offerPhoto(offer,state.destinationPhotos)}<div class="card-top"><span class="badge">${within ? tr("在你的预算内","Within your budget") : tr("最近采样报价","Latest observed fare")}</span><span class="muted">${time(o.checked_at)}</span>${tripTools(ref)}</div><h3>${escape(offer.outbound?.from || w.origin)} <span class="arrow">↗</span> ${escape(state.destinations[o.destination] || o.destination)}</h3><p class="trip-dates">${o.departure}${w.trip_type==='oneway'?'': ' — '+o.arrival}${w.trip_type==='oneway'?tr(' 单程',' One-way'):w.mode === 'weekend' ? tr(" 返程抵达"," return arrival") : tr(" 返程起飞"," return departure")}</p><div class="price">${price(offer.price,w.currency)}<span> / ${w.adults}${w.trip_type==='oneway'?tr(" 人单程</span></div>"," travellers, one-way</span></div>"):tr(" 人往返</span></div>"," travellers, return</span></div>")}${Number.isFinite(hours) && hours > 0 ? `${tr("<p class=\"muted\">目的地停留约 ","<p class=\"muted\">Time at destination: approx. ")}${Math.floor(hours)}${tr(" 小时</p>"," hr</p>")}` : ''}${flightDetails(offer)}<div class="card-bottom"><div><button class="text-btn danger-btn" data-remove-kind="offers" data-remove-id="${o.id}${tr("\">删除机会</button><button class=\"text-btn\" data-history=\"","\">Remove opportunity</button><button class=\"text-btn\" data-history=\"")}${w.id}${tr("\">查看价格记录</button></div>","\">View price history</button></div>")}${tripAlert(ref)}${bookingLink(offer.bookingUrl)}</div>${tripNote(ref)}</article>`;
+    return `<article class="card" data-price-level="${escape(offer.price_history?.level || '')}">${offerPhoto(offer,state.destinationPhotos)}<div class="card-top"><span class="badge">${within ? tr("在你的预算内","Within your budget") : tr("最近采样报价","Latest observed fare")}</span><span class="muted">${time(o.checked_at)}</span>${tripTools(ref)}</div><h3>${escape(offer.outbound?.from || w.origin)} <span class="arrow">↗</span> ${escape(state.destinations[o.destination] || o.destination)}</h3><p class="trip-dates">${o.departure}${w.trip_type==='oneway'?'': ' — '+o.arrival}${w.trip_type==='oneway'?tr(' 单程',' One-way'):w.mode === 'weekend' ? tr(" 返程抵达"," return arrival") : tr(" 返程起飞"," return departure")}</p><div class="price">${price(offer.price,w.currency)}<span> / ${w.adults}${w.trip_type==='oneway'?tr(" 人单程</span></div>"," travellers, one-way</span></div>"):tr(" 人往返</span></div>"," travellers, return</span></div>")}${Number.isFinite(hours) && hours > 0 ? `${tr("<p class=\"muted\">目的地停留约 ","<p class=\"muted\">Time at destination: approx. ")}${Math.floor(hours)}${tr(" 小时</p>"," hr</p>")}` : ''}${priceInsight(offer)}${flightDetails(offer)}<div class="card-bottom"><div><button class="text-btn danger-btn" data-remove-kind="offers" data-remove-id="${o.id}${tr("\">删除机会</button><button class=\"text-btn\" data-history=\"","\">Remove opportunity</button><button class=\"text-btn\" data-history=\"")}${w.id}${tr("\">查看价格记录</button></div>","\">View price history</button></div>")}${tripAlert(ref)}${bookingLink(offer.bookingUrl)}</div>${tripNote(ref)}</article>`;
   }).join('') || empty(tr("暂无机票机会","No flight opportunities yet"), '');
 }
 export function historyView(state, id, page) {

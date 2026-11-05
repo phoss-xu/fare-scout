@@ -11,7 +11,7 @@ test('saved cards escape user content and distinguish dates, routes and preferen
   assert.match(presetDescription({...config,date_pairs:pairs}),/01-02–01-03.*01-16–01-17/);
 });
 test('restoration fills every filter and exact weekend pairs without issuing a search',async()=>{
-  const fields=Object.fromEntries(['start','end','adults','budget','max_stops','max_duration_hours','date_mode','date_pairs','anywhere'].map(key=>[key,{}]));
+  const fields=Object.fromEntries(['start','end','adults','budget','max_stops','max_duration_hours','date_mode','date_pairs','anywhere','return_basis',...['outbound','inbound'].flatMap(leg=>['timed','start_date','end_date','start_time','end_time'].map(edge=>leg+'_'+edge))].map(key=>[key,{}]));
   const nights=[1,2,4].map(value=>({value})),weekdays=[0,5,6].map(value=>({value}));let changes=0;
   const form={elements:fields,querySelectorAll:s=>s==='[name=night]'?nights:weekdays,dispatchEvent:()=>changes++};
   let origins,destinations;
@@ -23,4 +23,10 @@ test('restoration fills every filter and exact weekend pairs without issuing a s
   const pairs=[{start:config.start,end:config.end}];
   await restoreSearch(form,from,to,{...config,date_pairs:pairs});assert.equal(fields.date_mode.value,'weekends');assert.deepEqual(JSON.parse(fields.date_pairs.value),pairs);
   await restoreSearch(form,from,to,{...config,adults:9},()=>false);assert.equal(fields.adults.value,2);
+  const time_windows={outbound:{start:'2027-01-02T22:00',end:'2027-01-03T03:00'},inbound:{start:'2027-01-05T22:00',end:'2027-01-06T03:00',basis:'arrival'}};
+  await restoreSearch(form,from,to,{...config,date_mode:'windows',time_windows});
+  assert.equal(fields.date_mode.value,'windows');assert.equal(fields.outbound_start_date.value,'2027-01-02');assert.equal(fields.outbound_end_date.value,'2027-01-03');
+  assert.equal(fields.outbound_start_time.value,'22:00');assert.equal(fields.inbound_end_time.value,'03:00');assert.equal(fields.return_basis.value,'arrival');assert.equal(fields.inbound_timed.checked,true);
+  assert.match(presetDescription({...config,time_windows}),/返程抵达.*2027-01-06 03:00/);
+  await restoreSearch(form,from,to,config);assert.equal(fields.outbound_start_date.value,'');assert.equal(fields.inbound_timed.checked,false);
 });

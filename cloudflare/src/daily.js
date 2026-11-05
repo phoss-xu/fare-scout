@@ -1,3 +1,4 @@
+import {annotatePrices} from './price-history.js';
 import {all,first,run,batch,now,ensure} from './db.js';
 import {validate,plusDays,today} from './domain.js';
 import {travelWindows} from './travel-time.js';
@@ -37,7 +38,7 @@ export async function dailyState(db,userId) {
   const p=await first(db,'SELECT * FROM daily_preferences WHERE user_id=?',[userId]);
   const edition=await first(db,`SELECT e.*,r.config FROM daily_editions e JOIN search_runs r ON r.id=e.run_id WHERE e.user_id=? ORDER BY e.day DESC LIMIT 1`,[userId]);
   return {settings:p?JSON.parse(p.config):defaults,next_due:p?.enabled?p.next_due:null,
-    edition:edition?{day:edition.day,status:edition.status,offers:JSON.parse(edition.offers),failures:edition.failures,total:edition.total,
+    edition:edition?{day:edition.day,status:edition.status,offers:await annotatePrices(db,userId,JSON.parse(edition.config),JSON.parse(edition.offers).map(o=>({...o,_checked_at:edition.checked_at}))),failures:edition.failures,total:edition.total,
       checked_at:edition.checked_at,scheduled_at:edition.scheduled_at,mail_status:edition.mail_status,config:JSON.parse(edition.config)}:null};
 }
 async function enqueueDaily(db,p) {

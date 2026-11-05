@@ -5,10 +5,13 @@ import {selectedNights,nightsLabel} from './nights.js';
 import {tr} from './i18n.js';
 import {flightDate} from './format.js';
 import {setupJourneyDisclosures} from './journey-disclosures.js';
+import {setupTimeWindows,captureWindows,windowDescription} from './time-windows.js';
+import {setupDateRangeCalendar} from './date-range-calendar.js';
 import {setupLandscape} from './landscape.js';
 /** Progressive travel controls alongside automatically selected static photography. */
 export function setupJourney(form, panel) {
   setupLandscape(panel);
+  const timeWindows=setupTimeWindows(form);
   function sync() {
     const currency=getPreferences().currency,label=currencyLabel(currency);
     const watchForm=document.querySelector('#watch-form');
@@ -24,28 +27,32 @@ export function setupJourney(form, panel) {
     if(oneWay && form.elements.date_mode.value==='weekends') form.elements.date_mode.value='range';
     const weekendOption=form.querySelector('[name=date_mode][value=weekends]');
     weekendOption.closest('label').hidden=oneWay;weekendOption.disabled=oneWay;
-    form.querySelector('.date-weekends').hidden=oneWay;
+    form.querySelector('.date-weekends').hidden=oneWay || form.elements.date_mode.value==='windows';
     const fixedLabel=form.querySelector('[name=date_mode][value=fixed]').nextElementSibling.querySelector('strong');
     fixedLabel.textContent=oneWay?tr('固定日期','Fixed date'):tr('固定往返','Fixed return dates');
     const start = form.elements.start.value, end = form.elements.end.value;
+    const windowMode=form.elements.date_mode.value==='windows';
+    timeWindows.sync();
     const weekendMode=form.elements.date_mode.value==='weekends';
     const fixed=form.elements.date_mode.value!=='range';
-    form.querySelector('.date-fields').hidden=weekendMode;
-    form.querySelectorAll('.date-fields input').forEach(input=>input.disabled=weekendMode);
+    form.querySelector('.date-fields').hidden=weekendMode || windowMode;
+    form.querySelectorAll('.date-fields input').forEach(input=>input.disabled=weekendMode || windowMode);
     panel.querySelector('#deal-start-label').textContent=fixed?tr('出发日期','Departure date'):tr('最早出发','Earliest departure');
     panel.querySelector('#deal-end-label').textContent=fixed?tr('返程起飞日期','Return departure date'):tr('最晚出发','Latest departure');
     panel.querySelector('#deal-date-hint').textContent=fixed?tr('当地起飞日期','Local departure dates'):'';
     form.elements.end.min=start || form.elements.start.min;
     form.querySelector('.search-nights').hidden=fixed || oneWay;
+    form.querySelector('.search-footer').hidden=windowMode;
     form.elements.end.closest('label').hidden=oneWay && fixed;
-    form.elements.end.disabled=weekendMode || (oneWay && fixed);
+    form.elements.end.disabled=weekendMode || windowMode || (oneWay && fixed);
     form.querySelector('.date-connector').hidden=oneWay && fixed;
     form.querySelector('.deal-presets').hidden=fixed;
     form.querySelector('.deal-weekdays').closest('fieldset').hidden=fixed;
     form.querySelectorAll('[name=weekday]').forEach(box=>{box.disabled=fixed;});
     const yearLabel = panel.querySelector('.date-copy .choice-action');
     yearLabel.textContent = start && end ? `${start.slice(0,4) === end.slice(0,4) ? start.slice(0,4) : start.slice(0,4) + '–' + end.slice(0,4)}${tr(" 年"," ")}` : tr("选择日期","Choose dates");
-    const date = start ? new Date(`${start}T12:00:00`) : null;
+    const stamp=windowMode?form.elements.outbound_start_date.value:start;
+    const date = stamp ? new Date(`${stamp}T12:00:00`) : null;
     panel.querySelector('#journey-month').textContent = date ? tr(`${date.getMonth()+1}月`,new Intl.DateTimeFormat('en', {month:'short'}).format(date).toUpperCase()) : tr('日期','DATE');
     panel.querySelector('#journey-day').textContent = date ? String(date.getDate()).padStart(2, '0') : '＋';
     panel.querySelector('#journey-date-value').textContent = start && end ? `${flightDate(start,true)} — ${flightDate(end,true)}` : tr("选一段空闲","Choose some time away");
@@ -55,7 +62,14 @@ export function setupJourney(form, panel) {
       panel.querySelector('#journey-date-value').textContent=pairs.length ? pairs.map(p=>`${p.start.slice(5)}–${p.end.slice(5)}`).join(' · ') : tr('请选择周末','Choose weekends');
       panel.querySelector('#deal-date-hint').textContent=tr(`已选 ${pairs.length} 个周末`,`${pairs.length} weekends selected`);
     }
-    const preferences = [oneWay?tr('单程','One-way'):weekendMode?tr('周末多选','Selected weekends'):fixed?tr('固定往返','Fixed return dates'):nightsLabel(selectedNights(form)), `${form.elements.adults.value}${tr(" 位成人"," adults")}`];
+    const dateSummary=panel.querySelector('#journey-date-value');
+    dateSummary.classList.toggle('window-summary',windowMode);
+    if(windowMode) {
+      const windows=captureWindows(form,false);
+      dateSummary.textContent=windowDescription(windows).replace(' · ','\n');
+      panel.querySelector('#deal-date-hint').textContent=tr('每程分别设置日期范围；不限制时刻时接受全天航班。','Set dates for each leg. Leave times off to accept any time of day.');
+    }
+    const preferences = [oneWay?tr('单程','One-way'):windowMode?tr('时间范围','Time windows'):weekendMode?tr('周末多选','Selected weekends'):fixed?tr('固定往返','Fixed return dates'):nightsLabel(selectedNights(form)), `${form.elements.adults.value}${tr(" 位成人"," adults")}`];
     if (form.elements.max_stops.value !== '-1') preferences.push(form.elements.max_stops.value === '0' ? tr("直飞","Direct") : tr("最多 1 次中转","Up to 1 stop"));
     if (Number(form.elements.budget.value)) preferences.push(`${currencyLabel(getPreferences().currency)} ${form.elements.budget.value}${tr(" 内"," or less")}`);
     if (Number(form.elements.max_duration_hours.value)) preferences.push(`${tr("每程 ","Per leg: ")}${form.elements.max_duration_hours.value}${tr(" 小时内"," hours per leg")}`);
@@ -70,6 +84,7 @@ export function setupJourney(form, panel) {
   subscribePreferences(sync);
   ['input', 'change', 'journey:locations'].forEach(name => form.addEventListener(name, sync));
   setupJourneyDisclosures(form);
+  setupDateRangeCalendar(form);
   // Hidden invalid fields need their containing disclosures opened before focus.
   form.addEventListener('invalid', event => {
     let node = event.target.parentElement;

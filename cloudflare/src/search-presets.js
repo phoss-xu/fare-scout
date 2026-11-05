@@ -9,6 +9,7 @@ export function snapshot(data) {
   if(c.currency!=='HKD') result.currency=c.currency;
   result.origins=c.origin_selections.map(row=>row.id).sort();
   result.destinations=c.destination_selections.map(row=>row.id).sort();
+  if(c.time_windows) result.time_windows=c.time_windows;
   if(c.date_pairs) result.date_pairs=c.date_pairs;
   return Object.fromEntries(Object.entries(result).sort(([a],[b])=>a.localeCompare(b)));
 }
