@@ -22,7 +22,8 @@ export function destinationDiscovery(root,{values,choose}) {
     if(focused?.discoveryRegion) section.querySelector(`[data-discovery-region="${focused.discoveryRegion}"]`)?.focus({preventScroll:true});
     if(!data) return;
     const selected=values();
-    section.querySelector('.destination-discovery-countries').innerHTML=countryCities(data.sections).map(({country,cities})=>`<div class="destination-discovery-country"><span>${escape(country?name(country):tr(cities[0].country_name,cities[0].country_code))}</span><div>${cities.map(row=>`<button type="button" data-discovery-city="${escape(row.id)}" aria-pressed="${selected.includes(row.id)}">${escape(name(row))}${selected.includes(row.id)?' <span aria-hidden="true">✓</span>':''}</button>`).join('')}</div></div>`).join('');
+    section.querySelector('.destination-discovery-countries').innerHTML=countryCities(data.sections).map(({country,cities})=>`<div class="destination-discovery-country">${country?`<button type="button" data-discovery-country="${escape(country.id)}" aria-pressed="${selected.includes(country.id)}">${escape(name(country))}</button>`:`<span>${escape(tr(cities[0].country_name,cities[0].country_code))}</span>`}<div>${cities.map(row=>`<button type="button" data-discovery-city="${escape(row.id)}" aria-pressed="${selected.includes(row.id)}">${escape(name(row))}${selected.includes(row.id)?' <span aria-hidden="true">✓</span>':''}</button>`).join('')}</div></div>`).join('');
+    if(focused?.discoveryCountry) section.querySelector(`[data-discovery-country="${focused.discoveryCountry}"]`)?.focus({preventScroll:true});
     if(focused?.discoveryCity) section.querySelector(`[data-discovery-city="${focused.discoveryCity}"]`)?.focus({preventScroll:true});
   }
   async function load(region) {
@@ -38,9 +39,9 @@ export function destinationDiscovery(root,{values,choose}) {
     event.stopPropagation();
     const region=event.target.closest('[data-discovery-region]');
     if(region){load(region.dataset.discoveryRegion);return;}
-    const button=event.target.closest('[data-discovery-city]');
+    const button=event.target.closest('[data-discovery-city],[data-discovery-country]');
     if(!button || !data) return;
-    const row=data.sections.flatMap(section=>section.locations).find(row=>row.id===button.dataset.discoveryCity);
+    const row=data.sections.flatMap(section=>section.locations).find(row=>row.id===(button.dataset.discoveryCountry || button.dataset.discoveryCity));
     const error=choose(row,true);render();
     section.querySelector('[role=status]').textContent=error || '';
   });

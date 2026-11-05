@@ -18,6 +18,7 @@
 .destination-discovery button[aria-pressed=true]{background:var(--surface-soft);color:var(--green);border-color:var(--line)}
 .destination-discovery-countries{display:grid;gap:6px}
 .destination-discovery-country{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:baseline;gap:8px}
+.destination-discovery-country>button{justify-self:start;text-align:left;color:var(--muted);font-size:12px;max-width:100%;overflow-wrap:anywhere}
 .destination-discovery-country>span{color:var(--muted);font-size:12px;padding-top:8px;overflow-wrap:anywhere}
 .destination-discovery-country>div{display:flex;flex-wrap:wrap;gap:2px}
 .destination-discovery [role=status]{font-size:12px;color:var(--muted);margin:8px 0 0}

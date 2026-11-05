@@ -1,14 +1,16 @@
 // Newest first. See docs/RELEASES.md before preparing a release.
 export const releases = [
   {
-    version: '0.1.0-preview.10', status: 'preview', date: null,
-    title: {zh: '让每一次更新都有迹可循', en: 'A home for every update'},
+    version: '0.1.0', status: 'published', date: '2026-11-05',
+    title: {zh: '更灵活的日期与票价比较', en: 'Flexible dates and better fare comparison'},
     groups: [
       {type: 'added', items: [
+        {zh: '去返程航班联动选择，按地区浏览国家与精选城市。', en: 'Compare linked outbound and return flights, and browse countries and curated cities by region.'},
         {zh: '新增更新日志，集中查看版本、发布日期和功能变化。', en: 'Browse versions, release dates and product changes in the new changelog.'},
         {zh: '新增 90 天价格采样历史：绿色偏低、橙色偏高，查看历史曲线与采样最低价；新查询开始积累。', en: 'New 90-day sampled price history: green for low fares, orange for high fares, with trends and sampled lows. History builds from new searches.'},
       ]},
       {type: 'improved', items: [
+        {zh: '目的地推荐左侧国家可直接选择或取消，覆盖整个国家的目的地范围。', en: 'Select or deselect countries directly beside recommended cities to search the whole country.'},
         {zh: '时间范围、航班详情及出行监控的日期入口统一使用主题日历。', en: 'Use the themed calendar for time windows, flight-detail dates and travel-watch dates.'},
         {zh: '出行日期使用统一主题的范围日历，桌面双月、手机单月，连续选择起止日期。', en: 'Choose travel dates in a themed range calendar: two months on desktop, one on mobile, with consecutive start and end selection.'},
         {zh: '压缩航班详情上下区域，航班列表独立滚动；价格历史按需查看。', en: 'Compact flight-detail controls and the total bar, giving independently scrolling flight lists more space; open price history on demand.'},
