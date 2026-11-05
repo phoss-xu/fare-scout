@@ -14,10 +14,11 @@ export function priceBadges(offer) {
   if(!h?.sampled_days)return '';
   return `<span class="price-level">${priceLevelLabel(h.level)}</span>${h.lowest?`<span class="price-lowest">↘ ${lowestLabel(h)}</span>`:''}`;
 }
-export function priceInsight(offer,{compact=false}={}) {
+export function priceInsight(offer,{compact=false,indicator=false}={}) {
   const h=offer.price_history;
   if(!h?.sampled_days)return '';
   const delta=Math.abs(h.difference_percent),currency=offer.currency || 'HKD';
+  if(indicator) return `<button type="button" class="price-status-light" data-price-level="${escape(h.level)}" data-price-history="${escape(h.id)}" data-price-current="${Number(offer.price)}" data-price-currency="${escape(currency)}" aria-label="${escape(priceLevelLabel(h.level))}"><span aria-hidden="true"></span></button>`;
   if(compact)return `<button type="button" class="rd-history-link" data-price-history="${escape(h.id)}" data-price-current="${Number(offer.price)}" data-price-currency="${escape(currency)}">${tr('价格历史','Price history')} <span aria-hidden="true">↗</span></button>`;
   const note=h.level==='collecting'?tr('积累 7 个采样日后判断高低','Price assessment starts after 7 sampled days'):
     delta<.05?tr('与历史中位价相近','Close to the historical median'):

@@ -1,6 +1,16 @@
 // Newest first. See docs/RELEASES.md before preparing a release.
 export const releases = [
   {
+    version: '0.1.1', status: 'published', date: '2026-11-05',
+    title: {zh: '更清晰的机票卡片', en: 'Clearer fare cards'},
+    groups: [
+      {type: 'improved', items: [
+        {zh: '整合目的地照片与航班行程，窄屏清晰呈现航段，次要信息可按需展开。', en: 'Bring destination photos and itineraries together, with a clearer small-screen layout and secondary details on demand.'},
+        {zh: '票价使用小号货币符号与颜色状态灯，价格历史按需查看。', en: 'Use a compact currency symbol and color indicator for fares; open price history on demand.'},
+      ]},
+    ],
+  },
+  {
     version: '0.1.0', status: 'published', date: '2026-11-05',
     title: {zh: '更灵活的日期与票价比较', en: 'Flexible dates and better fare comparison'},
     groups: [
