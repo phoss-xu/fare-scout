@@ -50,3 +50,7 @@
   .discovery-results{padding:8px 4px}.deal-results-head{gap:12px;flex-wrap:wrap}.deal-results-head h2{font-size:20px}.discovery-results:not(.results-requested) .deal-results-head p{font-size:10px}.note{margin-top:26px;font-size:11px}.discovery-empty{padding:22px 18px}.discovery-empty h3{font-size:21px}
 }
 @media(prefers-reduced-motion:reduce){.scene-image,.scene-light{animation:none;will-change:auto}.journey-editor,.journey-extras-body{animation:none}.search-submit,.journey-choices summary{transition:none}}
+.journey-editor-head{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-24px -24px 18px;padding:14px 24px;background:var(--white);border-bottom:1px solid var(--line)}
+.journey-editor-head>strong{font-size:14px;font-weight:500;color:var(--ink)}
+@media(max-width:760px){.journey-editor-head{position:sticky;top:0;margin:-14px -14px 14px;padding:10px 14px;border-radius:12px 12px 0 0}}
+@media(max-width:760px){.journey-destination .journey-editor{max-height:70dvh;overflow-y:auto;overscroll-behavior:contain}}

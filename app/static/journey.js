@@ -4,6 +4,7 @@ import {selectedWeekends} from './travel-dates.js';
 import {selectedNights,nightsLabel} from './nights.js';
 import {tr} from './i18n.js';
 import {flightDate} from './format.js';
+import {setupJourneyDisclosures} from './journey-disclosures.js';
 import {setupLandscape} from './landscape.js';
 /** Progressive travel controls alongside automatically selected static photography. */
 export function setupJourney(form, panel) {
@@ -68,16 +69,7 @@ export function setupJourney(form, panel) {
   document.addEventListener('languagechange',sync);
   subscribePreferences(sync);
   ['input', 'change', 'journey:locations'].forEach(name => form.addEventListener(name, sync));
-  const choices = [...form.querySelectorAll('.journey-choices>details')];
-  panel.addEventListener('click', event => {
-    [...choices, form.querySelector('.journey-extras')].forEach(details => {
-      if (details.open && !details.contains(event.target)) details.open = false;
-    });
-  });
-  choices.forEach(details => details.addEventListener('toggle', () => {
-    details.querySelector('summary').setAttribute('aria-expanded', String(details.open));
-    if (details.open) choices.forEach(other => { if (other !== details) other.open = false; });
-  }));
+  setupJourneyDisclosures(form);
   // Hidden invalid fields need their containing disclosures opened before focus.
   form.addEventListener('invalid', event => {
     let node = event.target.parentElement;

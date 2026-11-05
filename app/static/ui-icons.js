@@ -2,6 +2,7 @@ import {escape} from './format.js';
 
 /** Shared action symbols; labels remain available to assistive technology and tooltips. */
 export const icons={
+ check:'<path d="m5 12 4 4L19 6"/>',
  close:'<path d="m6 6 12 12M6 18 18 6"/>',
  more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
  play:'<path d="m8 4 12 8-12 8Z"/>',

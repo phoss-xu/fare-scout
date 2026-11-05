@@ -55,6 +55,7 @@ Python 3.9+ 标准库本地服务，SQLite 持久化，原生 HTML/CSS/JavaScrip
 - `static/holidays.json` / `holidays.js` / `holidays.css`：带年份、来源和正式/参考状态的中国内地假期快捷选择；只填写具体日期，不自动创建任务，维护规则见 `docs/HOLIDAYS.md`。
 - `static/landscape.js` / `landscape-provider.js` / `landscape-actions.js`：每小时从已核对来源的 Unsplash 精选目录加载 CDN 照片，解码成功后缓存；单张失败自动换图，全部失败保留当前图（首次为同源竹林）；圆形刷新按钮绕过小时缓存并排除当前图，解码成功才切换，支持本浏览器收藏与图片下载。摄影来源与许可见 `static/assets/places/CREDITS.md` 及页面逐图链接，与查询条件独立。
 - `static/ui.js`：默认搜特价、工作区导航及键盘交互、展开筛选摘要；视觉规范和资产来源见 `docs/design-docs/UI_REDESIGN.md`。
+- `static/journey-disclosures.js`：出发地、日期、目的地和旅行偏好面板的展开与收起；文档级捕获事件处理外部点击，完成／Esc 保留选择并恢复摘要焦点，内层 dialog 保持独立。目的地顶部完成操作栏在面板内滚动时保持可见。
 - `static/search-presets.js` / `search-presets.css`：用户显式保存的常用查询组合，表单下方全量快捷回填、固定往返面板内日期快捷项；`search-form.js` 共用查询提交与回填字段，保存/回填不发起查价。
 - `search_presets.py` / Workers `search-presets.js`：账号隔离的组合列表、保存和软移除，每人最多 20 项，按规范化查询去重；仅持久化日期/地点/人数/筛选，不保存查询结果、通知或任务状态。SQLite 随初始化增表，D1 通过增量迁移 `0008_search_presets.sql` 建表。
 - `static/travel-dates.js` / `date-editor.css`：日期面板内的出发星期多选与未来四个完整周末多选，周末按北京时间计算。周末搜索以 `date_mode=fixed` 和 `date_pairs` 提交具体往返组合；Python 与 Workers 校验每组周六/周日日期、按组查询并保留同一城市不同周末的报价，总查询上限仍为 120 组。
@@ -204,7 +205,7 @@ Workers 静态资源优先直出，安全响应头由 `static/_headers` 维护�
 
 ## 航线详情与方案比较（2026-11-03，本地待验收）
 
-搜特价／每日推荐的登机牌和卡片由 `offer-views.js → route-detail.js` 打开详情面板；`route-detail-model.js` 按实际去返程机场及报价币种归组，`route-detail-views.js` 展示日期组合、完整报价方案、当地时间与中转、所选航段／行李和核价入口。手机为全屏面板，桌面为双栏；去返程始终选择数据源的完整组合。
+搜特价／每日推荐的登机牌和卡片由 `offer-views.js → route-detail.js` 打开详情面板；`route-detail-model.js` 按实际去返程机场及报价币种归组，`route-detail-views.js` 组织页头、筛选与总价底栏，`route-leg-picker.js` 展示去程／返程双栏、独立日期／时段和航班选项。相同去程按机场、时间、航段与航班号归组，去程显示可搭配往返总价起；返程只列该去程已有完整报价，差价相对本栏最低总价。切换去程尽量保留已有返程，否则选择可搭配的最低总价完整报价并提示。底部总价、核价链接、收藏与提醒始终关联选中的原报价。 `route-date-strip.js` 连续展示当前日期前后三天，支持七天翻页和日历跳转；日期价格固定另一侧已选日期，未查询日点击后复用补查接口，已返回日期直接切换，空返回只标记对应日期组合。控制器保留其他日期报价，搜索适配器携带请求日期快照并丢弃被取消查询的迟到响应。手机为全屏双栏，航段／行李可展开查看；单程只展示去程栏。
 
 `route-detail-search.js → POST /api/deals` 复用已有账号隔离队列与轮询。新增可选 `comparison:true` 仅接受单组机场与固定日期，沿用人数、报价币种及中转／时长条件，不设发现预算上限。Python `deal_source.py` 和 Workers `provider.js` 此时传 `one_for_city:false`，按完整去返航程去重保留最低报价；Workers `runs.js` 同样保留不同航班组合，普通发现与监控聚合规则不变。补查更新该日期组合及其查询时间，失败／空结果保留旧报价并明确提示；关闭或切换日期后忽略迟到响应。补查不创建监控、价格采样、提醒或邮件，无新增数据库迁移。
 

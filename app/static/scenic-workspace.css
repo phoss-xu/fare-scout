@@ -89,10 +89,10 @@ body:has(#workspace:not([hidden])) .workspace-head h1{font-size:clamp(36px,4vw,5
 body:has(#workspace:not([hidden])) .workspace-head .muted{opacity:.65}
 body:has(#workspace:not([hidden])) .workspace-head .primary{background:color-mix(in srgb,var(--scenery-ink) 9%,transparent);color:var(--scenery-ink);border-color:var(--scenery-border);font-size:13px}
 body:has(#workspace:not([hidden])) .my-trips-tabs{border-color:var(--ui-edge)}
-body:has(#workspace:not([hidden])) footer{width:calc(100% - 112px);max-width:none;margin-top:28px;border-color:var(--ui-edge);padding-block:24px}
-body:has(#workspace:not([hidden])):has(#deals-panel:not([hidden])):not(:has(.results-requested)) footer{color:var(--scenery-ink);border-color:var(--scenery-border);opacity:.7;text-shadow:0 1px 12px var(--scenery-shade)}
-body:has(#workspace:not([hidden])):has(#deals-panel:not([hidden])):has(#daily-content:not([hidden]) .deal-card) footer{color:var(--muted);border-color:var(--ui-edge);opacity:1;text-shadow:none}
-@media(min-width:1600px){body:has(#workspace:not([hidden])) :is(main,.top,footer){width:calc(100% - 160px)}}
+body:has(#workspace:not([hidden])) footer:not(.rd-footer){width:calc(100% - 112px);max-width:none;margin-top:28px;border-color:var(--ui-edge);padding-block:24px}
+body:has(#workspace:not([hidden])):has(#deals-panel:not([hidden])):not(:has(.results-requested)) footer:not(.rd-footer){color:var(--scenery-ink);border-color:var(--scenery-border);opacity:.7;text-shadow:0 1px 12px var(--scenery-shade)}
+body:has(#workspace:not([hidden])):has(#deals-panel:not([hidden])):has(#daily-content:not([hidden]) .deal-card) footer:not(.rd-footer){color:var(--muted);border-color:var(--ui-edge);opacity:1;text-shadow:none}
+@media(min-width:1600px){body:has(#workspace:not([hidden])) :is(main,.top,footer:not(.rd-footer)){width:calc(100% - 160px)}}
 @media(max-width:1000px) and (min-width:761px){#deals-panel :is(.journey-place summary strong,.date-copy strong){font-size:18px}#deals-panel .journey-choices>details>summary{padding-inline:16px}}
 @media(max-width:760px){
  .workspace-scenery{height:100svh}
@@ -136,7 +136,7 @@ body:has(#workspace:not([hidden])):has(#deals-panel:not([hidden])):has(#daily-co
  body:has(#workspace:not([hidden])):has(#deals-panel[hidden]) .workspace-scenery{height:360px}
  body:has(#workspace:not([hidden])) .workspace-head{margin-top:36px;margin-bottom:36px;min-height:110px;gap:20px}
  body:has(#workspace:not([hidden])) .workspace-head h1{font-size:36px}
- body:has(#workspace:not([hidden])) footer{width:calc(100% - 48px);font-size:10px;margin-top:24px}
+ body:has(#workspace:not([hidden])) footer:not(.rd-footer){width:calc(100% - 48px);font-size:10px;margin-top:24px}
 }
 @media(prefers-reduced-transparency:reduce){#deals-panel .deal-search{background:var(--scenery-shade);-webkit-backdrop-filter:none;backdrop-filter:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){#deals-panel .deal-search{background:color-mix(in srgb,var(--scenery-shade) 88%,transparent)}}

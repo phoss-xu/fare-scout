@@ -13,14 +13,14 @@ export function comparisonRequest(offer,context,filters={}) {
 export function routeDetailSearch({status,done}) {
   let generation=0,job;
   const poller=visibilityPoll(async()=>{
-    if(!job)return;const {id,version}=job;
+    if(!job)return;const {id,version,filters:jobFilters}=job;
     try {
       const result=await request('/api/deals/'+encodeURIComponent(id));
       if(version!==generation)return;
       if(result.status==='running')return;
       poller.stop();job=undefined;
       if(result.status==='error' || result.failures)throw new Error(tr('这次航线查询失败，原有报价仍保留，请重试。','Route search failed. Previous quotes are retained; try again.'));
-      done(result);
+      done(result,jobFilters);
     } catch(error){if(version===generation){poller.stop();job=undefined;status(false,error.message);}}
   },{delay:()=>1500});
   function cancel(){generation++;job=undefined;poller.stop();}
@@ -30,7 +30,7 @@ export function routeDetailSearch({status,done}) {
     try {
       const result=await request('/api/deals',comparisonRequest(offer,context,filters));
       if(version!==generation)return;
-      job={id:result.id,version};poller.start();
+      job={id:result.id,version,filters:{...filters}};poller.start();
     } catch(error){if(version===generation)status(false,error.message);}
   }};
 }
