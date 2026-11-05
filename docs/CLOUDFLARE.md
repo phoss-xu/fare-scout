@@ -1,8 +1,8 @@
 # Cloudflare Workers Free + D1
 
-线上地址：**https://fare-scout.phosssuki.workers.dev**。当前发布版本 `c6f8d3c0-a003-46dc-ab90-89b93bcaa73d`（代码提交 `a8de0ab`，全量改动 `14b76d3`，2026-11-04）。Workers Free，Passkey 登录；未开通 Paid，未迁移旧本地数据，Cloudflare 邮件发送已启用，按用户验证与接收确认状态投递。
+线上地址：**https://fare-scout.phosssuki.workers.dev**。当前产品版本 `0.1.0`，Worker 版本 `c7a448b4-b1ed-4397-bb39-1c211ac1d64d`（代码提交 `28e358c`，2026-11-05）。Workers Free，Passkey 登录；未开通 Paid，未迁移旧本地数据，Cloudflare 邮件发送已启用，按用户验证与接收确认状态投递。
 
-D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。`0001`–`0011` 共十一项迁移已应用，Wrangler 确认没有待应用迁移。部署前后用户 4、Passkey 4、会话 6、监控 2；行程收藏/分享表为空，新批次副本表有 21 条记录。后续更新不初始化或清空业务数据，原 SQLite 与旧本地 D1 均保留。
+D1：`fare-scout`，ID `1486b8bd-cca8-4a19-9bf2-7cfcb71d3477`，APAC。`0001`–`0012` 共十二项迁移已应用，Wrangler 确认没有待应用迁移。本次部署前后用户 4、Passkey 4、监控 2、观测记录 188 均保留；新增 price_series / price_samples 两张价格历史表。后续更新不初始化或清空业务数据，原 SQLite 与旧本地 D1 均保留。
 
 ## 本地运行
 
@@ -91,10 +91,10 @@ HTTPS 首页和字体均返回 200，字体与本地文件逐字节一致。原�
 npx wrangler whoami
 npm run build
 npx wrangler d1 migrations apply fare-scout --remote
-npx wrangler deploy
+npx wrangler deploy --keep-vars
 ```
 
-配置含当前账号/数据库 ID、`workers_dev=true`、预览 URL 关闭、查价开启、发信关闭。用户在首次部署时选择**空库**；后续已注册用户的数据必须保留，不得重新初始化、清库或执行旧数据导入。离线导出/初始化工具仅作为管理员工具保留；私密文件位于被忽略的 `cloudflare/imports/`，不得随代码上传。
+配置含当前账号/数据库 ID、`workers_dev=true`、预览 URL 关闭、查价与发信按现有生产配置开启。用户在首次部署时选择**空库**；后续已注册用户的数据必须保留，不得重新初始化、清库或执行旧数据导入。离线导出/初始化工具仅作为管理员工具保留；私密文件位于被忽略的 `cloudflare/imports/`，不得随代码上传。
 
 Cloudflare 官方 19 个 skills 已安装至 `~/.agents/skills/`；Codex 的 Cloudflare MCP 已注册并 OAuth 成功，重启后加载。可选 `cf` CLI v0.15.0 已安装；前两轮授权超时后，新一轮官方设备授权已成功，CLI 已保存自身登录凭据。Wrangler/MCP 登录不受该独立流程影响。
 
@@ -175,3 +175,12 @@ Cloudflare 官方 19 个 skills 已安装至 `~/.agents/skills/`；Codex 的 Clo
 - 发布前后只读统计 users=4、passkeys=4、watches=2，无待应用迁移。主页、字体、共用/场景 CSS、app/auth 模块、图库及两张抽样照片 HTTP 200 且 SHA-256 与发布副本相同。匿名 session 返回 200/passkey，匿名 state 返回 401。
 - 实际 Chrome 保持原会话进入新版工作台，已有每日推荐继续读取；字体选项显示 Times New Roman + 思源宋体。桌面与 390px 文档宽均无横向溢出，手机日期展开/收起正常，控制台无 error。截图 `/private/tmp/fare-scout-production-desktop.png` 与 `/private/tmp/fare-scout-production-mobile.png`。
 - 发布验收没有主动查价、创建监控、发送通知、修改推送计划或变更账号权限；已有定时任务继续按原配置运行。
+
+
+## 2026-11-05 · 0.1.0 正式发布
+
+- 已推送28e358c及此前本地提交，正式版包含跨日期时间窗口、联动航班／五天日期比较、90天采样历史、全站主题日期日历、国家与城市选择及界面精简。生产继续Passkey认证和原D1／EMAIL／Cron设置。
+- 仅应用新增0012迁移，无数据清空或导入；发布后只读核对用户4、Passkey4、监控2、观测188，历史表2张，无待应用迁移。
+- 发布使用项目Wrangler deploy --keep-vars，Worker版本c7a448b4-b1ed-4397-bb39-1c211ac1d64d。API间歇连接错误经重试恢复，最终CLI确认Worker与每分钟Cron部署成功。
+- 正式站releases.js、destination-discovery.js、date-input-picker.js、route-detail-prefetch.js与源码逐字一致；未登录会话接口返回passkey模式。实际Chrome核对已登录页面、0.1.0与北京时间2026-11-05日志、双月日历及日本国家选择／取消，刷新后无服务连接错误，验收后恢复原不限目的地选择。截图/private/tmp/fare-release-0.1.0.png。
+- 本轮未在生产主动查票、创建监控或发送通知；实际报价源和采样曾在本地验证，连续90天运行及未来定时邮件不由本次上线检查保证。
