@@ -1,7 +1,7 @@
 // Newest first. See docs/RELEASES.md before preparing a release.
 export const releases = [
   {
-    version: '0.1.1', status: 'published', date: '2026-11-05',
+    version: '0.1.1-preview.1', status: 'preview', date: null,
     title: {zh: '更清晰的机票卡片', en: 'Clearer fare cards'},
     groups: [
       {type: 'improved', items: [
