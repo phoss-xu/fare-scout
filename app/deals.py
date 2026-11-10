@@ -33,6 +33,8 @@ def validate(data):
     try:
         start, end = date.fromisoformat(data['start']), date.fromisoformat(data['end'])
         low, high = int(data.get('min_nights', 2)), int(data.get('max_nights', 5))
+        if not 1 <= low <= high <= 10:
+            raise ValueError()
         weekdays = data.get('weekdays', [])
         if not isinstance(weekdays, list) or any(type(d) is not int or d not in range(7) for d in weekdays):
             raise ValueError()
@@ -42,7 +44,12 @@ def validate(data):
         raise ValueError('请检查地点、出发日期范围、人数、预算和筛选条件。') from None
     if start < today() or end < start or (end-start).days > 180 or end > today()+timedelta(days=365):
         raise ValueError('请选择未来一年内的出发时间，单次日期跨度不超过 180 天。')
-    nights = data.get('nights', list(range(low, high + 1)) if 1 <= low <= high <= 10 else []) if date_mode == 'range' and not one_way else []
+    default_nights = list(range(low, high + 1)) if 1 <= low <= high <= 10 else []
+    nights = data.get('nights', default_nights) if date_mode == 'range' and not one_way else []
+    # The discovery form sends an empty array when no night is selected. Treat
+    # that like an omitted value so Kiwi still gets a useful bounded search.
+    if date_mode == 'range' and not one_way and nights == []:
+        nights = default_nights
     if date_mode == 'range' and not one_way and (not isinstance(nights, list) or
                                 any(type(n) is not int or not 1 <= n <= 10 for n in nights)):
         raise ValueError('请检查停留晚数。')

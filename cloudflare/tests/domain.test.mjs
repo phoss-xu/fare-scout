@@ -20,15 +20,16 @@ test('actual airport membership, local-date filtering, duration and weekday/nigh
   const d=domain.validate(config({min_nights:2,max_nights:5,weekdays:[domain.weekday(c.start)]}),true);
   assert.equal(domain.accepts(offer(),d,j),true);
   assert.equal(domain.accepts(offer(),{...d,weekdays:[(domain.weekday(c.start)+1)%7]},j),false);
-  assert.equal(domain.accepts(offer(),{...d,min_nights:4},j),false);
+  assert.equal(domain.accepts(offer(),{...d,nights:[4,5]},j),false);
 });
 test('discovery fixed dates and sparse nights agree with Python validation',()=>{
-  for(const extra of [{date_mode:'fixed',nights:[],weekdays:[0]}, {nights:[2,4,10,2]}, {min_nights:1,max_nights:10}]) {
+  for(const extra of [{date_mode:'fixed',nights:[],weekdays:[0]}, {nights:[]}, {nights:[2,4,10,2]}, {min_nights:1,max_nights:10}]) {
     const value=config(extra),actual=domain.validate(value,true);
     const expected=JSON.parse(execFileSync('python3',['-c','import json,sys;from app.deals import validate;print(json.dumps(validate(json.loads(sys.argv[1])),ensure_ascii=False))',JSON.stringify(value)],{encoding:'utf8'}));
     assert.deepEqual(actual,expected);
   }
-  for(const nights of [null,[],[0],[11],[2.5],['2'],[true]]) assert.throws(()=>domain.validate(config({nights}),true));
+  assert.deepEqual(domain.validate(config({nights:[]}),true).nights,[2,3,4,5]);
+  for(const nights of [null,[0],[11],[2.5],['2'],[true]]) assert.throws(()=>domain.validate(config({nights}),true));
   const j={origin_id:'airport:HKG',location_id:'airport:SIN'};
   const fixed=domain.validate(config({date_mode:'fixed'}),true);
   assert.equal(domain.accepts(offer(),fixed,j),true);

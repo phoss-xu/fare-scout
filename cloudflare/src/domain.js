@@ -52,9 +52,11 @@ export function validate(d, discovery = false) {
       config.time_windows=timeWindows;
     }
     let min_nights=number(d.min_nights,2),max_nights=number(d.max_nights,5),weekdays=d.weekdays ?? [];
+    ensure(Number.isInteger(min_nights) && Number.isInteger(max_nights) && min_nights>=1 && min_nights<=max_nights && max_nights<=10,'请检查停留晚数。');
     ensure(os.length*Math.max(1,ds.length)<=120, '这次选择超过 120 组出发地与目的地组合，请缩小范围。');
     ensure(end<=plusDays(start,180) && end<=plusDays(today(),365), '请选择未来一年内的出发时间，单次日期跨度不超过 180 天。');
-    const selected=d.nights !== undefined ? d.nights : (Number.isInteger(min_nights) && Number.isInteger(max_nights) && min_nights>=1 && max_nights<=10 && min_nights<=max_nights ? Array.from({length:max_nights-min_nights+1},(_,i)=>min_nights+i) : []);
+    const default_nights=Number.isInteger(min_nights) && Number.isInteger(max_nights) && min_nights>=1 && max_nights<=10 && min_nights<=max_nights ? Array.from({length:max_nights-min_nights+1},(_,i)=>min_nights+i) : [];
+    const selected=d.nights !== undefined && !(date_mode==='range' && !oneWay && Array.isArray(d.nights) && d.nights.length===0) ? d.nights : default_nights;
     ensure(oneWay || date_mode!=='range' || (Array.isArray(selected) && selected.every(n=>Number.isInteger(n)&&n>=1&&n<=10)), '请检查停留晚数。');
     const nights=oneWay || date_mode!=='range'?[]:[...new Set(selected)].sort((a,b)=>a-b);
     min_nights=nights.length?Math.min(...nights):0;max_nights=nights.length?Math.max(...nights):0;

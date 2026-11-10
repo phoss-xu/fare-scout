@@ -13,6 +13,16 @@ def search_config(**values):
 
 
 class DealTests(unittest.TestCase):
+    def test_missing_or_empty_nights_use_the_default_range(self):
+        for values in ({}, {'nights': []}):
+            with self.subTest(values=values):
+                watch = search_config(**values)
+                self.assertEqual(watch['nights'], [2, 3, 4, 5])
+                with patch.object(deals.Kiwi, 'call'), patch.object(deals.Kiwi, 'query', return_value=[]) as query:
+                    deals.search(watch)
+                args = query.call_args.args[0]
+                self.assertEqual((args['nights_in_dst_from'], args['nights_in_dst_to']), (2, 5))
+
     def test_validate_ranges_and_unlimited_destination(self):
         self.assertEqual(search_config()['destination_locations'], [])
         for values in ({'min_nights':6,'max_nights':2}, {'weekdays':[7]}, {'weekdays':['0']},
@@ -90,7 +100,7 @@ class DealTests(unittest.TestCase):
         for nights in (2,3,4):
             flight['inbound']['departureTime']=(date.fromisoformat(flight['outbound']['arrivalTime'][:10])+timedelta(days=nights)).isoformat()+'T12:00:00'
             self.assertEqual(deals.accepts(flight,watch,None),nights in (2,4))
-        for nights in (None,[],[0],[11],['2'],[True],[2.5]):
+        for nights in (None,[0],[11],['2'],[True],[2.5]):
             with self.subTest(nights=nights),self.assertRaises(ValueError):
                 search_config(nights=nights)
 

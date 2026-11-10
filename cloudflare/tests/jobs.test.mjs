@@ -67,6 +67,14 @@ test('multi-origin flexible discovery, validation, query args and owner-scoped r
   assert.equal((await request(h,'/api/watches',config({adults:1.5}),a)).status,400);
   assert.equal((await request(h,'/api/watches',config({start:'2027-02-30',end:'2027-03-05'}),a)).status,400);
 });
+test('empty flexible night selection defaults to the 2–5 night range upstream',async t=>{
+  const upstream={offers:[offer(1200)]};const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source(upstream)});t.after(()=>h.close());
+  const session=await register(h);
+  const r=await request(h,'/api/deals',config({nights:[]}),session);
+  assert.equal(r.status,202,JSON.stringify(r.data));
+  await waitFor(async()=>{const response=await request(h,`/api/deals/${r.data.id}`,undefined,session);return response.data.status==='done'?response.data:null;});
+  assert.equal(upstream.args.nights_in_dst_from,2);assert.equal(upstream.args.nights_in_dst_to,5);
+});
 test('delete during an in-flight source request fences late observations and alerts',async t=>{
   let release;const upstream={price:1000,block:new Promise(r=>release=r)};
   const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source(upstream)});t.after(()=>h.close());
