@@ -11,3 +11,5 @@
 .trip-save[aria-pressed=true] svg{animation:trip-heart-pop .3s var(--curve)}
 @keyframes trip-heart-pop{50%{transform:scale(1.18)}}
 .trip-share-actions .icon-action{width:48px;min-width:48px;height:48px;padding:12px;border-radius:50%}
+
+.trip-alert-route>span{display:block;white-space:nowrap;line-height:1.4}

@@ -40,6 +40,7 @@ export function tripIdentity(s) {
 export function watchForTrip(s,watches) {
   const o=s.offer.outbound,b=s.offer.inbound;
   return watches.find(w=>w.mode==='fixed' && (w.trip_type || 'roundtrip')===(b?'roundtrip':'oneway') && w.origin===o.from && w.destinations?.length===1 && w.destinations[0]===o.to &&
+    (!b || (w.return_route?.from || w.destinations[0])===b.from && (w.return_route?.to || w.origin)===b.to) &&
     w.start===o.departureTime.slice(0,10) && w.end===(b?.departureTime || o.departureTime).slice(0,10) && w.adults===s.adults && (w.cabin || 'M')===s.cabin && (w.currency || 'HKD')===s.currency &&
     (w.max_stops ?? -1)===s.filters.max_stops && (w.max_duration_hours || 0)===s.filters.max_duration_hours);
 }

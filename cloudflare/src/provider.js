@@ -8,6 +8,9 @@ export class SourceError extends Error {
 const fmt = value => value.slice(8,10)+'/'+value.slice(5,7)+'/'+value.slice(0,4);
 export function argumentsFor(c,j,discovery) {
   const args={flyFrom:resolve(j.origin_id).code,flyTo:j.location_id?resolve(j.location_id).code:'anywhere',departureDate:fmt(discovery?c.start:j.departure),currency:c.currency || 'HKD',locale:c.locale || 'zh-CN',adults:c.adults,cabinClass:'M',sort:'price',allow_self_transfer:false};
+  if(!discovery && c.return_route) {
+    args.flyFrom=resolve(c.return_route.query_from).code;args.flyTo=resolve(c.return_route.query_to).code;args.one_for_city=false;
+  }
   if(c.max_stops>=0) args.max_sector_stopovers=c.max_stops;
   if(discovery) {
     Object.assign(args,{departureDateTo:fmt(c.end),nights_in_dst_from:c.min_nights,nights_in_dst_to:c.max_nights,one_for_city:!c.daily && (!c.nights || c.nights.length===0 || c.nights.length===c.max_nights-c.min_nights+1)});

@@ -1,4 +1,5 @@
 import {ensure} from './db.js';
+import {returnRoute} from './watch-route.js';
 import {validateWindows,acceptsWindows} from './time-windows.js';
 import {selections, expand, origins, destinations, resolve, contains} from './locations.js';
 export const today = () => new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
@@ -42,6 +43,7 @@ export function validate(d, discovery = false) {
   ensure(!oneWay || discovery || mode==='fixed','单程提醒请选择固定出发日期。');
   const config = {origin:os[0].code,origin_location:os[0],origin_locations:os,destination_locations:ds,origin_selections,destination_selections,destinations:ds.map(r=>r.code),start,end,mode,adults,weeks,budget,max_duration_hours,max_stops,currency,cabin:'M',...policy(d)};
   if(oneWay) config.trip_type='oneway';
+  if(!discovery) { const route=returnRoute(d,config);if(route) config.return_route=route; }
   if (discovery) {
     const date_mode=d.date_mode ?? 'range';
     ensure(['range','fixed','windows'].includes(date_mode), '请选择有效的日期方式。');
@@ -88,7 +90,7 @@ export function matches(offer,c,j) {
   const out=offer.outbound, back=offer.inbound;
   if (!out || !back || typeof offer.price!=='number' || !Number.isFinite(offer.price) || offer.price<=0) return false;
   const o=resolve(j.origin_id || c.origin_location || c.origin), d=resolve(j.location_id || j.destination);
-  if (!contains(o,out.from) || !contains(o,back.to) || !contains(d,out.to) || !contains(d,back.from) || out.from===out.to) return false;
+  if (!contains(o,out.from) || !(c.return_route?back.to===c.return_route.to:contains(o,back.to)) || !contains(d,out.to) || !(c.return_route?back.from===c.return_route.from:contains(d,back.from)) || out.from===out.to) return false;
   if (![out.departureTime,out.arrivalTime,back.departureTime,back.arrivalTime].every(localTime)) return false;
   if (out.departureTime.slice(0,10)!==j.departure) return false;
   if (c.mode==='fixed' && back.departureTime.slice(0,10)!==j.arrival) return false;

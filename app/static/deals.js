@@ -1,3 +1,4 @@
+import {openTripAlert} from './trip-dialogs.js';
 import {visibilityPoll} from './polling.js';
 import {searchStatus} from './deal-progress.js';
 import {captureSearch,restoreSearch} from './search-form.js';
@@ -89,11 +90,8 @@ export function setupDeals(openWatch) {
     const watch = event.target.closest('[data-deal-watch]');
     if (watch && result) {
       const offer = result.offers[Number(watch.dataset.dealWatch)];
-      if (offer.outbound.from !== offer.inbound.to || offer.outbound.to !== offer.inbound.from) {
-        status.textContent=tr("往返机场不同，请选择对应城市或国家创建监控。","Return airports differ. Select the relevant city or country for your watch."); return;
-      }
       watch.disabled=true;
-      try { await openWatch(watchDraft(offer,result.config)); }
+      try { openTripAlert({offer,adults:result.config.adults,currency:result.config.currency,filters:{max_stops:result.config.max_stops,max_duration_hours:result.config.max_duration_hours || 0}},async()=>{},message=>{status.textContent=message;}); }
       catch (error) { status.textContent=error.message; }
       finally { watch.disabled=false; }
     }
