@@ -1950,3 +1950,9 @@
 - 按用户反馈重排卡片：照片保持完整横幅，状态与操作放在照片下方，地点与价格并列突出，日期块降为浅色底，航班、行李和操作区按阅读顺序展开；状态灯缩小并与价格留出间隔。沿用此前图标按钮及无障碍名称。
 - 实际本地页面显示11/10 17:30的Kiwi查询结果（23个目的地）；浏览器截图核对卡片视图，照片未裁切，四列卡片中的地点、价格、日期和航班层级可见。当前实际查询数据仅用于UI验收，价格会变动。
 - 窄屏检查尚未通过：Chrome的iPhone SE模拟视口截图出现裁切，未能确认完整卡片，因此不记为移动端验收通过。`node --test tests/test_price_history.mjs tests/test_deals.mjs tests/test_daily.mjs` 8项通过；`node --check app/static/deal_views.js`及`git diff --check`通过。未部署、commit或push。
+
+## 2026-11-10 · v0.1.2 正式发布
+
+- 按功能提交并推送：`f97d031`（停留晚数默认 2–5 晚，表单空数组也使用默认范围）及 `35ee2d6`（报价卡片、价格状态灯与每日摘要界面）。发布日志 v0.1.2 已列明对应中英文改动。
+- 使用 Wrangler 4.156.1 执行 `deploy --keep-vars --strict`，正式发布至 `fare-scout`（`https://fare-scout.phosssuki.workers.dev`）。Cloudflare Worker 版本 ID：`10735a48-bb1d-4da1-8a5b-fe21bb6adf93`。保留生产运行变量与现有 D1；没有迁移或执行真实查价、邮件发送。
+- 发布前检查：前端 128 项、Workers 72 项、Python 查询 12 项通过；Wrangler dry-run 与 `git diff --check`通过。线上浏览器显示 v0.1.2、发布日期 2026-11-10 和本次更新日志，与发布条目一致。线上只核验未登录页面及更新日志；登录后查价未在生产执行，移动端完整卡片的验收仍未通过。
