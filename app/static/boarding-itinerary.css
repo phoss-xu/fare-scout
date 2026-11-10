@@ -22,6 +22,10 @@
 .boarding-route-track b{position:absolute;top:50%;left:0;z-index:1;font:normal 12px/1 var(--family);color:var(--ink);transform:translate(-50%,-58%);animation:boarding-plane-travel 2.8s cubic-bezier(.4,0,.2,1) infinite alternate;filter:drop-shadow(0 1px 2px color-mix(in srgb,var(--ink) 18%,transparent))}
 @keyframes boarding-plane-travel{from{left:5%}to{left:95%}}
 @keyframes boarding-route-flow{from{transform:scaleX(.08)}to{transform:scaleX(1)}}
+.boarding-return .boarding-route-track i{transform-origin:right;animation-name:boarding-route-flow-reverse}
+.boarding-return .boarding-route-track b{transform:translate(-50%,-58%) rotate(180deg);animation-name:boarding-plane-travel-reverse}
+@keyframes boarding-plane-travel-reverse{from{left:95%}to{left:5%}}
+@keyframes boarding-route-flow-reverse{from{transform:scaleX(.08)}to{transform:scaleX(1)}}
 .boarding-duration{font:600 12px/1.2 var(--family);letter-spacing:.1px;color:var(--ink);font-variant-numeric:tabular-nums}
 .boarding-direction{padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--green,#396b51) 9%,var(--white,#fff));font:600 9px/1.2 var(--family);color:var(--green,#396b51)}
 .boarding-flight-kind{padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--white,#fff) 85%,var(--green,#396b51));font:500 9px/1.2 var(--family);color:var(--muted)}
@@ -80,4 +84,4 @@
  .boarding-leg{grid-template-columns:minmax(0,1fr) minmax(90px,1.1fr) minmax(0,1fr);gap:8px;padding:12px 0}
  .boarding-moment time{font-size:22px}.boarding-moment>span{font-size:10px}.boarding-connection>span{font-size:9px}
 }
-@media(prefers-reduced-motion:reduce){.boarding-route-track i,.boarding-route-track b{animation:none}.boarding-route-track i{transform:scaleX(.72)}.boarding-route-track b{left:72%}}
+@media(prefers-reduced-motion:reduce){.boarding-route-track i,.boarding-route-track b{animation:none}.boarding-route-track i{transform:scaleX(.72)}.boarding-route-track b{left:72%}.boarding-return .boarding-route-track i{transform-origin:right}.boarding-return .boarding-route-track b{left:28%}}

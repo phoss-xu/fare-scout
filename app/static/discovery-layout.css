@@ -105,7 +105,15 @@ body{background:var(--paper)}
 #deals-panel .boarding-direction,#deals-panel .boarding-flight-kind,#deals-panel .boarding-carriers>span{font-size:12px}
 #deals-panel .boarding-route-track i,#deals-panel .boarding-route-track b{animation:none}
 #deals-panel .boarding-route-track b{left:50%}
-#deals-panel .deal-results-grid[data-offer-view] .deal-card .price{font-size:34px;letter-spacing:-1px}
+#deals-panel .deal-results-grid[data-offer-view=cards] .deal-card .price{font-size:clamp(34px,4vw,48px);line-height:1.08;letter-spacing:-.025em;color:var(--fare)}
+#deals-panel .deal-results-grid[data-offer-view] .deal-card .price > .fare-amount,
+#deals-panel .deal-results-grid[data-offer-view] .deal-card .price .fare-value {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+#deals-panel .deal-results-grid[data-offer-view] .deal-card .price > .fare-amount { margin-top: 0; }
+#deals-panel .deal-results-grid[data-offer-view=cards] .deal-card .price .fare-symbol{font-size:.48em;font-weight:500;vertical-align:.18em;letter-spacing:0}
 #deals-panel .deal-results-grid[data-offer-view=list] .deal-card .price .fare-symbol{font-size:.42em;font-weight:500;vertical-align:.18em;letter-spacing:0}
 #deals-panel .deal-results-grid[data-offer-view] .price>span,#deals-panel .deal-results-grid[data-offer-view] .deal-card .source-price{font-size:13px}
 #deals-panel .deal-results-grid[data-offer-view] .ticket-time-note,#deals-panel .deal-results-grid[data-offer-view] .ticket-baggage,#deals-panel .deal-results-grid[data-offer-view] .trip-state-note{font:400 12px/1.7 var(--family)}

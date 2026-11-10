@@ -4,7 +4,7 @@
 .route-open:hover{text-decoration:underline}
 .route-open:focus-visible{outline:2px solid var(--green);outline-offset:4px}
 #deals-panel [data-offer-view=list] .card-bottom{grid-row:5/9}
-.route-detail{box-sizing:border-box;width:min(1120px,calc(100vw - 64px));max-width:none;max-height:94dvh;margin:auto;padding:0;border:1px solid var(--line);border-radius:24px;color:var(--ink);background:var(--paper);font:400 14px/1.6 var(--family);box-shadow:var(--ui-shadow);overscroll-behavior:contain;scrollbar-gutter:stable}
+.route-detail{box-sizing:border-box;width:min(920px,calc(100vw - 64px));max-width:none;max-height:94dvh;margin:auto;padding:0;border:1px solid var(--line);border-radius:24px;color:var(--ink);background:var(--paper);font:400 14px/1.6 var(--family);box-shadow:var(--ui-shadow);overscroll-behavior:contain;scrollbar-gutter:stable}
 .route-detail::backdrop{background:#10292380;backdrop-filter:blur(8px)}
 .route-detail *{box-sizing:border-box}
 .route-detail button,.route-detail select{font-family:inherit;cursor:pointer}
@@ -71,8 +71,8 @@
 .rd-flight-day{display:block;color:var(--muted);font-size:10px;margin-top:3px}
 .rd-option-foot{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:4px;border-top:1px solid var(--line);padding-top:5px;margin-top:5px;font-size:10px;color:var(--muted)}
 .rd-empty{padding:24px 12px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:12px}
-.rd-selected{padding:0 24px;background:var(--white)}
-.rd-itinerary>summary{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:16px 0;cursor:pointer;font-size:14px;color:var(--green)}
+.rd-selected{padding:0 24px;background:var(--surface-soft);border-top:2px solid var(--line)}
+.rd-itinerary>summary{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:16px 0;cursor:pointer;font-size:14px;font-weight:600;color:var(--ink)}
 .rd-itinerary>summary span{font-size:12px;color:var(--muted)}
 .rd-selected .flight-details{margin-top:0}
 .rd-coverage{font-size:11px;color:var(--muted);padding:12px 24px;margin:0}
