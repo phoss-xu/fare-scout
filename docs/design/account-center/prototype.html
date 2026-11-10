@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- Design assumptions: unified account entry; preferences and identity share a shell. Prototype-only state, no API calls or localStorage. Existing app tokens and font root are reused. Phone/avatar/security are proposed capabilities, not connected services. -->
+<html lang="zh-CN" data-theme="paper" data-font="serif"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fare Scout · 用户中心设计原型</title>
+<link rel="stylesheet" href="http://localhost:8787/style.css"><link rel="stylesheet" href="http://localhost:8787/themes.css"><link rel="stylesheet" href="prototype.css"><script src="prototype.js" defer></script></head>
+<body data-layout="panel">
+<div class="review-bar"><span>交互原型 · 示例状态，不保存或发送信息</span><div class="variants" aria-label="布局方案"><button data-layout="panel" aria-pressed="true">侧栏面板</button><button data-layout="page" aria-pressed="false">独立页面</button><button data-layout="drawer" aria-pressed="false">轻量抽屉</button></div></div>
+<div class="app-scene"><header class="preview-top"><a class="wordmark" href="#">fare scout.</a><button id="account-trigger" class="account-trigger" aria-expanded="true"><span class="avatar tiny" aria-hidden="true">p</span><span>phosssuki</span><span>⌄</span></button><div class="account-popover" id="account-menu" hidden><button data-view="profile">个人资料</button><button data-view="preferences">偏好设置</button><button data-view="notifications">通知</button><button data-view="security">安全与登录</button></div></header><button id="photo-collection" class="scene-collection">风景收藏 ↗</button><div class="scene-copy"><span>留一点时间给远方</span><h1>下一站，<br>去远方。</h1></div></div>
+<div class="center-shell" id="center-shell">
+<aside class="center-nav"><div class="nav-brand">你的 Fare Scout</div><nav aria-label="用户中心"><button data-view="profile" aria-current="page">个人资料</button><button data-view="preferences">偏好设置</button><button data-view="notifications">通知</button><button data-view="security">安全与登录</button></nav><div class="nav-bottom"><button data-view="about">关于 Fare Scout</button><button id="signout">退出登录</button></div></aside>
+<section class="center-content"><header class="content-head"><div><p id="section-kicker">ACCOUNT</p><h2 id="section-title">个人资料</h2></div><button class="close-center" aria-label="关闭用户中心">×</button></header>
+<div class="pane" data-pane="profile">
+<div class="identity"><button class="avatar large" id="avatar-edit" aria-label="更换头像">p</button><div><h3 id="profile-name">phosssuki</h3><button class="inline-action" id="edit-name">编辑昵称</button></div></div>
+<div class="section-label">联系方式</div>
+<div class="setting-row"><div class="row-copy"><h3>邮箱</h3><p id="email-value">尚未绑定</p></div><button class="outline-action" id="bind-email">绑定邮箱</button></div>
+<div class="setting-row"><div class="row-copy"><h3>手机号</h3><p id="phone-value">尚未绑定</p></div><button class="outline-action" id="bind-phone">绑定手机号</button></div>
+<p class="quiet-note">联系方式的变更会重新验证。</p>
+</div>
+<div class="pane" data-pane="preferences" hidden>
+<div class="setting-row"><label for="language">界面语言</label><select id="language"><option>简体中文</option><option>English</option></select></div>
+<div class="setting-row"><label for="currency">显示货币</label><select id="currency"><option value="CNY">人民币 CNY</option><option>港币 HKD</option><option>美元 USD</option><option>日元 JPY</option></select></div>
+<div class="setting-row"><label for="font">字体</label><select id="font"><option value="serif">衬线</option><option value="source-hans">无衬线</option><option value="momo">等宽</option></select></div>
+<div class="setting-group"><h3>颜色主题</h3><div class="theme-grid"><button data-theme="paper" aria-pressed="true"><span class="swatch paper"></span>旧书纸</button><button data-theme="moss" aria-pressed="false"><span class="swatch moss"></span>苔藓庭院</button><button data-theme="sea" aria-pressed="false"><span class="swatch sea"></span>海盐雾蓝</button><button data-theme="night" aria-pressed="false"><span class="swatch night"></span>松林夜色</button></div></div>
+<div class="setting-row"><label for="scenery">风景更换</label><select id="scenery"><option>每次打开</option><option>每天更换</option><option>每小时更换</option><option>固定当前风景</option></select></div>
+<div class="local-caption">当前设备</div><button class="subtle-action" id="reset-preferences">恢复默认偏好</button>
+</div>
+<div class="pane" data-pane="notifications" hidden>
+<div class="delivery-row"><div class="row-copy"><h3>提醒邮箱</h3><p id="notification-email">绑定邮箱后接收邮件</p></div><button class="inline-action" id="manage-email">管理邮箱 →</button></div>
+<div class="setting-row"><div class="row-copy"><h3>降价邮件</h3><p>仅发送你已开启提醒的行程</p></div><label class="switch"><input id="price-mail" type="checkbox" aria-label="降价邮件"><span></span></label></div>
+<div class="setting-row"><div class="row-copy"><h3>每日推荐邮件</h3><p>按你的出发地与出行偏好推送</p></div><label class="switch"><input id="daily-mail" type="checkbox" aria-label="每日推荐邮件"><span></span></label></div>
+<button class="list-link" id="travel-preferences">每日推荐偏好 <span>→</span></button>
+<button class="list-link" id="watch-list">我的行程提醒 <span>→</span></button>
+<p class="quiet-note">网页提醒保留在提醒中心。</p>
+</div>
+<div class="pane" data-pane="security" hidden>
+<div class="setting-row"><div class="row-copy"><h3>登录邮箱</h3><p>由当前账号身份读取</p></div></div>
+<div class="setting-row"><div class="row-copy"><h3>通行密钥</h3><p>用设备解锁登录</p></div><button class="outline-action" id="manage-passkey">管理</button></div>
+<div class="setting-row"><div class="row-copy"><h3>密码</h3><p>仅对已设置密码的账号显示</p></div><button class="inline-action" id="change-password">修改密码</button></div>
+<button class="list-link" id="devices">已登录设备 <span>→</span></button>
+</div>
+<div class="pane" data-pane="about" hidden><div class="about-wordmark">fare scout.</div><p class="quiet-note">留一点时间给远方。</p><button class="list-link" id="release-notes">版本与更新日志 <span>→</span></button></div>
+</section></div>
+<dialog id="flow-dialog"><form method="dialog" class="flow-close"><button aria-label="关闭">×</button></form><div id="flow-body"></div></dialog>
+<button id="reopen" hidden>打开用户中心</button>
+</body></html>
