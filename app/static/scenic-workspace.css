@@ -143,3 +143,10 @@ body:has(#workspace:not([hidden])):has(#deals-panel:not([hidden])):has(#daily-co
 #deals-panel .date-weekday-summary{display:inline-flex;align-items:center;gap:7px;width:fit-content;padding:3px 8px;border:1px solid var(--scenery-border);border-radius:999px;background:color-mix(in srgb,var(--scenery-ink) 9%,transparent);color:var(--scenery-muted);font:500 10px/1.4 var(--family)}
 #deals-panel .date-weekday-summary[hidden]{display:none}
 #deals-panel .date-weekday-summary b{font:600 11px/1.4 var(--family);color:var(--scenery-ink)}
+
+/* Scenery actions belong to the photo caption. */
+#deals-panel .atlas-caption{display:flex;align-items:center;gap:10px;max-width:min(70%,440px);z-index:3}
+#deals-panel .atlas-caption-copy{min-width:0}
+#deals-panel .atlas-caption>.scenery-menu{flex:none;text-shadow:none}
+#deals-panel .atlas-caption>.scenery-menu>summary{background:none;border-color:transparent;box-shadow:none;backdrop-filter:none}
+#deals-panel .atlas-caption>.scenery-menu>.scenery-menu-body{top:auto;bottom:52px;text-align:left;max-width:calc(100vw - 64px);box-sizing:border-box}
