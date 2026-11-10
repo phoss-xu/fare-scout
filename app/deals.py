@@ -43,9 +43,9 @@ def validate(data):
     if start < today() or end < start or (end-start).days > 180 or end > today()+timedelta(days=365):
         raise ValueError('请选择未来一年内的出发时间，单次日期跨度不超过 180 天。')
     nights = data.get('nights', list(range(low, high + 1)) if 1 <= low <= high <= 10 else []) if date_mode == 'range' and not one_way else []
-    if date_mode == 'range' and not one_way and (not isinstance(nights, list) or not nights or
+    if date_mode == 'range' and not one_way and (not isinstance(nights, list) or
                                 any(type(n) is not int or not 1 <= n <= 10 for n in nights)):
-        raise ValueError('请勾选 1–10 晚中的至少一项。')
+        raise ValueError('请检查停留晚数。')
     nights = sorted(set(nights))
     low, high = (min(nights), max(nights)) if nights else (0, 0)
     date_pairs = data.get('date_pairs')
@@ -102,9 +102,13 @@ def accepts(offer, config, scope, origin=None):
             return False
         if config['weekdays'] and dep.weekday() not in config['weekdays']:
             return False
-        if not fixed and (not config['min_nights'] <= (ret-arrival).days <= config['max_nights'] or
-                          ('nights' in config and (ret-arrival).days not in config['nights'])):
-            return False
+        if not fixed:
+            stay=(ret-arrival).days
+            if config.get('nights') is not None:
+                if config['nights'] and stay not in config['nights']:
+                    return False
+            elif not config['min_nights'] <= stay <= config['max_nights']:
+                return False
         if not math.isfinite(offer['price']) or (config['budget'] and offer['price'] > config['budget']):
             return False
         target = scope or locations.resolve('airport:' + out['to'])

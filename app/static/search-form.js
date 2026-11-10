@@ -38,7 +38,7 @@ export async function restoreSearch(form, origin, destinations, config, isCurren
   restoreWindows(form,config.time_windows);
   form.elements.anywhere.checked=!config.destinations.length;
   for(const [name,values] of [['night',config.nights],['weekday',config.weekdays]]) {
-    form.querySelectorAll(`[name=${name}]`).forEach(box=>box.checked=values.includes(Number(box.value)));
+    form.querySelectorAll(`[name=${name}]`).forEach(box=>box.checked=(values || []).includes(Number(box.value)));
   }
   form.dispatchEvent(new Event('change',{bubbles:true}));
 }

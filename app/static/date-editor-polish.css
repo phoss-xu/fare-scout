@@ -25,7 +25,7 @@
 .date-connector{color:var(--muted);font-size:17px;text-align:center;padding:0}
 .date-editor #deal-date-hint{font-size:11px;line-height:1.8;margin:12px 0 0;color:var(--muted)}
 .date-editor .search-footer{display:flex;margin-top:20px;padding-top:18px;border-top:1px dashed var(--line);gap:16px}
-.date-editor .deal-presets{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.date-editor .deal-presets{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 0}
 .date-editor .deal-presets button{border:1px solid var(--line);border-radius:8px;background:var(--white);font-size:11px;min-height:40px;padding:8px}
 .date-editor .deal-presets button:hover{border-color:var(--green);color:var(--green);background:var(--subtle)}
 .date-editor .deal-presets button[aria-pressed=true]{background:var(--green);border-color:var(--green);color:var(--on-accent)}
@@ -39,10 +39,27 @@
 .date-editor .holiday-popover>summary:hover{background:var(--surface-soft)}
 .date-editor .holiday-popover>.holiday-picker{border:0;border-top:1px solid var(--line);border-radius:0;margin:0;background:var(--white);padding:16px}
 .date-editor .date-weekdays{margin:20px 0}
+.date-editor .weekday-heading{display:flex;align-items:center;gap:10px;min-height:44px;list-style:none;cursor:pointer}
+.date-editor .weekday-heading::-webkit-details-marker{display:none}
+.date-editor .weekday-heading output{font:500 12px/1.5 var(--family);color:var(--muted)}
+.date-editor .weekday-expand{margin-left:auto;color:var(--muted);font-size:18px;line-height:1}
+.date-editor .date-weekdays[open] .weekday-expand{font-size:0}
+.date-editor .date-weekdays[open] .weekday-expand::before{content:'−';font-size:18px}
+.date-editor .date-weekdays .deal-weekdays{margin:0;padding:8px 0 0;border:0;min-width:0}
 .date-editor .date-weekdays label{border-radius:8px;min-height:48px;gap:7px;background:var(--white)}
 .date-editor .date-weekdays label:has(:checked){background:var(--surface-soft);border-color:var(--green);color:var(--green)}
 .date-editor .date-weekends{border-top:1px dashed var(--line);padding-top:18px;margin-top:20px}
 .date-editor .date-weekends h4{font-size:13px;margin:0 0 5px}
+#deals-panel .date-editor .search-nights{padding-top:16px;margin-top:16px;border-top:1px dashed var(--line)}
+#deals-panel .date-editor .night-heading{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:0;list-style:none;cursor:pointer;min-height:44px}
+#deals-panel .date-editor .night-heading::-webkit-details-marker{display:none}
+#deals-panel .date-editor .night-heading .field-label{font:600 13px/1.5 var(--family);color:var(--ink)}
+#deals-panel .date-editor .night-heading output{font:500 12px/1.5 var(--family);color:var(--muted)}
+#deals-panel .date-editor .night-expand{margin-left:auto;color:var(--muted);font-size:18px;line-height:1}
+#deals-panel .date-editor .search-nights[open] .night-expand{font-size:0}
+#deals-panel .date-editor .search-nights[open] .night-expand::before{content:'−';font-size:18px}
+#deals-panel .date-editor .night-options{padding-top:8px}
+#deals-panel .date-editor .night-options label{min-height:42px}
 .date-editor .weekend-options button{border-radius:10px;padding:12px}
 .date-editor .weekend-options button[aria-pressed=true]{border-color:var(--green);background:var(--surface-soft)}
 @media(max-width:760px){

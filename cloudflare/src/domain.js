@@ -53,7 +53,7 @@ export function validate(d, discovery = false) {
     ensure(os.length*Math.max(1,ds.length)<=120, '这次选择超过 120 组出发地与目的地组合，请缩小范围。');
     ensure(end<=plusDays(start,180) && end<=plusDays(today(),365), '请选择未来一年内的出发时间，单次日期跨度不超过 180 天。');
     const selected=d.nights !== undefined ? d.nights : (Number.isInteger(min_nights) && Number.isInteger(max_nights) && min_nights>=1 && max_nights<=10 && min_nights<=max_nights ? Array.from({length:max_nights-min_nights+1},(_,i)=>min_nights+i) : []);
-    ensure(oneWay || date_mode!=='range' || (Array.isArray(selected) && selected.length>0 && selected.every(n=>Number.isInteger(n)&&n>=1&&n<=10)), '请勾选 1–10 晚中的至少一项。');
+    ensure(oneWay || date_mode!=='range' || (Array.isArray(selected) && selected.every(n=>Number.isInteger(n)&&n>=1&&n<=10)), '请检查停留晚数。');
     const nights=oneWay || date_mode!=='range'?[]:[...new Set(selected)].sort((a,b)=>a-b);
     min_nights=nights.length?Math.min(...nights):0;max_nights=nights.length?Math.max(...nights):0;
     ensure(Array.isArray(weekdays) && weekdays.every(n=>Number.isInteger(n)&&n>=0&&n<7), '请检查出发星期。');
@@ -106,7 +106,7 @@ export function accepts(offer,c,j) {
   } else if (c.date_mode==='fixed') {
     const selected=c.date_pairs ? (j.window ? j.window.start===dep && j.window.end===ret : c.date_pairs.some(p=>p.start===dep && p.end===ret)) : dep===c.start && ret===c.end;
     if(!selected || (c.budget && offer.price>c.budget)) return false;
-  } else if (!(dep>=c.start && dep<=c.end) || (c.weekdays.length && !c.weekdays.includes(weekday(dep))) || !(nights>=c.min_nights && nights<=c.max_nights) || (c.nights && !c.nights.includes(nights)) || (c.budget && offer.price>c.budget)) return false;
+  } else if (!(dep>=c.start && dep<=c.end) || (c.weekdays.length && !c.weekdays.includes(weekday(dep))) || (Array.isArray(c.nights) ? c.nights.length>0 && !c.nights.includes(nights) : !(nights>=c.min_nights && nights<=c.max_nights)) || (c.budget && offer.price>c.budget)) return false;
   try { return matches(offer,c,{...j,location_id:j.location_id || 'airport:'+out.to,departure:dep,arrival:ret}); } catch { return false; }
 }
 function acceptsOneWay(offer,c,j) {

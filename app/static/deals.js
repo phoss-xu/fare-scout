@@ -12,7 +12,7 @@ import {request} from './api.js';
 import {picker} from './locations.js';
 import {escape,money} from './format.js';
 import {destinationChoices, discoveryPlaceholder, sampledDays, sortedOffers,watchDraft} from './deal_views.js';
-import {setupHolidays} from './holidays.js';
+import {setupHolidays,chinaToday} from './holidays.js';
 import {setupSearchLayout} from './ui.js';
 import {setupNights} from './nights.js';
 import {setupTravelDates,selectedWeekends} from './travel-dates.js';
@@ -53,6 +53,11 @@ export function setupDeals(openWatch) {
   form.addEventListener('input',()=>edited=true);
   form.addEventListener('change',()=>edited=true);
   const fmt = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  const addDays = (iso,days) => {
+    const date=new Date(`${iso}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate()+days);
+    return date.toISOString().slice(0,10);
+  };
   function render() {
     const choices=destinationChoices(result.offers,day);
     if(!choices.some(c=>c.key===destination)) destination='';
@@ -160,9 +165,9 @@ export function setupDeals(openWatch) {
     layout.reset();
     nights.reset();
     results.innerHTML=discoveryPlaceholder();results.setAttribute('aria-busy','false');controls.hidden=true;panel.querySelector('#deal-sort').hidden=true;status.textContent='';button.disabled=false;
-    const start=new Date(),end=new Date();end.setDate(end.getDate()+30);
-    form.elements.start.value=fmt(start);form.elements.end.value=fmt(end);
-    form.elements.start.min=form.elements.end.min=fmt(start);
+    const start=chinaToday(),end=addDays(start,180);
+    form.elements.start.value=start;form.elements.end.value=end;
+    form.elements.start.min=form.elements.end.min=start;
     travelDates.reset();
     journey.reset();
     presets.reset(active);

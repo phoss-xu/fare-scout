@@ -140,3 +140,6 @@ body:has(#workspace:not([hidden])):has(#deals-panel:not([hidden])):has(#daily-co
 }
 @media(prefers-reduced-transparency:reduce){#deals-panel .deal-search{background:var(--scenery-shade);-webkit-backdrop-filter:none;backdrop-filter:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){#deals-panel .deal-search{background:color-mix(in srgb,var(--scenery-shade) 88%,transparent)}}
+#deals-panel .date-weekday-summary{display:inline-flex;align-items:center;gap:7px;width:fit-content;padding:3px 8px;border:1px solid var(--scenery-border);border-radius:999px;background:color-mix(in srgb,var(--scenery-ink) 9%,transparent);color:var(--scenery-muted);font:500 10px/1.4 var(--family)}
+#deals-panel .date-weekday-summary[hidden]{display:none}
+#deals-panel .date-weekday-summary b{font:600 11px/1.4 var(--family);color:var(--scenery-ink)}

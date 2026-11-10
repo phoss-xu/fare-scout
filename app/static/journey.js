@@ -1,8 +1,8 @@
 import {getPreferences,subscribePreferences} from './preferences.js';
 import {currencyLabel} from './currency.js';
 import {selectedWeekends} from './travel-dates.js';
-import {selectedNights,nightsLabel} from './nights.js';
 import {tr} from './i18n.js';
+import {selectedNights,nightsLabel} from './nights.js';
 import {flightDate} from './format.js';
 import {setupJourneyDisclosures} from './journey-disclosures.js';
 import {setupTimeWindows,captureWindows,windowDescription} from './time-windows.js';
@@ -47,7 +47,7 @@ export function setupJourney(form, panel) {
     form.elements.end.disabled=weekendMode || windowMode || (oneWay && fixed);
     form.querySelector('.date-connector').hidden=oneWay && fixed;
     form.querySelector('.deal-presets').hidden=fixed;
-    form.querySelector('.deal-weekdays').closest('fieldset').hidden=fixed;
+    form.querySelector('.date-weekdays').hidden=fixed;
     form.querySelectorAll('[name=weekday]').forEach(box=>{box.disabled=fixed;});
     const yearLabel = panel.querySelector('.date-copy .choice-action');
     yearLabel.textContent = start && end ? `${start.slice(0,4) === end.slice(0,4) ? start.slice(0,4) : start.slice(0,4) + '–' + end.slice(0,4)}${tr(" 年"," ")}` : tr("选择日期","Choose dates");
@@ -55,8 +55,19 @@ export function setupJourney(form, panel) {
     const date = stamp ? new Date(`${stamp}T12:00:00`) : null;
     panel.querySelector('#journey-month').textContent = date ? tr(`${date.getMonth()+1}月`,new Intl.DateTimeFormat('en', {month:'short'}).format(date).toUpperCase()) : tr('日期','DATE');
     panel.querySelector('#journey-day').textContent = date ? String(date.getDate()).padStart(2, '0') : '＋';
-    panel.querySelector('#journey-date-value').textContent = start && end ? `${flightDate(start,true)} — ${flightDate(end,true)}` : tr("选一段空闲","Choose some time away");
+    const crossesYear=start && end && start.slice(0,4)!==end.slice(0,4);
+    panel.querySelector('#journey-date-value').textContent = start && end ? `${flightDate(start,!crossesYear)} → ${flightDate(end,!crossesYear)}` : tr("选一段空闲","Choose some time away");
     if(oneWay && fixed) panel.querySelector('#journey-date-value').textContent=start?flightDate(start,true):tr('选择出发日期','Choose departure date');
+    const weekdays=[...form.querySelectorAll('[name=weekday]:checked')].map(box=>Number(box.value));
+    const weekdaySummary=panel.querySelector('#journey-weekday-summary');
+    weekdaySummary.hidden=fixed || !weekdays.length;
+    const weekdayNames=tr(['周一','周二','周三','周四','周五','周六','周日'],['Mon','Tue','Wed','Thu','Fri','Sat','Sun']);
+    const weekdayText=weekdayNames.filter((_,index)=>weekdays.includes(index)).join('、');
+    panel.querySelector('#journey-weekday-value').textContent=weekdayText;
+    panel.querySelector('#weekday-value').textContent=weekdayText;
+    const stayNights=selectedNights(form);
+    panel.querySelector('#journey-nights-summary').hidden=fixed || oneWay || !stayNights.length;
+    panel.querySelector('#journey-nights-value').textContent=nightsLabel(stayNights);
     if(weekendMode) {
       const pairs=selectedWeekends(form);
       panel.querySelector('#journey-date-value').textContent=pairs.length ? pairs.map(p=>`${p.start.slice(5)}–${p.end.slice(5)}`).join(' · ') : tr('请选择周末','Choose weekends');
@@ -69,15 +80,10 @@ export function setupJourney(form, panel) {
       dateSummary.textContent=windowDescription(windows).replace(' · ','\n');
       panel.querySelector('#deal-date-hint').textContent=tr('每程分别设置日期范围；不限制时刻时接受全天航班。','Set dates for each leg. Leave times off to accept any time of day.');
     }
-    const preferences = [oneWay?tr('单程','One-way'):windowMode?tr('时间范围','Time windows'):weekendMode?tr('周末多选','Selected weekends'):fixed?tr('固定往返','Fixed return dates'):nightsLabel(selectedNights(form)), `${form.elements.adults.value}${tr(" 位成人"," adults")}`];
+    const preferences = [`${form.elements.adults.value}${tr(" 位成人"," adults")}`];
     if (form.elements.max_stops.value !== '-1') preferences.push(form.elements.max_stops.value === '0' ? tr("直飞","Direct") : tr("最多 1 次中转","Up to 1 stop"));
     if (Number(form.elements.budget.value)) preferences.push(`${currencyLabel(getPreferences().currency)} ${form.elements.budget.value}${tr(" 内"," or less")}`);
     if (Number(form.elements.max_duration_hours.value)) preferences.push(`${tr("每程 ","Per leg: ")}${form.elements.max_duration_hours.value}${tr(" 小时内"," hours per leg")}`);
-    const weekdays = [...form.querySelectorAll('[name=weekday]:checked')].map(box => Number(box.value));
-    if (weekdays.length && !fixed) {
-      const labels = tr(['周一','周二','周三','周四','周五','周六','周日'],['Mon','Tue','Wed','Thu','Fri','Sat','Sun']);
-      panel.querySelector('#journey-date-value').textContent += ` · ${weekdays.map(day=>labels[day]).join('、')}`;
-    }
     panel.querySelector('#journey-extras-value').textContent = preferences.join(' · ');
   }
   document.addEventListener('languagechange',sync);

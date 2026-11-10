@@ -11,7 +11,7 @@ export function presetDescription(c) {
   return `${places(c.origins)} → ${c.destinations.length?places(c.destinations):tr('任何地方','Anywhere')} · ${dates}`;
 }
 export function presetDetails(c) {
-  const mode=c.time_windows?tr('时间范围','Time windows'):c.trip_type==='oneway'?tr(c.date_mode==='fixed'?'单程 · 固定日期':'单程 · 灵活日期',c.date_mode==='fixed'?'One-way · Fixed date':'One-way · Flexible dates'):c.date_pairs?tr(`${c.date_pairs.length} 个周末`,`${c.date_pairs.length} weekends`):c.date_mode==='fixed'?tr('固定往返','Fixed return dates'):tr(`灵活日期 · ${c.nights.join('、')} 晚`,`Flexible dates · ${c.nights.join(', ')} nights`);
+  const mode=c.time_windows?tr('时间范围','Time windows'):c.trip_type==='oneway'?tr(c.date_mode==='fixed'?'单程 · 固定日期':'单程 · 灵活日期',c.date_mode==='fixed'?'One-way · Fixed date':'One-way · Flexible dates'):c.date_pairs?tr(`${c.date_pairs.length} 个周末`,`${c.date_pairs.length} weekends`):c.date_mode==='fixed'?tr('固定往返','Fixed return dates'):c.nights?.length?tr(`灵活日期 · ${c.nights.join('、')} 晚`,`Flexible dates · ${c.nights.join(', ')} nights`):tr('灵活日期','Flexible dates');
   const days=tr(['周一','周二','周三','周四','周五','周六','周日'],['Mon','Tue','Wed','Thu','Fri','Sat','Sun']);
   return [mode,`${c.adults}${tr(' 位成人',' adults')}`,c.weekdays.length?c.weekdays.map(d=>days[d]).join(' / '):'',c.max_stops===0?tr('直飞','Direct'):c.max_stops>0?tr(`最多 ${c.max_stops} 次中转`,`Up to ${c.max_stops} stops`):'',c.budget?`${currencyLabel(c.currency || 'HKD')} ${c.budget}`:'',c.max_duration_hours?tr(`每程 ${c.max_duration_hours} 小时内`,`Up to ${c.max_duration_hours} hours per leg`):''].filter(Boolean).join(' · ');
 }

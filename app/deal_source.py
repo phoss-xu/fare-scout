@@ -15,7 +15,10 @@ def query(config, origin, scope, kiwi_factory, accepts):
                 departureDate=fmt(config['start']), departureDateTo=fmt(config['end']),
                 nights_in_dst_from=config['min_nights'], nights_in_dst_to=config['max_nights'],
                 adults=config['adults'], currency=config['currency'], locale=config.get('locale', 'zh-CN'), cabinClass='M', sort='price',
-                one_for_city=len(config.get('nights', [])) == config['max_nights']-config['min_nights']+1, allow_self_transfer=False)
+                one_for_city=not config.get('nights') or len(config['nights']) == config['max_nights']-config['min_nights']+1, allow_self_transfer=False)
+    if config.get('date_mode') == 'range' and config.get('trip_type') != 'oneway' and not config.get('nights'):
+        args.pop('nights_in_dst_from', None)
+        args.pop('nights_in_dst_to', None)
     if config.get('date_mode') == 'fixed':
         for key in ('departureDateTo', 'nights_in_dst_from', 'nights_in_dst_to'):
             args.pop(key)
