@@ -72,10 +72,12 @@ async function api(request,env,ctx) {
     }
     if(path==='/api/alerts/read') { await store.markRead(db,user.id,body.through_id);return json({message:'提醒已标为已读。'}); }
     if(path==='/api/email/verify' || path==='/api/email/check') {
+      if(body.recipient!==undefined) await store.recipient(db,user.id,body.recipient);
       await verifyAction(env,user.id,path.endsWith('/check')?'check':'start');
-      return json({email:await mailStatus(env,user.notification_email,user.id)});
+      const current=await db.prepare('SELECT notification_email FROM users WHERE id=?').bind(user.id).first();
+      return json({email:await mailStatus(env,current.notification_email,user.id)});
     }
-    if(path==='/api/email/confirm') {await confirmConsent(env,user.id,body.token);return json({message:'已确认接收机票提醒。'});}
+    if(path==='/api/email/confirm') {await confirmConsent(env,user.id,body.token);return json({message:'邮箱验证成功。'});}
     if(path==='/api/email') { await store.recipient(db,user.id,body.recipient);return json({message:'收件邮箱已保存。'}); }
     const match=/^\/api\/(watches|offers)\/(\d+)\/(delete|restore|settings|check)$/.exec(path);
     if(match) {

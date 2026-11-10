@@ -4,20 +4,22 @@ import {sendCloudflare} from './cloudflare-email.js';
 export const consent = (env,userId,address) => first(env.DB,
   'SELECT * FROM email_consents WHERE user_id=? AND account_id=? AND email=?',[userId,env.CF_EMAIL_ACCOUNT_ID||'',address]);
 export async function requestConsent(env,userId,address) {
-  const value=token(),at=seconds(),account=env.CF_EMAIL_ACCOUNT_ID;
+  const value=token(),at=seconds(),account=env.CF_EMAIL_ACCOUNT_ID || '';
   const old=await consent(env,userId,address);
-  if(old?.confirmed_at || old?.requested_at>at-300) return;
+  if(old?.confirmed_at) return;
+  ensure(!(old?.requested_at>at-60),'验证邮件已发送，请检查收件箱或垃圾邮件，1分钟后可重发。',429);
   const origin=new URL(env.PASSKEY_ORIGIN);
   ensure(origin.protocol==='https:' || origin.hostname==='localhost','邮件确认链接尚未配置。',503);
   await run(env.DB,`INSERT INTO email_consents(user_id,account_id,email) VALUES(?,?,?) ON CONFLICT DO NOTHING`,[userId,account,address]);
   const claim=await first(env.DB,`UPDATE email_consents SET token_hash=?,expires_at=?,requested_at=?
     WHERE user_id=? AND account_id=? AND email=? AND confirmed_at IS NULL AND (requested_at IS NULL OR requested_at<=?) RETURNING user_id`,
-    [digest(value),at+3600,at,userId,account,address,at-300]);
+    [digest(value),at+3600,at,userId,account,address,at-60]);
   if(!claim) return;
   try {
-    await sendCloudflare(env,address,'Fare Scout · 确认接收机票提醒',
-      `请在你设置提醒的 Fare Scout 账号中打开以下链接，确认接收每日推荐和降价提醒：\n${origin.origin}/#email-confirm=${value}\n\n链接一小时内有效。如果不是你操作，请忽略。可随时在网页暂停每日推荐及监控提醒。`,
+    const receipt=await sendCloudflare(env,address,'Fare Scout · 验证你的邮箱',
+      `点击以下链接，验证你在 Fare Scout 设置的邮箱：\n${origin.origin}/#email-confirm=${value}\n\n链接一小时内有效。如果不是你操作，请忽略。请使用设置此邮箱的账号登录。验证后可接收机票提醒，随时可在网页关闭。`,
       'fare-consent-'+digest(value));
+    console.info('Email verification accepted',userId,receipt?.messageId || 'no-message-id');
   } catch(error) {
     await run(env.DB,`UPDATE email_consents SET requested_at=NULL,token_hash=NULL,expires_at=NULL
       WHERE user_id=? AND account_id=? AND email=? AND token_hash=?`,[userId,account,address,digest(value)]);

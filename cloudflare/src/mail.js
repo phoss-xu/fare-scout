@@ -1,7 +1,6 @@
 import {all,first,run,now} from './db.js';
 import {today} from './domain.js';
 import {verificationReady,sendCloudflare} from './cloudflare-email.js';
-import {verificationStatus,refreshDestination} from './email-verification.js';
 import {consent} from './email-consent.js';
 export function ready(env) {
   const valid=env.MAIL_ENABLED==='true' && typeof env.MAIL_FROM==='string' && /^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$/.test(env.MAIL_FROM);
@@ -9,17 +8,15 @@ export function ready(env) {
 }
 export async function mailStatus(env,recipient,userId) {
   const cloudflare=env.MAIL_PROVIDER==='cloudflare',service=ready(env);
-  const verification=cloudflare?await verificationStatus(env,recipient):null;
-  const approval=cloudflare?await consent(env,userId,recipient):null;
-  const approved=!cloudflare || !!approval?.confirmed_at;
-  const configured=service && (!cloudflare || verification==='verified' && approved);
-  const message=!service?'邮件未启用 · 网页提醒可用':!cloudflare?'邮件已启用':
-    verification==='error'?'邮箱状态检查失败，请重试。':verification==='unverified'?'收件邮箱待验证':
-    verification==='pending'?'请完成 Cloudflare 邮件验证，再检查结果。未收到可查看垃圾邮件。':
-    !approved?(approval?.requested_at>Date.now()/1000-3600?'请用当前账号打开确认链接；5 分钟后可重发。':'邮箱已验证，待确认接收。'):'收件邮箱已验证';
-  return {recipient,configured,message,verification:!cloudflare?null:verification==='verified'&&!approved?'confirm':verification,
-    verification_available:cloudflare && service};
+  if(!cloudflare) return {recipient,configured:service,message:service?'邮件已启用':'邮件未启用 · 网页提醒可用',verification:null,verification_available:false};
+  const approval=await consent(env,userId,recipient);
+  const verified=!!approval?.confirmed_at;
+  const pending=!!approval?.token_hash && approval.expires_at>Date.now()/1000;
+  const configured=service && verified;
+  return {recipient,configured,message:!service?'邮件验证服务未启用，请联系管理员。':verified?'邮箱已验证':pending?'验证邮件已发送，请点击邮件中的链接。':'邮箱尚未验证',
+    verification:verified?'verified':pending?'pending':'unverified',verification_available:service};
 }
+
 export class WaitingForVerification extends Error {constructor(){super('waiting_verification');this.name='WaitingForVerification';}}
 // External delivery is confined to this adapter; local acceptance leaves MAIL_ENABLED=false.
 export async function sendEmail(env,alert,recipient,beforeSend) {
@@ -32,8 +29,8 @@ export async function sendEmail(env,alert,recipient,beforeSend) {
 export async function sendText(env,recipient,subject,text,key,userId,beforeSend) {
   if(!ready(env)) throw new Error('mail_not_configured');
   if(env.MAIL_PROVIDER==='cloudflare') {
-    // Recheck remotely before every delivery, including previously verified destinations.
-    if(!(await consent(env,userId,recipient))?.confirmed_at || !await refreshDestination(env,recipient)) throw new WaitingForVerification();
+    // Bind every delivery to the current account and its verified recipient.
+    if(!(await consent(env,userId,recipient))?.confirmed_at) throw new WaitingForVerification();
     if(beforeSend && !await beforeSend()) throw new WaitingForVerification();
     return sendCloudflare(env,recipient,subject,text,key);
   }

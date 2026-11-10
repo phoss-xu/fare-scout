@@ -3,7 +3,7 @@ export class EmailServiceError extends Error {
   constructor(status) { super('cloudflare_email_'+status);this.name='EmailServiceError';this.status=status; }
 }
 export const verificationReady = env => env.MAIL_ENABLED==='true' && env.MAIL_PROVIDER==='cloudflare' &&
-  /^[a-f0-9]{32}$/.test(env.CF_EMAIL_ACCOUNT_ID || '') && !!env.CF_EMAIL_API_TOKEN;
+  typeof env.EMAIL?.send==='function' && !!env.MAIL_FROM;
 async function api(env,path='',body) {
   let response;
   try {

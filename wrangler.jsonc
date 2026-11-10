@@ -45,6 +45,7 @@
   "send_email": [
     {
       "name": "EMAIL",
+      "remote": true,
       "allowed_sender_addresses": [
         "notifications@phosssuki.edu.kg"
       ]

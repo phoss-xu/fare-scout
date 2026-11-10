@@ -21,7 +21,7 @@ export async function adminUsers(env,params) {
   const rows=await all(env.DB,`SELECT u.id,u.name,u.email,u.notification_email,u.created_at,
     (SELECT COUNT(*) FROM watches w WHERE w.owner_id=u.id AND w.deleted_at IS NULL) AS watch_count,
     (SELECT COUNT(*) FROM passkeys p WHERE p.user_id=u.id) AS passkey_count,
-    EXISTS(SELECT 1 FROM email_destinations d WHERE d.email=u.notification_email AND d.account_id=? AND d.verified_at IS NOT NULL) AS email_verified,
+    EXISTS(SELECT 1 FROM email_consents c WHERE c.user_id=u.id AND c.email=u.notification_email AND c.account_id=? AND c.confirmed_at IS NOT NULL) AS email_verified,
     EXISTS(SELECT 1 FROM email_consents c WHERE c.user_id=u.id AND c.email=u.notification_email AND c.account_id=? AND c.confirmed_at IS NOT NULL) AS email_confirmed
     FROM users u ${before?'WHERE u.id<?':''} ORDER BY u.id DESC LIMIT ?`,
     [env.CF_EMAIL_ACCOUNT_ID||'',env.CF_EMAIL_ACCOUNT_ID||'',...(before?[before]:[]),SIZE+1]);
