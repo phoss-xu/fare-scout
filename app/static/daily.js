@@ -17,7 +17,7 @@ export function setupDaily(refresh,toast,openWatch,applyPreferences) {
   const offerViews=setupOfferViews($('#daily-offers'));
   const form=$('#daily-form');let formCurrency=getPreferences().currency;let dirty=false,initialized=false,epoch=0,enabled=false,edition;
   function selectView(name) {
-    $('#daily-content').hidden=name!=='daily';$('#search-content').hidden=name!=='search';
+    $('#daily-content').hidden=name!=='daily';$('#search-content').hidden=name!=='search';$('#daily-preference-summary').hidden=name!=='daily';
     document.querySelectorAll('[data-discovery-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.discoveryView===name)));
   }
   document.querySelectorAll('[data-discovery-view]').forEach(b=>b.addEventListener('click',()=>selectView(b.dataset.discoveryView)));

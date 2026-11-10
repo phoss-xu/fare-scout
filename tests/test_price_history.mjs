@@ -6,6 +6,8 @@ test('price badges express levels in words, respect coverage and never call shor
   const h={id:'a'.repeat(64),level:'low',sampled_days:8,coverage_days:12,difference_percent:-16,lowest:true,last_at:'2026-11-05T06:32:00Z'};
   const html=priceInsight({price:1680,currency:'HKD',price_history:h});
   assert.match(html,/data-price-level="low"/);assert.match(html,/偏低/);assert.match(html,/12 天采样最低/);assert.doesNotMatch(html,/近 90 天采样最低/);
+  const indicator=priceInsight({price:1680,currency:'HKD',price_history:h},{indicator:true});
+  assert.match(indicator,/title="偏低。价格状态灯：按已采样的历史报价显示当前价格位置；点击查看价格历史。"/);
   assert.match(priceInsight({price:2000,price_history:{...h,level:'high',lowest:false,difference_percent:20}}),/偏高/);
   assert.match(priceInsight({price:2000,price_history:{...h,level:'collecting',lowest:false}}),/历史积累中/);
   assert.equal(priceInsight({price:2000}), '');

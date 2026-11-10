@@ -26,7 +26,8 @@ export function tripTools(ref) {
 }
 export function tripAlert(ref) {
   const s=tripRecord(ref).snapshot;
-  return `<button type="button" class="trip-alert ${tripWatch(s)?'is-watching':''}" data-trip-alert="${ref}" ${expired(s)?'disabled':''}>${icon('bell')}<span>${watchLabel(s)}</span></button>`;
+  const label=watchLabel(s);
+  return `<button type="button" class="trip-alert deal-icon-action deal-alert ${tripWatch(s)?'is-watching':''}" data-trip-alert="${ref}" aria-label="${escape(label)}" title="${escape(label)}" ${expired(s)?'disabled':''}>${icon('bell')}<span class="sr-only">${escape(label)}</span></button>`;
 }
 export function tripNote(ref) {
   const s=tripRecord(ref).snapshot,w=tripWatch(s);
@@ -39,6 +40,6 @@ export function updateTripState(state){tripWatches=state?.watches || [];tripAcco
 export function resetTrips(){savedTrips=[];tripWatches=[];tripAccount=null;records.clear();refs.clear();document.dispatchEvent(new Event('tripschange'));}
 export function syncTripButtons() {
   document.querySelectorAll('[data-trip-save]').forEach(b=>{const r=tripRecord(b.dataset.tripSave);if(!r)return;const saved=isSaved(r.key);b.setAttribute('aria-pressed',String(saved));b.title=b.ariaLabel=saved?tr('取消收藏','Remove saved trip'):tr('收藏行程','Save trip');});
-  document.querySelectorAll('[data-trip-alert]').forEach(b=>{const r=tripRecord(b.dataset.tripAlert);if(!r)return;b.querySelector('span').textContent=watchLabel(r.snapshot);b.disabled=expired(r.snapshot);b.classList.toggle('is-watching',!!tripWatch(r.snapshot));});
+  document.querySelectorAll('[data-trip-alert]').forEach(b=>{const r=tripRecord(b.dataset.tripAlert);if(!r)return;const label=watchLabel(r.snapshot);b.querySelector('span').textContent=label;b.setAttribute('aria-label',label);b.title=label;b.disabled=expired(r.snapshot);b.classList.toggle('is-watching',!!tripWatch(r.snapshot));});
   document.querySelectorAll('[data-trip-note]').forEach(p=>{if(tripRecord(p.dataset.tripNote))p.outerHTML=tripNote(p.dataset.tripNote);});
 }

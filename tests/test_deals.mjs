@@ -14,7 +14,9 @@ test('flight cards escape source data and reject unsafe booking links',()=>{
  const offers=[offer('25',1200)];offers[0].bookingUrl='javascript:alert(1)';
  const html=dealCards(offers,offers,2);
  assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('href="javascript:'));
- assert.ok(html.includes('/ 2 人往返'));assert.ok(html.includes('data-trip-alert="'));
+ assert.ok(html.includes('/ 2 人往返'));assert.ok(html.includes('data-trip-alert="'));assert.ok(!html.includes('aria-label="前往核价"'));assert.ok(html.includes('trip-date-block'));
+ const safeHtml=dealCards([{...offers[0],bookingUrl:'https://example.com/book'}],offers,2);
+ assert.ok(safeHtml.includes('aria-label="前往核价"'));assert.ok(safeHtml.includes('deal-booking'));
 });
 test('destination navigation uses each returned destination minimum within the selected date',async()=>{
  const {destinationChoices}=await import('../app/static/deal_views.js');

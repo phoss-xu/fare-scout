@@ -1,6 +1,18 @@
 // Newest first. See docs/RELEASES.md before preparing a release.
 export const releases = [
   {
+    version: '0.1.2', status: 'published', date: '2026-11-10',
+    title: {zh: '更清晰的报价卡片与停留日期', en: 'Clearer fare cards and stay dates'},
+    groups: [
+      {type: 'improved', items: [
+        {zh: '搜特价默认查询目的地停留 2–5 晚；可继续自选 1–10 晚。', en: 'Fare search now defaults to stays of 2–5 nights; choose any stay from 1–10 nights.'},
+        {zh: '重新整理报价卡片，保留完整目的地照片，并清晰展示城市、价格、日期和航班。', en: 'Reshape fare cards to preserve full destination photos and clarify city, fare, dates and flights.'},
+        {zh: '价格状态灯会说明历史报价位置；提醒与核价操作改为有色图标。', en: 'Explain the fare indicator against sampled history; use colored icons for alert and booking actions.'},
+        {zh: '每日推荐偏好摘要仅在每日推荐视图中显示。', en: 'Show the daily preference summary only in the daily recommendations view.'},
+      ]},
+    ],
+  },
+  {
     version: '0.1.1', status: 'published', date: '2026-11-06',
     title: {zh: '更清晰的机票卡片', en: 'Clearer fare cards'},
     groups: [
