@@ -87,7 +87,7 @@ loadDestinationPhotos().then(()=>{
 setupLanguage();
 setupWorkspace();
 setupAppearance();
-setupSettings();
+setupSettings(refresh);
 const tripActions=setupTripActions(refresh,toast);
 const daily=setupDaily(refresh,toast,openWatch,c=>discovery.applyPreferences(c));
 const sampleHistory=historyPanel($('#history'),$('#history-dialog'),()=>state);

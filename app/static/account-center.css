@@ -1,0 +1,72 @@
+/* Account identity, preferences and existing notifications share one navigation shell. */
+dialog.account-center{padding:0;inset:0;margin:auto;height:auto;transform:none;width:min(850px,calc(100vw - 40px));max-width:none;max-height:86dvh;min-height:0;border:1px solid var(--line);border-radius:16px;background:var(--white);color:var(--ink)}
+dialog.account-center[open]{display:grid;grid-template-columns:180px minmax(0,1fr)}
+.center-navigation{display:flex;flex-direction:column;padding:28px 16px;background:var(--paper);border-right:1px solid var(--line);min-height:570px}
+.center-navigation>p{margin:4px 12px 24px;color:var(--muted);font-size:12px}
+.center-navigation nav{display:grid;gap:6px}
+.center-navigation button{border:0;background:none;text-align:left;padding:11px 12px;min-height:44px;border-radius:7px;font-size:14px;color:var(--ink)}
+.center-navigation button[aria-current=page]{background:var(--surface-soft);color:var(--green);font-weight:600}
+.center-navigation>#center-release{margin-top:auto;padding-top:32px;color:var(--muted);font-size:12px}
+.center-main{min-width:0;overflow:auto;max-height:86dvh}
+.account-center .appearance-heading{padding:28px 36px 24px;border:0;position:sticky;top:0;z-index:2;background:var(--white);align-items:center}
+.account-center .appearance-heading h2{font:500 27px/1.4 var(--family);letter-spacing:0}
+.account-center #appearance-close{width:36px;height:36px;min-height:36px;border:1px solid var(--line);border-radius:50%;box-shadow:none;background:none;color:var(--muted);font-size:24px;padding:0}
+.account-center .appearance-body{padding:0 36px 28px;overflow:visible}
+.account-center .settings-content{padding:0}
+.center-setting{padding:20px 0;border-bottom:1px solid var(--line);min-width:0}
+.center-setting:first-child{padding-top:8px}
+.center-setting h3,.account-center #settings-email>h3{font-size:14px;font-weight:500;margin:0 0 10px}
+.center-setting .settings-label{margin:16px 0 8px;font-size:13px;color:var(--ink)}
+.center-setting select{font-size:14px;min-height:42px;width:100%;background:var(--white);color:var(--ink);border-color:var(--line)}
+.account-center .appearance-hint{font-size:12px;line-height:1.7;color:var(--muted)}
+.account-center .appearance-footer{margin:20px 0 0;padding:0;display:block;border:0;text-align:left}
+.account-center .language-options{padding:3px;border-radius:8px}
+.account-center .language-options span{padding:8px;border-radius:6px;font-size:13px}
+.account-center .theme-choices{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.account-center .theme-preview{min-height:48px}
+.account-center .theme-choice{padding:0 0 8px}
+.account-center .theme-choice small,.account-center .theme-check{display:none}
+.account-center .theme-choice strong{font-size:12px;font-weight:500}
+.center-identity{display:flex;align-items:center;gap:20px;padding:6px 0 32px}
+.center-avatar{display:grid;place-items:center;flex:none;width:68px;height:68px;border-radius:50%;border:1px solid var(--line);background:var(--surface-soft);font-size:30px}
+.center-identity h3{font:500 23px/1.4 var(--family);margin:0;overflow-wrap:anywhere}
+.center-identity .text-btn{font-size:12px;min-height:36px;padding:6px 0}
+.account-center .settings-mail{padding:0;margin:0;border:0;background:none;display:block}
+.account-center .settings-mail #email-status{font-size:12px;line-height:1.8;color:var(--muted)}
+.account-center .settings-mail form{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin-top:18px}
+.account-center .settings-mail button{align-self:start;width:auto;font-size:13px;padding:10px 16px;min-height:42px;border-radius:8px}
+.account-center .settings-mail input,#center-profile-form input{min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--white);color:var(--ink);padding:10px;width:100%;font-size:14px}
+#center-profile-form{padding:0 0 24px;display:flex;align-items:end;flex-wrap:wrap;gap:12px}
+#center-profile-form label{flex:1;min-width:140px;font-size:12px;display:grid;gap:8px}
+#center-profile-form button{font-size:12px}
+#center-profile-error{flex-basis:100%;font-size:12px;margin:0}
+.account-center .settings-link{min-height:58px;font-size:14px;padding:18px 0;color:var(--ink);border-bottom:1px solid var(--line)}
+#center-login-email,#center-email-state{overflow-wrap:anywhere;font-size:13px;line-height:1.7}
+#center-logout{margin-top:20px}
+.account-dropdown>[data-center-view]{display:block;width:100%;border:0;background:none;text-align:left;padding:10px 12px;font-size:13px;color:var(--ink);min-height:42px}
+.account-dropdown>[data-center-view]:hover{background:var(--surface-soft)}
+.scenery-menu-body .atlas-tools{flex-basis:100%;margin:0;padding:0;display:grid;gap:4px}
+.scenery-menu-body .atlas-tools a{font-size:11px}
+.scenery-menu-body .atlas-saved{flex-basis:100%;margin:0;color:var(--ink)}
+.scenery-menu-body .atlas-saved summary{font-size:12px;min-height:36px;display:flex;align-items:center}
+@media(max-width:760px){
+ dialog.account-center{width:calc(100vw - 24px);max-height:92dvh;border-radius:12px}
+ dialog.account-center[open]{display:flex;flex-direction:column}
+ .center-navigation{min-height:0;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line);flex:none}
+ .center-navigation>p,.center-navigation>#center-release{display:none}
+ .center-navigation nav{display:flex;gap:2px;overflow:auto}
+ .center-navigation button{padding:9px 10px;font-size:12px;white-space:nowrap}
+ .center-main{max-height:none;min-height:0;flex:1}
+ .account-center .appearance-heading{padding:22px 20px 20px}
+ .account-center .appearance-heading h2{font-size:24px}
+ .account-center .appearance-body{padding:0 20px 24px}
+ .center-identity{gap:16px;padding-bottom:28px}
+ .center-avatar{width:58px;height:58px;font-size:26px}
+ .center-identity h3{font-size:21px}
+ .account-center .theme-choices{gap:10px}
+ .account-center .settings-mail input,#center-profile-form input{font-size:16px}
+}
+
+.account-initial{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--surface-soft);border:1px solid var(--line);color:var(--ink);font-size:17px;flex:none}.account-center #settings-passkeys .settings-symbol,.account-center #settings-passkeys .settings-chevron{display:none}.account-center #settings-passkeys .settings-summary{min-height:52px;padding:14px 0}.account-center #settings-passkeys .settings-summary strong{font-size:14px}.account-center #settings-passkeys .settings-content{padding-bottom:20px}
+
+.center-avatar img,.account-initial img{width:100%;height:100%;object-fit:cover;border-radius:50%}.center-avatar{padding:0;overflow:hidden}.avatar-dialog{width:min(400px,calc(100vw - 32px));padding:24px;border:1px solid var(--line);border-radius:14px;background:var(--white);color:var(--ink)}.avatar-dialog h2{font-size:24px;margin:0 0 20px}.avatar-dialog canvas{display:block;width:128px;height:128px;border-radius:50%;background:var(--surface-soft);margin:20px auto}.avatar-dialog>div{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}.avatar-dialog button{font-size:12px}.avatar-dialog::backdrop{background:#152a2566}

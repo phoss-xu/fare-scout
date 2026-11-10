@@ -8,7 +8,7 @@ export function setupLocalPasskeys(signedIn, lifecycle={}) {
   const login=document.createElement('button');login.type='button';login.className='small-btn local-passkey-login';login.hidden=true;
   document.querySelector('#auth-form').after(login);
   const section=document.createElement('details');section.className='settings-section';section.id='settings-passkeys';section.hidden=true;
-  document.querySelector('#settings-account').append(section);
+  document.querySelector('[data-center-panel=security]').append(section);
   const summary=document.createElement('summary');summary.className='settings-summary';
   const icon=document.createElement('span'),titleWrap=document.createElement('span'),title=document.createElement('strong'),chevron=document.createElement('span');
   icon.className='settings-symbol';icon.textContent='⚿';icon.setAttribute('aria-hidden','true');

@@ -68,5 +68,5 @@ export async function state(env,user) {
   for(const w of watches) { codes.add(w.origin);for(const d of w.destinations) codes.add(d); }
   for(const o of observations) { codes.add(o.destination);for(const leg of [o.offer?.outbound,o.offer?.inbound]) if(leg) { codes.add(leg.from);codes.add(leg.to); } }
   return {history_api:true,removed_offers:removed.offers,removed_next_before:removed.next_before,alert_page:{unread:alertData.unread,next_before:alertData.next_before},watches:watches.filter(w=>!w.deleted_at),deleted_watches:watches.filter(w=>w.deleted_at),observations,alerts,
-    daily,query_enabled:env.QUERY_ENABLED==='true',email:emailStatus,user,today:today(),location_stats:stats(),destinations:Object.fromEntries([...codes].filter(Boolean).map(c=>[c,label(c)]))};
+    profile:await first(db,'SELECT avatar FROM user_profiles WHERE user_id=?',[user.id]) || {avatar:null},daily,query_enabled:env.QUERY_ENABLED==='true',email:emailStatus,user,today:today(),location_stats:stats(),destinations:Object.fromEntries([...codes].filter(Boolean).map(c=>[c,label(c)]))};
 }

@@ -1,3 +1,4 @@
+import {saveProfile} from './profile.js';
 import {removedOffers} from './observation-history.js';
 import {alertPage} from './alert-pages.js';
 import {cleanSourceCache} from './source-cache.js';
@@ -78,6 +79,7 @@ async function api(request,env,ctx) {
       return json({email:await mailStatus(env,current.notification_email,user.id)});
     }
     if(path==='/api/email/confirm') {await confirmConsent(env,user.id,body.token);return json({message:'邮箱验证成功。'});}
+    if(path==='/api/profile') {await saveProfile(db,user.id,body);return json({message:'资料已保存。'});}
     if(path==='/api/email') { await store.recipient(db,user.id,body.recipient);return json({message:'收件邮箱已保存。'}); }
     const match=/^\/api\/(watches|offers)\/(\d+)\/(delete|restore|settings|check)$/.exec(path);
     if(match) {

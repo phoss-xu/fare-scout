@@ -6,11 +6,9 @@ export function setupAppearance() {
   const dialog = document.querySelector('#appearance-dialog'), opener = document.querySelector('#appearance-open');
   const choices = dialog.querySelector('#theme-choices');
   const status = dialog.querySelector('#appearance-status');
-  const opacity = dialog.querySelector('#landscape-opacity');
   const font = dialog.querySelector('#settings-font-choice');
   font.addEventListener('change', () => setAppearance({font:font.value}));
   let previousOverflow;
-  opacity.addEventListener('input', () => setAppearance({surfaceOpacity:Number(opacity.value)}));
   choices.replaceChildren(...themes.map(theme => {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'theme-choice'; button.dataset.choiceTheme = theme.id;
@@ -37,9 +35,6 @@ export function setupAppearance() {
     });
     choices.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.choiceTheme === value.theme)));
     font.value = value.font;
-    opacity.value = value.surfaceOpacity;
-    dialog.querySelector('#landscape-opacity-value').value = `${value.surfaceOpacity}%`;
-    opacity.setAttribute('aria-valuetext', `${value.surfaceOpacity}%`);
     status.textContent = saved && preferencesSaved() ? '' : tr('偏好未保存，仅本页生效','Not saved · Applied to this page');
   }
   subscribePreferences(()=>render(getAppearance()));
