@@ -1,6 +1,15 @@
 // Newest first. See docs/RELEASES.md before preparing a release.
 export const releases = [
   {
+    version: '0.1.3', status: 'published', date: '2026-11-11',
+    title: {zh: '更紧凑的登机牌布局', en: 'A more compact boarding pass'},
+    groups: [
+      {type: 'improved', items: [
+        {zh: '只保留目的地照片并移至登机牌左侧；窄屏以侧栏展示照片，同时收紧行程间距。', en: 'Show only the destination photo beside the boarding pass; use a slim photo rail and tighter itinerary spacing on small screens.'},
+      ]},
+    ],
+  },
+  {
     version: '0.1.2', status: 'published', date: '2026-11-10',
     title: {zh: '更清晰的报价卡片与停留日期', en: 'Clearer fare cards and stay dates'},
     groups: [
