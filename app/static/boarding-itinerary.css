@@ -73,15 +73,15 @@
 #deals-panel [data-offer-view=list] .deal-flight-more .flight-endpoint time{font-size:22px}
 @media(max-width:760px){
  #deals-panel .deal-results-grid[data-offer-view=list] .deal-card{display:flex;flex-direction:column;padding:16px}
- #deals-panel [data-offer-view=list] .boarding-itinerary{margin-top:12px}
+ #deals-panel [data-offer-view=list] .boarding-itinerary{margin-top:6px}
  #deals-panel .deal-results-grid[data-offer-view=list] .deal-result-title{display:contents}
  #deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub{padding:16px 0 0;margin-top:12px;border-left:0;border-top:1px dashed var(--line)}
  #deals-panel .deal-results-grid[data-offer-view=list] .price{max-width:none;text-align:left;margin:0}
  #deals-panel .deal-results-grid[data-offer-view=list] .card-bottom{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between}
  #deals-panel [data-offer-view=list] .ticket-face{display:flex;flex-direction:column}
  #deals-panel [data-offer-view=list] .deal-flight-more .flight-overview{grid-template-columns:minmax(0,1fr)}
- .boarding-place>strong{font-size:23px}.boarding-places{gap:10px;margin-bottom:12px}
- .boarding-leg{grid-template-columns:minmax(0,1fr) minmax(90px,1.1fr) minmax(0,1fr);gap:8px;padding:12px 0}
+ .boarding-place>strong{font-size:23px}.boarding-places{gap:10px;margin-bottom:8px}
+ .boarding-leg{grid-template-columns:minmax(0,1fr) minmax(90px,1.1fr) minmax(0,1fr);gap:8px;padding:8px 0}
  .boarding-moment time{font-size:22px}.boarding-moment>span{font-size:10px}.boarding-connection>span{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.boarding-route-track i,.boarding-route-track b{animation:none}.boarding-route-track i{transform:scaleX(.72)}.boarding-route-track b{left:72%}.boarding-return .boarding-route-track i{transform-origin:right}.boarding-return .boarding-route-track b{left:28%}}

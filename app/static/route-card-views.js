@@ -19,6 +19,8 @@ function handlePhotoErrors() {
   document.addEventListener('error',event=>{
     const img=event.target;if(!img.matches?.('.offer-photo img,.destination-image img,.destination-hero img'))return;
     console.info('Destination photograph unavailable',img.getAttribute('src'));
+    const fallbackTile=img.closest('.offer-photo-tile');
+    if(fallbackTile){const fallback=document.createElement('span');fallback.className='offer-photo-fallback';fallback.textContent=fallbackTile.dataset.photo || '';fallback.setAttribute('aria-hidden','true');img.replaceWith(fallback);fallbackTile.querySelector('a')?.remove();return;}
     const tile=img.closest('.watch-photo-tile');
     if(tile){
       const strip=tile.closest('.watch-photo-strip');tile.remove();
@@ -61,6 +63,14 @@ export function offerPhoto(offer,photos) {
   if(!photo)return '';
   const name=routeName({to:offer.outbound.to,offers:[offer]});
   return `<figure class="offer-photo" data-photo="${escape(offer.outbound.to)}"><img src="${escape(photo.path)}" alt="${escape(name)}${tr('目的地风景',' destination scenery')}" loading="lazy" decoding="async" width="${Number.isInteger(photo.width)?photo.width:1600}" height="${Number.isInteger(photo.height)?photo.height:1067}"${photoPosition(photo)}><figcaption><strong>${escape(name)}</strong><a href="${escape(photo.source)}" target="_blank" rel="noopener noreferrer" title="${escape(photo.license)}">${escape(photo.author)} · ${tr('图片来源','Photo source')} ↗</a></figcaption></figure>`;
+}
+
+/** Destination cover used only by the boarding-pass result view. */
+export function boardingDestinationPhoto(offer,photos) {
+  if(!offer?.outbound?.to)return '';
+  const photo=destinationPhoto(offer.outbound.to,photos);if(!photo)return '';
+  const cityName=photo.city_name && photo.city_name!==photo.city_code?tr(photo.city_name,photo.city):photo.city || offer.outbound.to;
+  return `<section class="offer-photo" aria-label="${tr('目的地风景','Destination scenery')}"><div class="offer-photo-stage"><figure class="offer-photo-tile" data-photo="${escape(offer.outbound.to)}" data-side="to"><img src="${escape(photo.path)}" alt="${escape(cityName)}${tr('风景',' scenery')}" loading="lazy" decoding="async" width="${Number.isInteger(photo.width)?photo.width:1600}" height="${Number.isInteger(photo.height)?photo.height:1067}"${photoPosition(photo)}><figcaption><span><small>${tr('目的地','Destination')}</small><strong>${escape(cityName)}</strong></span><a href="${escape(photo.source)}" target="_blank" rel="noopener noreferrer" title="${escape(photo.author)} · ${escape(photo.license)}">${escape(photo.author)} · ${tr('图片来源','Photo source')} ↗</a></figcaption></figure></div></section>`;
 }
 
 

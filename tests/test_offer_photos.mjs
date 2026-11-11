@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,access} from 'node:fs/promises';
-import {offerPhoto} from '../app/static/route-card-views.js';
+import {offerPhoto,boardingDestinationPhoto} from '../app/static/route-card-views.js';
 const catalog=JSON.parse(await readFile(new URL('../app/static/destination-photos.json',import.meta.url)));
 test('each catalog destination has a local cover with source attribution',async()=>{
  for(const [to,photo] of Object.entries(catalog)) {
@@ -18,6 +18,21 @@ test('unknown destinations and unsafe image/source URLs keep the plain fare surf
  for(const photo of [{path:'javascript:alert(1)',source:'https://example.com'},{path:'/a.jpg',source:'javascript:alert(1)'}])assert.equal(offerPhoto(offer,{ZZZ:photo}),'');
  const html=offerPhoto(offer,{ZZZ:{path:'/a.jpg',source:'https://example.com',author:'<script>',license:'"test"'}});
  assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('<script>'));
+});
+
+test('boarding pass uses only the destination photograph at its side',async()=>{
+ const html=boardingDestinationPhoto({outbound:{from:'HKG',to:'HND'}},catalog);
+ assert.equal((html.match(/class="offer-photo-tile"/g)||[]).length,1);
+ assert.match(html,/data-side="to"/);assert.doesNotMatch(html,/data-side="from"/);
+ assert.ok(html.includes(catalog.HND.path));assert.ok(!html.includes(catalog.HKG.path));
+ assert.equal((offerPhoto({outbound:{from:'HKG',to:'HND'}},catalog).match(/offer-photo-tile/g)||[]).length,0);
+ const css=(await readFile(new URL('../app/static/destination-photos.css',import.meta.url),'utf8'));
+ assert.match(css,/\.offer-photo-tile\{[^}]*aspect-ratio:1/);
+ assert.match(css,/\.offer-photo-tile\{aspect-ratio:16\/9/);
+ const layout=(await readFile(new URL('../app/static/discovery-layout.css',import.meta.url),'utf8'));
+ assert.match(layout,/grid-template-columns:minmax\(220px,280px\) minmax\(0,1fr\)/);
+ assert.match(layout,/grid-template-columns:minmax\(72px,22vw\) minmax\(0,1fr\)/);
+ assert.match(layout,/\.offer-photo:not\(\.watch-photo-strip\)\{display:block;grid-column:1;grid-row:1\/3/);
 });
 
 test('same-city passenger airports reuse their reviewed city cover in every view',async()=>{

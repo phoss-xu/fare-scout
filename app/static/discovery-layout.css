@@ -125,14 +125,13 @@ body{background:var(--paper)}
 #deals-panel .deal-date-note{font:400 13px/1.7 var(--family)}
 #deals-panel .discovery-empty{min-height:120px;padding:24px;background:var(--white);border:1px solid var(--line);border-radius:12px}
 #deals-panel .discovery-empty h3{font:500 20px/1.5 var(--family);letter-spacing:0}
-/* Pair the destination photograph with the ticket instead of turning it into
-   a banner. The portrait crop gives the place room while the fare stays close. */
+/* Keep the destination photo beside the boarding pass. */
 #deals-panel .deal-results-grid[data-offer-view=list]{grid-template-columns:minmax(0,1180px);justify-content:center}
-#deals-panel .deal-results-grid[data-offer-view=list] .deal-card{display:grid;grid-template-columns:minmax(290px,320px) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;border-left:1px solid var(--line);padding:0;overflow:hidden}
-#deals-panel .deal-results-grid[data-offer-view=list] .offer-photo{grid-column:1;grid-row:1/3;height:auto;min-height:410px;margin:0;border-radius:11px 0 0 11px}
-#deals-panel .deal-results-grid[data-offer-view=list] .offer-photo figcaption{flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:4px;padding:20px}
-#deals-panel .deal-results-grid[data-offer-view=list] .offer-photo a{max-width:100%;text-align:left;font-size:11px}
-#deals-panel .deal-results-grid[data-offer-view=list] .ticket-face{grid-column:2;grid-row:1;display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:0 20px;padding:24px}
+#deals-panel .deal-results-grid[data-offer-view=list] .deal-card{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;border-left:1px solid var(--line);padding:0;overflow:hidden}
+#deals-panel .deal-results-grid[data-offer-view=list] .offer-photo:not(.watch-photo-strip){grid-column:1;grid-row:1/3;align-self:stretch;height:auto;min-height:0;margin:0;border-radius:0;background:none;overflow:hidden}
+#deals-panel .deal-results-grid[data-offer-view=list] .offer-photo-stage{height:100%}
+#deals-panel .deal-results-grid[data-offer-view=list] .offer-photo-tile{height:100%;aspect-ratio:auto;border-radius:0}
+#deals-panel .deal-results-grid[data-offer-view=list] .ticket-face{grid-column:2;grid-row:1;display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:0 24px;padding:24px}
 #deals-panel .deal-results-grid[data-offer-view=list] .boarding-itinerary{grid-column:1;grid-row:1/3}
 #deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub{padding-left:18px;border-left:1px solid var(--line)}
 #deals-panel .deal-results-grid[data-offer-view=list] .deal-flight-more{grid-column:2;grid-row:2;margin:0 24px;padding-top:8px}
@@ -200,23 +199,25 @@ body{background:var(--paper)}
  #deals-panel .result-frame .destination-rail{max-height:none;overflow:visible}
  #deals-panel .result-frame .destination-rail button{font-size:12px;gap:8px;flex:1 0 auto;justify-content:space-between}
  #deals-panel .result-frame .destination-rail strong{font-size:12px}
- #deals-panel .deal-results-grid[data-offer-view=list] .deal-card{padding:16px}
- #deals-panel .deal-results-grid[data-offer-view=list] .deal-card{display:block;padding:16px}
- #deals-panel .deal-results-grid[data-offer-view=list] .offer-photo{height:190px;min-height:0;margin:-16px -16px 16px;border-radius:10px 10px 0 0}
- #deals-panel .deal-results-grid[data-offer-view=list] .offer-photo figcaption{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:12px;padding:12px 16px}
- #deals-panel .deal-results-grid[data-offer-view=list] .offer-photo a{text-align:right;font-size:12px;max-width:65%}
- #deals-panel .deal-results-grid[data-offer-view=list] .ticket-face{display:flex;flex-direction:column;gap:0}
+ #deals-panel .deal-results-grid[data-offer-view=list] .deal-card{display:grid;grid-template-columns:minmax(72px,22vw) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;padding:0}
+ #deals-panel .deal-results-grid[data-offer-view=list] .offer-photo:not(.watch-photo-strip){display:block;grid-column:1;grid-row:1/3;height:auto;min-height:100%;margin:0;border-radius:10px 0 0 10px}
+ #deals-panel .deal-results-grid[data-offer-view=list] .offer-photo-stage{height:100%}
+ #deals-panel .deal-results-grid[data-offer-view=list] .offer-photo-tile{height:100%;aspect-ratio:auto;border-radius:10px 0 0 10px}
+ #deals-panel .deal-results-grid[data-offer-view=list] .offer-photo-tile figcaption{align-items:flex-start;gap:4px;padding:7px}
+ #deals-panel .deal-results-grid[data-offer-view=list] .offer-photo-tile figcaption strong{font-size:13px;overflow-wrap:anywhere}
+ #deals-panel .deal-results-grid[data-offer-view=list] .offer-photo-tile figcaption a{align-self:flex-start;max-width:100%;font-size:8px;text-align:left;overflow-wrap:anywhere}
+ #deals-panel .deal-results-grid[data-offer-view=list] .ticket-face{grid-column:2;grid-row:1;display:flex;flex-direction:column;gap:0;padding:12px 10px}
  #deals-panel [data-offer-view=list] .ticket-face{display:flex;gap:0}
  #deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub{display:contents}
  #deals-panel [data-offer-view=list] .ticket-face>.boarding-itinerary{order:1;margin:0}
- #deals-panel [data-offer-view=list] .ticket-stub>.fare-status{order:0;margin:0 0 12px}
+ #deals-panel [data-offer-view=list] .ticket-stub>.fare-status{order:0;margin:0 0 6px}
  #deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub>.fare-status>.price{width:auto;max-width:none;font-size:28px;white-space:nowrap;margin:0}
  #deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub>.fare-status>.price .fare-symbol{font-size:.42em}
  #deals-panel .deal-results-grid[data-offer-view=list] .price-status-light{width:32px;height:32px;min-height:32px}
  #deals-panel [data-offer-view=list] .ticket-stub>:is(.ticket-time-note,.ticket-baggage){order:2}
  #deals-panel [data-offer-view=list] .ticket-stub>.card-bottom{order:3}
  #deals-panel [data-offer-view=list] .ticket-stub>.ticket-footer{order:4}
- #deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub{padding:16px 0 0}
+ #deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub{padding:10px 0 0}
  #deals-panel .deal-results-grid[data-offer-view=list] .ticket-stub>:is(.ticket-time-note,.ticket-baggage){display:none}
  #deals-panel .boarding-place>strong{font-size:23px}
  #deals-panel .boarding-moment time{font-size:24px}
@@ -229,6 +230,7 @@ body{background:var(--paper)}
  #deals-panel .boarding-direction,#deals-panel .boarding-flight-kind,#deals-panel .boarding-carriers>span{font-size:11px;padding:3px 5px}
  #deals-panel .deal-results-grid[data-offer-view] .price>span{font-size:13px}
 }
+@media(max-width:380px){#deals-panel .deal-results-grid[data-offer-view=list] .deal-card{grid-template-columns:72px minmax(0,1fr)}}
 
 /* Card view: keep the fare and destination in one clear headline row. */
 #deals-panel .deal-results-grid[data-offer-view=cards] .deal-card{
@@ -238,6 +240,8 @@ body{background:var(--paper)}
 #deals-panel .deal-results-grid[data-offer-view=cards] .offer-photo{
  grid-column:1/-1;width:100%;height:190px;margin:0;border-radius:15px 15px 0 0
 }
+#deals-panel .deal-results-grid[data-offer-view=cards] .offer-photo-tile{aspect-ratio:16/9;border-radius:15px 15px 0 0}
+#deals-panel .deal-results-grid[data-offer-view=cards] .offer-photo:not(.watch-photo-strip){height:auto;overflow:visible;border-radius:0;background:none}
 #deals-panel .deal-results-grid[data-offer-view=cards] .card-top{
  grid-column:1/-1;margin:16px 20px 4px;min-width:0
 }
@@ -276,7 +280,7 @@ body{background:var(--paper)}
 #deals-panel .deal-results-grid[data-offer-view=cards] .card-bottom{margin-top:4px;margin-bottom:12px}
 #deals-panel .deal-results-grid[data-offer-view=cards] .ticket-footer{margin-bottom:16px}
 @media(max-width:760px){
- #deals-panel .deal-results-grid[data-offer-view=cards] .offer-photo{height:180px}
+ #deals-panel .deal-results-grid[data-offer-view=cards] .offer-photo:not(.watch-photo-strip){height:auto}
  #deals-panel .deal-results-grid[data-offer-view=cards] .card-top{margin:12px 16px 2px}
  #deals-panel .deal-results-grid[data-offer-view=cards] .deal-result-title{margin-left:16px}
  #deals-panel .deal-results-grid[data-offer-view=cards] .deal-result-title h3{font-size:23px}
