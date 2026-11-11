@@ -1975,3 +1975,8 @@
 - `npm run test:frontend` 130 项通过，`node --check app/static/auth-films.js`通过；Wrangler 4.156.1 在干净提交 `99e3d47` 上通过 `npm run build` dry-run。
 - 使用 `npx wrangler deploy --keep-vars --strict` 部署到 `fare-scout` Worker。版本 ID：`00c92d67-ff85-4d9e-9ad2-08daa0c427b7`；线上地址：https://fare-scout.phosssuki.workers.dev。
 - 线上首页显示 v0.1.4。未登录状态先显示静态封面和播放按钮；点击后视频进入播放。未执行真实查价、发送邮件或数据库迁移。
+
+## 2026-11-11 · 搜索按钮图标（本地待验收）
+
+- 将风景工作台圆形搜索按钮中容易被理解为外链的右上箭头换为放大镜；保留“搜索机票”按钮名称与无障碍标签。
+- 本地 `http://localhost:8787/` 硬刷新后，页面辅助功能树显示搜索按钮名称仍为“搜索机票”，确认实际页面已载入新改动。本次改动已本地commit，尚未push或部署。

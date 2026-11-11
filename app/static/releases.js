@@ -1,6 +1,15 @@
 // Newest first. See docs/RELEASES.md before preparing a release.
 export const releases = [
   {
+    version: '0.1.5-preview.1', status: 'preview', date: null,
+    title: {zh: '搜索按钮图标', en: 'Search button icon'},
+    groups: [
+      {type: 'improved', items: [
+        {zh: '将风景工作台的搜索按钮图标换成放大镜。', en: 'Replace the scenic workspace search button symbol with a magnifying glass.'},
+      ]},
+    ],
+  },
+  {
     version: '0.1.4', status: 'published', date: '2026-11-11',
     title: {zh: '登录风景按需播放', en: 'Play sign-in scenery on demand'},
     groups: [
