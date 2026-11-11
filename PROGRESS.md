@@ -1968,3 +1968,10 @@
 - 按功能提交并推送：`f97d031`（停留晚数默认 2–5 晚，表单空数组也使用默认范围）及 `35ee2d6`（报价卡片、价格状态灯与每日摘要界面）。发布日志 v0.1.2 已列明对应中英文改动。
 - 使用 Wrangler 4.156.1 执行 `deploy --keep-vars --strict`，正式发布至 `fare-scout`（`https://fare-scout.phosssuki.workers.dev`）。Cloudflare Worker 版本 ID：`10735a48-bb1d-4da1-8a5b-fe21bb6adf93`。保留生产运行变量与现有 D1；没有迁移或执行真实查价、邮件发送。
 - 发布前检查：前端 128 项、Workers 72 项、Python 查询 12 项通过；Wrangler dry-run 与 `git diff --check`通过。线上浏览器显示 v0.1.2、发布日期 2026-11-10 和本次更新日志，与发布条目一致。线上只核验未登录页面及更新日志；登录后查价未在生产执行，移动端完整卡片的验收仍未通过。
+
+## 2026-11-11 · v0.1.4 正式发布
+
+- 登录页先显示静态封面，只有点击“播放风景”后才加载视频；播放后按钮切换为“暂停风景”。更新日志列明中英文改动。
+- `npm run test:frontend` 130 项通过，`node --check app/static/auth-films.js`通过；Wrangler 4.156.1 在干净提交 `99e3d47` 上通过 `npm run build` dry-run。
+- 使用 `npx wrangler deploy --keep-vars --strict` 部署到 `fare-scout` Worker。版本 ID：`00c92d67-ff85-4d9e-9ad2-08daa0c427b7`；线上地址：https://fare-scout.phosssuki.workers.dev。
+- 线上首页显示 v0.1.4。未登录状态先显示静态封面和播放按钮；点击后视频进入播放。未执行真实查价、发送邮件或数据库迁移。
