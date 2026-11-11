@@ -1,8 +1,9 @@
-## 2026-11-11 · 登机牌目的地侧图（本地待验收）
+## 2026-11-11 · v0.1.3 正式发布
 
-- 按最新反馈移除出发地照片，只保留目的地照片并放在登机牌左侧。桌面侧栏宽 220–280px；窄屏保留约 72–96px 的图片侧栏，避免照片占掉行程纵向空间，同时让去返程时间、日期和机场信息继续可见。
-- 使用标注“本地样式预览 · 非真实报价”的样例检查桌面及 iPhone 16 Pro Max 视口。桌面图片位于票面左侧；窄屏的单图侧栏和完整票面可同时看到。未触发真实查价或通知。
-- `node --test tests/test_offer_photos.mjs tests/test_boarding_itinerary.mjs` 11项通过，`git diff --check`通过。未部署、commit或push。
+- 按用户确认的样式只保留目的地照片，放在登机牌左侧；桌面侧栏宽 220–280px，窄屏为 72–96px，并收紧行程间距。发出版次日志已更新为中英文 v0.1.3。
+- Wrangler 4.156.1 在干净提交 `7b4fc92` 上通过 `npm run build` dry-run；照片、登机牌和发布日志相关测试 12 项通过，`git diff --check`通过。
+- 使用 `npx wrangler deploy --keep-vars --strict` 部署到 `fare-scout` Worker。版本 ID：`bdd578b9-704a-41b1-98a9-9cf4c864d4bd`；线上地址：https://fare-scout.phosssuki.workers.dev。
+- 线上首页更新日志显示 v0.1.3、北京时间 2026-11-11 和本次目的地侧图条目，与发布范围一致。未执行真实查价、发送邮件或数据库迁移。
 
 # 当前进展
 
