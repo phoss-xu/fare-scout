@@ -12,7 +12,9 @@ export function setupAuthFilms() {
   const like=view.querySelector('#auth-film-like'),dislike=view.querySelector('#auth-film-dislike'),undo=view.querySelector('#auth-film-undo');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)'),preferences=createFilmPreferences(),failed=new Set();
   let current=nextFilmIndex(authFilms,-1,preferences),active=0,generation=0,loading=false;
-  let paused=reduced.matches || Boolean(navigator.connection?.saveData);
+  // Keep the first login view on its small static poster. Fetch video only
+  // after the visitor explicitly starts playback.
+  let paused=true;
   const lastDisliked=()=>preferences.lastDisliked(authFilms.map(film=>film.id));
   const visible=()=>!document.hidden && !view.hidden;
   function render() {

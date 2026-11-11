@@ -1,6 +1,15 @@
 // Newest first. See docs/RELEASES.md before preparing a release.
 export const releases = [
   {
+    version: '0.1.4', status: 'published', date: '2026-11-11',
+    title: {zh: '登录风景按需播放', en: 'Play sign-in scenery on demand'},
+    groups: [
+      {type: 'improved', items: [
+        {zh: '登录页先显示静态封面；点击播放后才加载风景视频。', en: 'Show a static poster on the sign-in page; load scenery video only after playback is started.'},
+      ]},
+    ],
+  },
+  {
     version: '0.1.3', status: 'published', date: '2026-11-11',
     title: {zh: '更紧凑的登机牌布局', en: 'A more compact boarding pass'},
     groups: [

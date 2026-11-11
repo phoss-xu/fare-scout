@@ -37,6 +37,7 @@ function fixture({reduced=false,saveData=false,entries={}}={}) {
 }
 const settle=async()=>{for(let i=0;i<20;i++) await Promise.resolve();};
 async function load(f){f.pending.splice(0).forEach(fn=>fn());await settle();}
+async function play(f){f.elements['#auth-film-toggle'].click();await load(f);}
 const playing=f=>f.players.find(p=>!p.paused);
 const dislike=f=>f.elements['#auth-film-dislike'].click();
 test('reduced motion and save data never load video; dislikes still advance the still',()=>{
@@ -45,41 +46,47 @@ test('reduced motion and save data never load video; dislikes still advance the 
   assert.equal(f.pending.length,0);assert.equal(f.poster.src,filmPath(authFilms[1],'jpg'));
  }
 });
+test('first login shows the poster without downloading video; playback loads only after a click',async()=>{
+ const f=fixture();assert.equal(f.pending.length,0);assert.equal(f.poster.src,filmPath(authFilms[0],'jpg'));
+ assert.equal(f.elements['#auth-film-toggle'].getAttribute('aria-pressed'),'false');
+ f.elements['#auth-film-toggle'].click();assert.equal(f.pending.length,1);await load(f);
+ assert.equal(playing(f).src,filmPath(authFilms[0]));
+});
 test('natural clip end advances once; players do not loop or use a rotation timer',async()=>{
- const f=fixture();await load(f);assert.equal(playing(f).loop,false);assert.equal(f.timers.size,0);
+ const f=fixture();await play(f);assert.equal(playing(f).loop,false);assert.equal(f.timers.size,0);
  playing(f).dispatchEvent(new Event('ended'));await load(f);
  assert.equal(playing(f).src,filmPath(authFilms[1]));assert.equal(f.players.filter(p=>!p.paused).length,1);
 });
 test('like toggles a durable stable ID without interrupting playback',async()=>{
- const f=fixture();await load(f);const p=playing(f),button=f.elements['#auth-film-like'];button.click();
+ const f=fixture();await play(f);const p=playing(f),button=f.elements['#auth-film-like'];button.click();
  assert.equal(createFilmPreferences(f.storage).reaction(authFilms[0].id),'liked');assert.equal(playing(f),p);
  assert.equal(button.getAttribute('aria-pressed'),'true');button.click();
  assert.equal(createFilmPreferences(f.storage).reaction(authFilms[0].id),null);
 });
 test('disliked scenes disappear immediately and stay excluded after reload',async()=>{
- const f=fixture();await load(f);dislike(f);assert.ok(f.players.every(p=>p.paused));await load(f);
+ const f=fixture();await play(f);dislike(f);assert.ok(f.players.every(p=>p.paused));await load(f);
  const entries=JSON.parse(f.storage.getItem(FILM_PREFERENCES_KEY)).entries;
- const reopened=fixture({entries});await load(reopened);
+ const reopened=fixture({entries});assert.equal(reopened.pending.length,0);assert.equal(reopened.poster.src,filmPath(authFilms[1],'jpg'));await play(reopened);
  assert.equal(playing(reopened).src,filmPath(authFilms[1]));assert.equal(reopened.poster.src,filmPath(authFilms[1],'jpg'));
 });
 test('all disliked scenes show a neutral surface and broken heart can undo',async()=>{
  const entries=Object.fromEntries(authFilms.map(f=>[f.id,{reaction:'disliked',updatedAt:'2026-11-04T00:00:00.000Z'}]));
  const f=fixture({entries});assert.equal(f.pending.length,0);assert.equal(f.poster.hidden,true);
- assert.equal(f.elements['#auth-film-like'].disabled,true);dislike(f);await load(f);assert.ok(playing(f));
+ assert.equal(f.elements['#auth-film-like'].disabled,true);dislike(f);await play(f);assert.ok(playing(f));
 });
 test('failed next clip is skipped rather than appearing as a successful empty scene',async()=>{
- const f=fixture();await load(f);f.failures.add(filmPath(authFilms[1]));
+ const f=fixture();await play(f);f.failures.add(filmPath(authFilms[1]));
  playing(f).dispatchEvent(new Event('ended'));await load(f);await load(f);
  assert.equal(playing(f).src,filmPath(authFilms[2]));
 });
 test('hidden login pauses, returning resumes, manual pause prevents automatic advance',async()=>{
- const f=fixture();await load(f);f.view.hidden=true;f.visibility();assert.ok(f.players.every(p=>p.paused));
+ const f=fixture();await play(f);f.view.hidden=true;f.visibility();assert.ok(f.players.every(p=>p.paused));
  f.view.hidden=false;f.visibility();await settle();assert.ok(playing(f));
  const original=playing(f);f.elements['#auth-film-toggle'].click();original.dispatchEvent(new Event('ended'));
  assert.ok(f.players.every(p=>p.paused));assert.equal(f.pending.length,0);
 });
 test('reduced motion change immediately pauses playback',async()=>{
- const f=fixture();await load(f);f.media.matches=true;f.media.dispatchEvent(new Event('change'));
+ const f=fixture();await play(f);f.media.matches=true;f.media.dispatchEvent(new Event('change'));
  assert.ok(f.players.every(p=>p.paused));assert.equal(f.timers.size,0);
 });
 test('playlist excludes every blocked clip and can wrap to its only eligible clip',()=>{
@@ -96,7 +103,7 @@ test('storage write failures remain explicit while retaining the choice for this
 
 test('undo restores a disliked scene after reload without changing unrelated favorites',async()=>{
  const entries={[authFilms[0].id]:{reaction:'disliked',updatedAt:'2026-11-04'},[authFilms[2].id]:{reaction:'liked',updatedAt:'2026-11-04'}};
- const f=fixture({entries});await load(f);f.elements['#auth-film-undo'].click();await load(f);
+ const f=fixture({entries});await load(f);f.elements['#auth-film-undo'].click();await play(f);
  assert.equal(playing(f).src,filmPath(authFilms[0]));
  assert.equal(createFilmPreferences(f.storage).reaction(authFilms[2].id),'liked');
 });
