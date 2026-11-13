@@ -21,7 +21,10 @@ test('saved searches persist complete owner-scoped snapshots without triggering 
   assert.equal((await request(h,'/api/search-presets',{action:'remove',id:row.id},b)).status,404);
   assert.equal((await request(h,'/api/search-presets',undefined,a)).data.presets[0].name,'重新命名');
   const flexible=config({destinations:[],nights:[2,4],weekdays:[0,5]});
-  assert.equal((await request(h,'/api/search-presets',{config:flexible},a)).status,200);
+  flexible.excluded_destinations=['country:JP','city:TYO'];
+  const savedFlexible=await request(h,'/api/search-presets',{config:flexible},a);
+  assert.equal(savedFlexible.status,200);
+  assert.deepEqual(savedFlexible.data.presets.find(p=>p.config.excluded_destinations)?.config.excluded_destinations,['city:TYO','country:JP']);
   const first=new Date(future(20)+'T12:00:00Z');first.setUTCDate(first.getUTCDate()+(6-first.getUTCDay()+7)%7);
   const shift=n=>new Date(first.getTime()+n*86400000).toISOString().slice(0,10);
   const pairs=[{start:shift(0),end:shift(1)},{start:shift(14),end:shift(15)}];

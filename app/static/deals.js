@@ -36,6 +36,7 @@ export function setupDeals(openWatch) {
     }
     summarizeScopes();
   }, {editableSelection:true,maxChoices:100});
+  const excludedDestinations = picker(panel.querySelector('#deal-excluded-destination'), true, summarizeScopes, {editableSelection:true,maxChoices:100,label:'避开范围'});
   const rangeButton=document.createElement('button');rangeButton.type='button';rangeButton.className='scope-shortcut';rangeButton.textContent=tr("＋ 免签精选","＋ Visa-free selection");
   panel.querySelector('#deal-destination').insertBefore(rangeButton,panel.querySelector('#deal-destination .place-recent'));
   rangeButton.addEventListener('click',()=>destinations.browse('visa-free'));
@@ -44,8 +45,8 @@ export function setupDeals(openWatch) {
   const nights = setupNights(form);
   const journey = setupJourney(form, panel);
   const travelDates = setupTravelDates(form);
-  const presets = setupSearchPresets(form, {capture:()=>captureSearch(form,origin,destinations),
-    apply:async (config,isCurrent)=>{holidays.clear();await restoreSearch(form,origin,destinations,config,isCurrent);}});
+  const presets = setupSearchPresets(form, {capture:()=>captureSearch(form,origin,destinations,excludedDestinations),
+    apply:async (config,isCurrent)=>{holidays.clear();await restoreSearch(form,origin,destinations,config,isCurrent,excludedDestinations);}});
   const status = panel.querySelector('#deal-status'), results = panel.querySelector('#deal-results');
   const controls = panel.querySelector('#deal-result-controls'), button = form.querySelector('[type=submit]');
   controls.querySelector('.deal-date-note').removeAttribute('data-i18n');
@@ -134,7 +135,7 @@ export function setupDeals(openWatch) {
     event.preventDefault(); const version=++epoch; poller.stop(); button.disabled=true;
     offerViews.clear(); controls.hidden=true; panel.querySelector('#deal-sort').hidden=true; results.innerHTML=discoveryPlaceholder('loading'); results.setAttribute('aria-busy','true'); result=undefined;renderedOffers=undefined;day='';destination=''; status.textContent=tr("搜索中…","Searching…");
     try {
-      const data=captureSearch(form,origin,destinations);
+      const data=captureSearch(form,origin,destinations,excludedDestinations);
       const task = await request('/api/deals',data);
       if (version === epoch) {activeSearch={id:task.id,version};pollDelay=1500;progress=undefined;poller.start();}
     } catch(error) { if (version === epoch) { status.textContent=error.message; button.disabled=false; results.setAttribute('aria-busy','false'); results.innerHTML=discoveryPlaceholder('error'); } }
@@ -158,7 +159,7 @@ export function setupDeals(openWatch) {
     origin.setValues(c.origins).catch(error=>{status.textContent=error.message;});
     form.dispatchEvent(new Event('journey:locations'));
   },reset(active) {
-    offerViews.clear();epoch+=1;poller.stop();activeSearch=undefined;form.reset();origin.clear();destinations.clear();result=undefined;renderedOffers=undefined;day='';destination='';edited=false;preferenceKey=undefined;
+    offerViews.clear();epoch+=1;poller.stop();activeSearch=undefined;form.reset();origin.clear();destinations.clear();excludedDestinations.clear();result=undefined;renderedOffers=undefined;day='';destination='';edited=false;preferenceKey=undefined;
     holidays.reset(active);
     layout.reset();
     nights.reset();

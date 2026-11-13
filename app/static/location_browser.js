@@ -12,8 +12,9 @@ export function locationBrowser({label,multiple,values,choose}) {
   dialog.querySelector('.icon-btn').innerHTML=icon('close');
   document.body.append(dialog);
   const input=dialog.querySelector('input'), nav=dialog.querySelector('nav');
+  const placeLabel=()=>label==='出发地'?tr('出发地','departure'):label==='避开范围'?tr('避开范围','places to avoid'):tr('目的地','destinations');
   function chrome() {
-    dialog.querySelector('h2').textContent=tr('选择','Choose ')+(label==='出发地'?tr('出发地','departure'):tr('目的地','destinations'));
+    dialog.querySelector('h2').textContent=tr('选择','Choose ')+placeLabel();
     input.placeholder=tr('输入城市、国家、机场或代码','Enter a city, country, airport or code');
     input.setAttribute('aria-label',tr('搜索地点','Search locations'));
     dialog.querySelector('.location-browser-footer button').textContent=tr('完成选择','Done');

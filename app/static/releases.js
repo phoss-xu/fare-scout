@@ -1,6 +1,16 @@
 // Newest first. See docs/RELEASES.md before preparing a release.
 export const releases = [
   {
+    version: '0.1.8-preview.1', status: 'preview', date: null,
+    title: {zh: '目的地排除范围', en: 'Exclude destination areas'},
+    groups: [
+      {type: 'added', items: [
+        {zh: '搜特价可按国家/地区、城市或机场排除目的地，也可在不限目的地时使用。', en: 'Exclude countries/regions, cities or airports in flight discovery, including when searching anywhere.'},
+        {zh: '保存的查询组合会保留排除范围。', en: 'Saved search presets retain excluded areas.'},
+      ]},
+    ],
+  },
+  {
     version: '0.1.5-preview.1', status: 'preview', date: null,
     title: {zh: '搜索按钮图标', en: 'Search button icon'},
     groups: [

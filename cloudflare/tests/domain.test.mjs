@@ -22,6 +22,17 @@ test('actual airport membership, local-date filtering, duration and weekday/nigh
   assert.equal(domain.accepts(offer(),{...d,weekdays:[(domain.weekday(c.start)+1)%7]},j),false);
   assert.equal(domain.accepts(offer(),{...d,nights:[4,5]},j),false);
 });
+test('discovery exclusions remove matching countries while retaining other arrivals',()=>{
+  const c=domain.validate(config({destinations:[],excluded_destinations:['country:JP']}),true);
+  assert.deepEqual(c.excluded_destination_selections.map(row=>row.id),['country:JP']);
+  assert.equal(domain.accepts(offer(),c,{origin_id:'airport:HKG'}),true);
+  const japan=offer();japan.outbound.to='HND';japan.inbound.from='HND';
+  assert.equal(domain.accepts(japan,c,{origin_id:'airport:HKG'}),false);
+  const oneWay=offer();delete oneWay.inbound;
+  const oneWayConfig=domain.validate(config({destinations:[],trip_type:'oneway',excluded_destinations:['country:JP']}),true);
+  assert.equal(domain.accepts({...oneWay,outbound:{...oneWay.outbound,to:'HND'}},oneWayConfig,{origin_id:'airport:HKG'}),false);
+  assert.throws(()=>domain.validate(config({excluded_destinations:['country:UNKNOWN']}),true));
+});
 test('discovery fixed dates and sparse nights agree with Python validation',()=>{
   for(const extra of [{date_mode:'fixed',nights:[],weekdays:[0]}, {nights:[]}, {nights:[2,4,10,2]}, {min_nights:1,max_nights:10}]) {
     const value=config(extra),actual=domain.validate(value,true);

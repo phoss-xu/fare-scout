@@ -8,7 +8,8 @@ import {chinaToday} from './holidays.js';
 export function presetDescription(c) {
   const places=ids=>ids.map(id=>id.split(':').at(-1)).join(' / ');
   const dates=c.time_windows?windowDescription(c.time_windows):c.trip_type==='oneway' && c.date_mode==='fixed'?c.start:c.date_pairs ? c.date_pairs.map(p=>`${p.start.slice(5)}–${p.end.slice(5)}`).join(' · ') : `${c.start} — ${c.end}`;
-  return `${places(c.origins)} → ${c.destinations.length?places(c.destinations):tr('任何地方','Anywhere')} · ${dates}`;
+  const excluded=c.excluded_destinations?.length?`${tr(' · 避开 ',' · Avoid ')}${places(c.excluded_destinations)}`:'';
+  return `${places(c.origins)} → ${c.destinations.length?places(c.destinations):tr('任何地方','Anywhere')}${excluded} · ${dates}`;
 }
 export function presetDetails(c) {
   const mode=c.time_windows?tr('时间范围','Time windows'):c.trip_type==='oneway'?tr(c.date_mode==='fixed'?'单程 · 固定日期':'单程 · 灵活日期',c.date_mode==='fixed'?'One-way · Fixed date':'One-way · Flexible dates'):c.date_pairs?tr(`${c.date_pairs.length} 个周末`,`${c.date_pairs.length} weekends`):c.date_mode==='fixed'?tr('固定往返','Fixed return dates'):c.nights?.length?tr(`灵活日期 · ${c.nights.join('、')} 晚`,`Flexible dates · ${c.nights.join(', ')} nights`):tr('灵活日期','Flexible dates');

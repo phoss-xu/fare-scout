@@ -67,6 +67,16 @@ test('multi-origin flexible discovery, validation, query args and owner-scoped r
   assert.equal((await request(h,'/api/watches',config({adults:1.5}),a)).status,400);
   assert.equal((await request(h,'/api/watches',config({start:'2027-02-30',end:'2027-03-05'}),a)).status,400);
 });
+test('anywhere discovery excludes selected countries in the returned fare set',async t=>{
+  const upstream={offers:[offer(1100,'SIN'),offer(900,'HND')]};
+  const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source(upstream)});t.after(()=>h.close());
+  const session=await register(h);
+  const task=await request(h,'/api/deals',config({destinations:[],excluded_destinations:['country:JP'],budget:0}),session);
+  assert.equal(task.status,202,JSON.stringify(task.data));
+  const result=await waitFor(async()=>{const response=await request(h,'/api/deals/'+task.data.id,undefined,session);return response.data.status==='done'?response.data:null;});
+  assert.equal(upstream.args.flyTo,'anywhere');
+  assert.deepEqual(result.offers.map(row=>row.outbound.to),['SIN']);
+});
 test('empty flexible night selection defaults to the 2–5 night range upstream',async t=>{
   const upstream={offers:[offer(1200)]};const h=await harness({bindings:{QUERY_ENABLED:'true'},outbound:source(upstream)});t.after(()=>h.close());
   const session=await register(h);

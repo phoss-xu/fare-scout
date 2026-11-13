@@ -18,6 +18,7 @@ def snapshot(data):
         result['currency'] = config['currency']
     result['origins'] = sorted(row['id'] for row in config['origin_selections'])
     result['destinations'] = sorted(row['id'] for row in config['destination_selections'])
+    result['excluded_destinations'] = sorted(row['id'] for row in config['excluded_destination_selections'])
     if 'time_windows' in config:
         result['time_windows'] = config['time_windows']
     if 'date_pairs' in config:

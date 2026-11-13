@@ -33,6 +33,8 @@ export function validate(d, discovery = false) {
   const origin_selections = selections(d.origins ?? [d.origin ?? 'airport:HKG']);
   const destination_selections = selections(d.destinations ?? [], discovery);
   const os = expand(origin_selections), ds = expand(destination_selections);
+  const excluded_destination_selections = discovery ? selections(d.excluded_destinations ?? [], true) : [];
+  const excluded_destination_locations = expand(excluded_destination_selections);
   ensure(discovery || !(os.length === 1 && ds.length === 1 && os[0].kind === 'airport' && os[0].id === ds[0].id), '出发机场和目的机场不能相同。');
   const start = date(d.start), end = date(d.end), mode = discovery ? 'fixed' : d.mode ?? 'fixed';
   ensure(['fixed','weekend'].includes(mode), '请选择固定日期或周末出行。');
@@ -77,7 +79,7 @@ export function validate(d, discovery = false) {
       ensure(date_mode==='fixed' && !config.date_pairs && os.length===1 && ds.length===1 && os[0].kind==='airport' && ds[0].kind==='airport','航线方案比较请选择一组机场与固定日期。');
       config.comparison=true;
     }
-    Object.assign(config,{locale:['zh-CN','en'].includes(d.locale)?d.locale:'zh-CN',trip_type,date_mode,nights,min_nights,max_nights,weekdays:date_mode!=='range'?[]:[...new Set(weekdays)].sort()});
+    Object.assign(config,{locale:['zh-CN','en'].includes(d.locale)?d.locale:'zh-CN',trip_type,date_mode,nights,min_nights,max_nights,weekdays:date_mode!=='range'?[]:[...new Set(weekdays)].sort(),excluded_destination_selections,excluded_destination_locations});
   }
   return config;
 }
@@ -92,6 +94,7 @@ export function matches(offer,c,j) {
   const out=offer.outbound, back=offer.inbound;
   if (!out || !back || typeof offer.price!=='number' || !Number.isFinite(offer.price) || offer.price<=0) return false;
   const o=resolve(j.origin_id || c.origin_location || c.origin), d=resolve(j.location_id || j.destination);
+  if((c.excluded_destination_locations || []).some(scope=>contains(scope,out.to))) return false;
   if (!contains(o,out.from) || !(c.return_route?back.to===c.return_route.to:contains(o,back.to)) || !contains(d,out.to) || !(c.return_route?back.from===c.return_route.from:contains(d,back.from)) || out.from===out.to) return false;
   if (![out.departureTime,out.arrivalTime,back.departureTime,back.arrivalTime].every(localTime)) return false;
   if (out.departureTime.slice(0,10)!==j.departure) return false;
@@ -121,6 +124,7 @@ function acceptsOneWay(offer,c,j) {
   if(!(dep>=c.start && dep<=c.end) || (c.date_mode==='fixed' && dep!==c.start) || (c.weekdays.length && !c.weekdays.includes(weekday(dep)))) return false;
   if(typeof offer.price!=='number' || !Number.isFinite(offer.price) || offer.price<=0 || (c.budget && offer.price>c.budget)) return false;
   try {
+    if((c.excluded_destination_locations || []).some(scope=>contains(scope,out.to))) return false;
     if(!contains(resolve(j.origin_id),out.from) || !contains(resolve(j.location_id || 'airport:'+out.to),out.to) || out.from===out.to) return false;
     return Number.isInteger(out.stops) && out.stops>=0 && (c.max_stops<0 || out.stops<=c.max_stops) && Number.isFinite(out.durationSeconds) && out.durationSeconds>0 && (!c.max_duration_hours || out.durationSeconds<=c.max_duration_hours*3600);
   } catch { return false; }

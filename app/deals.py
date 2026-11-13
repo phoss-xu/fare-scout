@@ -28,6 +28,11 @@ def validate(data):
     origin = origins[0]
     destination_rows = location_scopes.selections(raw) if raw else []
     scopes = location_scopes.expand(destination_rows)
+    excluded_raw = data.get('excluded_destinations', [])
+    if not isinstance(excluded_raw, list) or len(excluded_raw) > 100:
+        raise ValueError('最多可排除 100 个地点范围。')
+    excluded_rows = location_scopes.selections(excluded_raw) if excluded_raw else []
+    excluded_scopes = location_scopes.expand(excluded_rows)
     if len(origins) * max(1, len(scopes)) > 120:
         raise ValueError('这次选择超过 120 组出发地与目的地组合，请缩小范围。')
     try:
@@ -82,13 +87,19 @@ def validate(data):
             first, last = date.fromisoformat(window['start'][:10]), date.fromisoformat(window['end'][:10])
             if first < today() or last > today()+timedelta(days=365) or (last-first).days > 180:
                 raise ValueError('请选择未来一年内的时间范围，单次跨度不超过 180 天。')
-    return dict(base, **({'time_windows':windows} if windows else {}), **({'comparison':True} if comparison else {}), locale=data.get('locale') if data.get('locale') in ('zh-CN','en') else 'zh-CN', **({'date_pairs':date_pairs} if date_pairs is not None else {}), origin_locations=origins, origin_selections=origin_rows, destination_selections=destination_rows, destination_locations=scopes, destinations=[r['code'] for r in scopes],
+    return dict(base, **({'time_windows':windows} if windows else {}), **({'comparison':True} if comparison else {}), locale=data.get('locale') if data.get('locale') in ('zh-CN','en') else 'zh-CN', **({'date_pairs':date_pairs} if date_pairs is not None else {}), origin_locations=origins, origin_selections=origin_rows, destination_selections=destination_rows, destination_locations=scopes, excluded_destination_selections=excluded_rows, excluded_destination_locations=excluded_scopes, destinations=[r['code'] for r in scopes],
                 min_nights=low, max_nights=high, nights=nights, date_mode=date_mode, trip_type=trip_type,
                 weekdays=sorted(set(weekdays)) if date_mode == 'range' else [])
 
 
 def accepts(offer, config, scope, origin=None):
     if not time_windows.accepts(offer, config):
+        return False
+    try:
+        airport = offer['outbound']['to']
+        if any(locations.contains(excluded, airport) for excluded in config.get('excluded_destination_locations', [])):
+            return False
+    except (KeyError, TypeError):
         return False
     if config.get('trip_type') == 'oneway':
         from .oneway import accepts as accepts_oneway

@@ -25,3 +25,4 @@
 .destination-discovery [role=status]:empty{display:none}
 @media(max-width:760px){.destination-discovery-heading{flex-wrap:wrap}.destination-discovery-country{grid-template-columns:60px minmax(0,1fr);gap:4px}.destination-discovery button{min-height:44px;padding:8px}.destination-discovery nav{gap:2px}}
 @media(min-width:761px){.journey-destination .journey-editor{max-height: min(680px,calc(100dvh - 40px));overflow-y:auto;overscroll-behavior:contain}}
+.exclude-destinations{margin-top:var(--s-200);border-top:1px solid var(--line);padding-top:var(--s-200)}.exclude-destinations>summary{width:fit-content;cursor:pointer;color:var(--muted);font:var(--title-4);padding:var(--s-50) 0}.exclude-destinations[open]>summary{color:var(--ink)}
