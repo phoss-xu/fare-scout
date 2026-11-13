@@ -6,7 +6,7 @@ export function setupWorkspace() {
   const nav=document.querySelector('.tabs'), heading=document.querySelector('#workspace-heading');
   const buttons=[...nav.querySelectorAll('[data-tab]')];
   function select(tab, focus=false) {
-    const titles={watches:[tr("我的行程","My trips"),''],offers:[tr("机票机会","Flight opportunities"),''],alerts:[tr("提醒中心","Alerts"),'']};
+    const titles={watches:[tr("我的行程","My trips"),''],offers:[tr("机票机会","Flight opportunities"),''],alerts:[tr("旅价之眼","Fare Watch"),'']};
     const name=tab.dataset.tab;
     buttons.forEach(button=>{const active=button===tab;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;button.setAttribute('aria-controls',`${button.dataset.tab}-panel`);});
     ['deals','watches','offers','alerts'].forEach(key=>document.querySelector(`#${key}-panel`).hidden=key!==name);

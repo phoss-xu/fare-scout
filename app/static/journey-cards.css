@@ -1,0 +1,94 @@
+/* One boarding-pass language across saved trips, live fares, monitoring and alerts. */
+#saved-trips,#watches,#offers,#alerts{grid-template-columns:minmax(0,1fr);align-items:start;gap:var(--s-300)}
+.journey-card{box-sizing:border-box;width:100%;max-width:1280px;margin-inline:auto;border:1px solid var(--line);border-radius:16px;background:var(--white);box-shadow:none;min-width:0}
+.journey-card.deal-card{display:grid;grid-template-columns:minmax(190px,22%) minmax(0,1fr) minmax(190px,23%);grid-template-rows:max-content max-content minmax(0,1fr) max-content max-content;gap:var(--s-100) var(--s-300);padding:var(--s-300);overflow:hidden}
+.journey-card.deal-card>.offer-photo{grid-column:1;grid-row:1/span 6;order:0;align-self:stretch;width:calc(100% + var(--s-300));height:calc(100% + var(--s-300) + var(--s-300));aspect-ratio:auto;margin:calc(-1 * var(--s-300)) 0 calc(-1 * var(--s-300)) calc(-1 * var(--s-300));border-radius:12px 0 0 12px}
+.journey-card.deal-card>.ticket-face,.journey-card.deal-card>.ticket-stub,.journey-card.deal-card>.ticket-footer{display:contents}
+.journey-card.deal-card>.ticket-face>.card-top{grid-column:2/4;grid-row:1;min-width:0;margin:0;align-self:center}
+.journey-card.deal-card .deal-result-title,.journey-card.deal-card .trip-dates,.journey-card.deal-card .trip-experience,.journey-card.deal-card .deal-date-note,.journey-card.deal-card .compact-flight,.journey-card.deal-card .ticket-time-note{display:none}
+.journey-card.deal-card .boarding-itinerary{display:block;grid-column:2;grid-row:2/5;align-self:center;min-width:0;margin:0}
+.journey-card.deal-card .boarding-places{margin-bottom:var(--s-100)}
+.journey-card.deal-card .boarding-place>strong{font:var(--title-2)}
+.journey-card.deal-card .boarding-leg{gap:var(--s-100);padding:var(--s-100) 0}
+.journey-card.deal-card .boarding-moment time{font:var(--heading-5);letter-spacing:0}
+.journey-card.deal-card .boarding-moment>span{font:var(--caption-5)}
+.journey-card.deal-card .boarding-connection{width:min(100%,190px)}
+.journey-card.deal-card .boarding-time-note{margin:var(--s-50) 0 0}
+.journey-card.deal-card .fare-status{grid-column:3;grid-row:2;display:flex;align-items:center;justify-content:flex-start;gap:var(--s-100);min-width:0;padding:var(--s-100) 0 var(--s-100) var(--s-300);border-left:1px dashed var(--line)}
+.journey-card.deal-card .fare-status>.price{min-width:0;padding:0;border:0;font:var(--heading-3);color:var(--fare);white-space:nowrap}
+.journey-card.deal-card .fare-status>.price>span{font:var(--caption-5);color:var(--muted);letter-spacing:0}
+.journey-card.deal-card .fare-status>.price-status-light{flex:none}
+.journey-card.deal-card .ticket-baggage{grid-column:3;grid-row:3;padding:var(--s-100) 0 0 var(--s-300);margin:0;border-top:1px dashed var(--line);font:var(--caption-5)}
+.journey-card.deal-card .card-bottom{grid-column:3;grid-row:4;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:var(--s-100);padding:var(--s-100) 0 0 var(--s-300);margin:0;border-top:0}
+.journey-card.deal-card .card-bottom>:is(.text-btn,.trip-alert,.small-btn){justify-content:center;text-align:center}
+.journey-card.deal-card .card-bottom>.deal-icon-action{width:44px;height:44px;min-height:44px}
+.journey-card.deal-card.opportunity-card .card-bottom{display:grid;grid-template-columns:repeat(2,max-content);align-content:center;justify-content:start;column-gap:var(--s-100);row-gap:var(--s-50)}
+.journey-card.deal-card.opportunity-card .card-bottom>.text-btn{grid-row:1}
+.journey-card.deal-card.opportunity-card .card-bottom>.deal-icon-action{grid-row:2;justify-self:start}
+.journey-card.deal-card .ticket-tools{display:none}
+.journey-card.deal-card .trip-state-note{grid-column:2/4;grid-row:5;margin:0;padding-top:var(--s-100);border-top:1px dashed var(--line)}
+.journey-card.deal-card>.deal-flight-more{grid-column:2/4;grid-row:6;margin:0;border-top:1px dashed var(--line)}
+.journey-card.deal-card:not(:has(>.offer-photo)){grid-template-columns:minmax(0,1fr) minmax(190px,23%)}
+.journey-card.deal-card:not(:has(>.offer-photo))>.ticket-face>.card-top,.journey-card.deal-card:not(:has(>.offer-photo)) .trip-state-note,.journey-card.deal-card:not(:has(>.offer-photo))>.deal-flight-more{grid-column:1/3}
+.journey-card.deal-card:not(:has(>.offer-photo)) .boarding-itinerary{grid-column:1}
+.journey-card.deal-card:not(:has(>.offer-photo)) .fare-status,.journey-card.deal-card:not(:has(>.offer-photo)) .ticket-baggage,.journey-card.deal-card:not(:has(>.offer-photo)) .card-bottom{grid-column:2}
+
+.journey-card.watch-card{grid-template-columns:minmax(190px,22%) minmax(0,1fr);grid-template-rows:max-content max-content max-content max-content;grid-template-areas:"photo top" "photo overview" "filters filters" "bottom bottom";column-gap:var(--s-300);row-gap:var(--s-100);padding:var(--s-300)}
+.journey-card.watch-card>.offer-photo,.journey-card.watch-card>.watch-photo-strip{width:calc(100% + var(--s-300));height:auto;aspect-ratio:1;margin:calc(-1 * var(--s-300)) 0 0 calc(-1 * var(--s-300));border-radius:12px 0 0 12px}
+.journey-card.watch-card>.card-top{grid-area:top;min-width:0;align-self:center}
+.journey-card.watch-card>.watch-overview{grid-area:overview;grid-template-columns:minmax(180px,1fr) minmax(200px,1.15fr) minmax(170px,.9fr);gap:var(--s-200)}
+.journey-card.watch-card .watch-itinerary .boarding-itinerary{display:block;min-width:0}
+.journey-card.watch-card .watch-itinerary .boarding-leg{grid-template-columns:minmax(0,1fr) minmax(72px,1.1fr) minmax(0,1fr);gap:var(--s-50);padding:var(--s-75) 0}
+.journey-card.watch-card .watch-itinerary .boarding-moment time{font:var(--title-3);letter-spacing:0}
+.journey-card.watch-card .watch-itinerary .boarding-place>strong{font:var(--title-3)}
+.journey-card.watch-card>.watch-filters{grid-area:filters;margin:0}
+.journey-card.watch-card>.card-bottom{grid-area:bottom;margin:0}
+.journey-card.watch-card:not(:has(>.offer-photo)){grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "overview" "filters" "bottom"}
+
+.journey-card.alert-card{grid-template-columns:minmax(190px,22%) minmax(0,1fr) minmax(190px,23%);grid-template-rows:max-content minmax(0,1fr);gap:var(--s-100) var(--s-300);padding:var(--s-300)}
+.journey-card.alert-card>.offer-photo{grid-column:1;grid-row:1/span 2;width:calc(100% + var(--s-300));height:auto;aspect-ratio:1;margin:calc(-1 * var(--s-300)) 0 calc(-1 * var(--s-300)) calc(-1 * var(--s-300));border-radius:12px 0 0 12px}
+.journey-card.alert-card>.card-top{grid-column:2/4;grid-row:1;align-self:center;margin:0}
+.journey-card.alert-card .alert-route{grid-column:2;grid-row:2;align-self:center;min-width:0}
+.journey-card.alert-card .alert-route h3{font:var(--title-2);margin:0 0 var(--s-100)}
+.journey-card.alert-card .alert-route .trip-dates{margin:0;color:var(--muted);font:var(--body-6)}
+.journey-card.alert-card .alert-change{margin:var(--s-100) 0 0;font:var(--title-4);color:var(--ink)}
+.journey-card.alert-card .alert-fare{grid-column:3;grid-row:2;display:flex;flex-direction:column;justify-content:center;gap:var(--s-100);min-width:0;padding-left:var(--s-300);border-left:1px dashed var(--line)}
+.journey-card.alert-card .alert-fare>.price{margin:0;font:var(--heading-3);color:var(--fare);white-space:nowrap}
+.journey-card.alert-card .alert-fare>.price>span{font:var(--caption-5);color:var(--muted)}
+.journey-card.alert-card .alert-fare>.muted{margin:0}
+.journey-card.alert-card .card-bottom{justify-content:space-between;gap:var(--s-100);margin:0;padding-top:var(--s-100);border-top:1px dashed var(--line)}
+.journey-card.alert-card.unread{border-color:var(--green)}
+.journey-card.alert-card:not(:has(>.offer-photo)){grid-template-columns:minmax(0,1fr) minmax(190px,23%)}
+.journey-card.alert-card:not(:has(>.offer-photo))>.card-top,.journey-card.alert-card:not(:has(>.offer-photo)) .alert-route{grid-column:1}
+.journey-card.alert-card:not(:has(>.offer-photo)) .alert-fare{grid-column:2}
+
+@media(max-width:900px){.journey-card.watch-card>.watch-overview{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.journey-card.watch-card .watch-monitor{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));padding:var(--s-100) 0 0;border-left:0;border-top:1px solid var(--line)}.journey-card.watch-card .watch-monitor>.text-btn{grid-column:1/-1}}
+@media(max-width:760px){
+  #saved-trips,#watches,#offers,#alerts{gap:var(--s-200)}
+  .journey-card{max-width:none}
+  .journey-card.deal-card{grid-template-columns:96px minmax(0,1fr);grid-template-rows:96px max-content max-content max-content max-content max-content;gap:var(--s-100);padding:var(--s-200)}
+  .journey-card.deal-card>.offer-photo{grid-column:1;grid-row:1;width:calc(100% + var(--s-200));height:auto;aspect-ratio:1;margin:calc(-1 * var(--s-200)) 0 0 calc(-1 * var(--s-200));border-radius:12px}
+  .journey-card.deal-card>.ticket-face>.card-top{grid-column:2;grid-row:1;align-self:center;flex-wrap:wrap}
+  .journey-card.deal-card .boarding-itinerary{grid-column:1/3;grid-row:2;align-self:auto}
+  .journey-card.deal-card .fare-status{grid-column:1/3;grid-row:3;padding:var(--s-100) 0 0;border-left:0;border-top:1px dashed var(--line)}
+  .journey-card.deal-card .ticket-baggage{grid-column:1/3;grid-row:4;padding:0;border:0}
+  .journey-card.deal-card .card-bottom{grid-column:1/3;grid-row:5;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:var(--s-100) 0 0;border-top:1px dashed var(--line)}
+  .journey-card.deal-card.opportunity-card .card-bottom{display:grid;grid-template-columns:repeat(2,max-content);justify-content:start}
+  .journey-card.deal-card .trip-state-note{grid-column:1/3;grid-row:6}
+  .journey-card.deal-card>.deal-flight-more{grid-column:1/3;grid-row:7}
+  .journey-card.deal-card:not(:has(>.offer-photo)){grid-template-columns:minmax(0,1fr)}
+  .journey-card.deal-card:not(:has(>.offer-photo))>.ticket-face>.card-top,.journey-card.deal-card:not(:has(>.offer-photo)) .boarding-itinerary,.journey-card.deal-card:not(:has(>.offer-photo)) .fare-status,.journey-card.deal-card:not(:has(>.offer-photo)) .ticket-baggage,.journey-card.deal-card:not(:has(>.offer-photo)) .card-bottom,.journey-card.deal-card:not(:has(>.offer-photo)) .trip-state-note,.journey-card.deal-card:not(:has(>.offer-photo))>.deal-flight-more{grid-column:1}
+  .journey-card.watch-card{grid-template-columns:96px minmax(0,1fr);grid-template-rows:96px max-content max-content max-content;grid-template-areas:"photo top" "overview overview" "filters filters" "bottom bottom";column-gap:var(--s-100);row-gap:var(--s-100);padding:var(--s-200)}
+  .journey-card.watch-card>.offer-photo,.journey-card.watch-card>.watch-photo-strip{width:calc(100% + var(--s-200));height:auto;aspect-ratio:1;margin:calc(-1 * var(--s-200)) 0 0 calc(-1 * var(--s-200));border-radius:12px}
+  .journey-card.watch-card>.card-top{grid-area:top;min-height:0;align-self:center}
+  .journey-card.watch-card>.watch-overview{grid-area:overview;grid-template-columns:minmax(0,1fr);gap:var(--s-200)}
+  .journey-card.watch-card>.watch-overview>.watch-itinerary{grid-column:1}
+  .journey-card.watch-card .watch-monitor{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-100)}
+  .journey-card.watch-card .watch-monitor>.text-btn{grid-column:1/-1}
+  .journey-card.alert-card{grid-template-columns:96px minmax(0,1fr);grid-template-rows:96px max-content max-content;gap:var(--s-100);padding:var(--s-200)}
+  .journey-card.alert-card>.offer-photo{grid-column:1;grid-row:1;width:calc(100% + var(--s-200));height:auto;aspect-ratio:1;margin:calc(-1 * var(--s-200)) 0 0 calc(-1 * var(--s-200));border-radius:12px}
+  .journey-card.alert-card>.card-top{grid-column:2;grid-row:1;align-self:center;flex-wrap:wrap}
+  .journey-card.alert-card .alert-route{grid-column:1/3;grid-row:2}
+  .journey-card.alert-card .alert-fare{grid-column:1/3;grid-row:3;padding:var(--s-100) 0 0;border-left:0;border-top:1px dashed var(--line)}
+  .journey-card.alert-card:not(:has(>.offer-photo))>.card-top,.journey-card.alert-card:not(:has(>.offer-photo)) .alert-route,.journey-card.alert-card:not(:has(>.offer-photo)) .alert-fare{grid-column:1}
+}

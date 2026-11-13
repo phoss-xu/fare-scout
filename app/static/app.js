@@ -19,11 +19,13 @@ import {setupHolidays} from './holidays.js';
 import {setupWorkspace} from './ui.js';
 import {setupDaily} from './daily.js';
 import {setupAppearance} from './appearance.js';
+import {setupWatchTrends} from './watch-trends.js';
 const $ = selector => document.querySelector(selector);
 let state, refreshing = false, currentUser, generation = 0;
 let lastSnapshot,refreshFailed=false;
 let formInitialized = false;
 let toastTimer;
+const watchTrends=setupWatchTrends();
 function toast(message) {
   $('#toast').textContent = message;
   $('#toast').hidden = false;
@@ -34,9 +36,26 @@ async function refresh() {
   if (refreshing || !currentUser) return;
   const requestGeneration = generation;
   refreshing = true;
+  let result;
   try {
-    const result = await request('/api/state');
+    result = await request('/api/state');
+  } catch (error) {
+    refreshing = false;
+    refreshFailed = true;
     if (requestGeneration !== generation) return;
+    if (error.status === 401) { showSession(null); return; }
+    $('#page-error').textContent = error.status
+      ? tr('暂时无法读取行程数据，页面会自动重试。','Could not load your trip data. Retrying automatically.')
+      : tr('暂时连接不上服务，页面会自动重试。','Cannot reach the service. Retrying automatically.');
+    $('#page-error').hidden = false;
+    $('#summary').textContent = error.status
+      ? tr('数据暂时无法读取','Trip data unavailable')
+      : tr('连接中断','Connection lost');
+    return;
+  }
+  if (requestGeneration !== generation) { refreshing = false; return; }
+  try {
+    if (!result?.user?.id) throw new Error('State response did not include a user.');
     if (result.user.id !== currentUser.id) {
       showSession(await request('/api/auth/session'));
       return;
@@ -50,6 +69,7 @@ async function refresh() {
     if (snapshot === lastSnapshot) return;
     lastSnapshot = snapshot;
     $('#watches').innerHTML = watchCards(state)+removedItems(state,'watches');
+    watchTrends.render();
     $('#offers').innerHTML = offerCards(state)+removedItems(state,'offers');
     renderAutomation(state);
     daily.render(state);
@@ -67,21 +87,18 @@ async function refresh() {
       form.elements.start.min = form.elements.end.min = state.today;
     }
   } catch (error) {
+    console.error('Fare Scout could not render state:', error);
     refreshFailed=true;
     if (requestGeneration !== generation) return;
-    if (error.status === 401) { showSession(null); return; }
-    $('#page-error').textContent = error.status
-      ? tr('暂时无法读取行程数据，页面会自动重试。','Could not load your trip data. Retrying automatically.')
-      : tr("暂时连接不上服务，页面会自动重试。","Cannot reach the service. Retrying automatically.");
+    $('#page-error').textContent = tr('行程数据已收到，但页面没能完整显示，请刷新重试。','Trip data arrived, but this page could not display it. Refresh to try again.');
     $('#page-error').hidden = false;
-    $('#summary').textContent = error.status
-      ? tr('数据暂时无法读取','Trip data unavailable')
-      : tr("连接中断","Connection lost");
+    $('#summary').textContent = tr('行程暂时无法显示','Trips temporarily unavailable');
   } finally { refreshing = false; }
 }
 loadDestinationPhotos().then(()=>{
   if(!state)return;
   $('#watches').innerHTML=watchCards(state)+removedItems(state,'watches');
+  watchTrends.render();
   $('#offers').innerHTML=offerCards(state)+removedItems(state,'offers');
 });
 setupLanguage();
@@ -204,6 +221,7 @@ function renderPreferences() {
   $('#summary').textContent=tr(`${state.watches.length} 份出行计划 · ${state.watches.filter(w=>w.running).length} 份查询中`,`${state.watches.length} travel watches · ${state.watches.filter(w=>w.running).length} checking prices`);
   form.elements.mode.dispatchEvent(new Event('change'));
   $('#watches').innerHTML=watchCards(state)+removedItems(state,'watches');
+  watchTrends.render();
   $('#offers').innerHTML=offerCards(state)+removedItems(state,'offers');
   renderAutomation(state);daily.render(state);
   sampleHistory.render();

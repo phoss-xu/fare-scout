@@ -15,7 +15,7 @@ export function setupTripActions(refresh,toast) {
     document.querySelector('#saved-trip-count').textContent=savedTrips.length;
     if(!loaded)return;
     savedStatus.textContent=savedTrips.length?tr('收藏保留当时的报价，预订前请核价。','Saved quotes are snapshots. Confirm prices before booking.'):tr('遇见想去的地方，点一下心形留在这里。','Tap the heart on a trip to keep it here.');
-    saved.innerHTML=savedTrips.map(t=>dealCards([t.snapshot.offer],[t.snapshot.offer],t.snapshot.adults,false,{...t.snapshot,archived:true})).join('');
+    saved.innerHTML=savedTrips.map(t=>dealCards([t.snapshot.offer],[t.snapshot.offer],t.snapshot.adults,false,{...t.snapshot,archived:true,journeyList:true})).join('');
   }
   loadDestinationPhotos().then(render);
   document.addEventListener('tripschange',()=>{syncTripButtons();render();});

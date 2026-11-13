@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "skills": {
+    "landing-page-design": {
+      "source": "elayadesign/ai-design-skills",
+      "sourceType": "github",
+      "skillPath": "skills/landing-page-design/SKILL.md",
+      "computedHash": "98fa8463d5fc56f969d52f24512366d66655271080cb67b43ca0790d8e951bc6"
+    },
+    "redesign-existing-projects": {
+      "source": "elayadesign/redesign-skill",
+      "sourceType": "github",
+      "skillPath": "skills/redesign-existing-projects/SKILL.md",
+      "computedHash": "e12c02d9d956bca6bd26762aea2c01e16004dc37c00edb81b97bea6ed3617287"
+    }
+  }
+}

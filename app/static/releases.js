@@ -1,21 +1,22 @@
 // Newest first. See docs/RELEASES.md before preparing a release.
 export const releases = [
   {
-    version: '0.1.8-preview.1', status: 'preview', date: null,
-    title: {zh: '目的地排除范围', en: 'Exclude destination areas'},
+    version: '0.1.8', status: 'published', date: '2026-11-13',
+    title: {zh: '更合适的行程发现与报价视图', en: 'More useful fare discovery and trip cards'},
     groups: [
       {type: 'added', items: [
         {zh: '搜特价可按国家/地区、城市或机场排除目的地，也可在不限目的地时使用。', en: 'Exclude countries/regions, cities or airports in flight discovery, including when searching anywhere.'},
         {zh: '保存的查询组合会保留排除范围。', en: 'Saved search presets retain excluded areas.'},
+        {zh: '监控行程卡片增加历史价格走势。', en: 'Add historical fare trends to watched trip cards.'},
       ]},
-    ],
-  },
-  {
-    version: '0.1.5-preview.1', status: 'preview', date: null,
-    title: {zh: '搜索按钮图标', en: 'Search button icon'},
-    groups: [
       {type: 'improved', items: [
-        {zh: '将风景工作台的搜索按钮图标换成放大镜。', en: 'Replace the scenic workspace search button symbol with a magnifying glass.'},
+        {zh: '将“提醒中心”改为“旅价之眼”，并用眼睛图标表达持续关注。', en: 'Rename “Alerts” to “Fare Watch” and add an eye icon for ongoing monitoring.'},
+        {zh: '已收藏、监控中、机票机会和旅价之眼统一为票面布局；桌面展示照片、航段和价格，窄屏收为纵向信息。', en: 'Unify saved trips, watches, flight opportunities and Fare Watch as ticket cards, with photo, itinerary and fare on desktop and a compact mobile layout.'},
+        {zh: '监控卡片优先展示当前报价、去返程时间、价格走势、查价计划和提醒门槛；照片贯穿桌面票面。', en: 'Prioritize current fares, outbound/return times, trends, check schedules and alert thresholds on watch cards; extend photos across desktop cards.'},
+        {zh: '整理卡片操作区，并将工作台搜索图标换成放大镜。', en: 'Tidy card actions and replace the workspace search symbol with a magnifying glass.'},
+      ]},
+      {type: 'fixed', items: [
+        {zh: '修复行程数据载入后因价格格式化函数未导入而停止渲染的问题，并区分数据请求错误与页面渲染错误。', en: 'Fix a missing price formatter that stopped trip rendering, and distinguish request failures from rendering failures.'},
       ]},
     ],
   },

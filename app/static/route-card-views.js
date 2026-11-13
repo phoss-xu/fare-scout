@@ -57,12 +57,12 @@ export function destinationHero(group,photos) {
 }
 
 /** Cover imagery is content; fares and controls retain the global theme. */
-export function offerPhoto(offer,photos) {
+export function offerPhoto(offer,photos,variant='') {
   if(!offer?.outbound?.to)return '';
   const photo=destinationPhoto(offer.outbound.to,photos);
   if(!photo)return '';
   const name=routeName({to:offer.outbound.to,offers:[offer]});
-  return `<figure class="offer-photo" data-photo="${escape(offer.outbound.to)}"><img src="${escape(photo.path)}" alt="${escape(name)}${tr('目的地风景',' destination scenery')}" loading="lazy" decoding="async" width="${Number.isInteger(photo.width)?photo.width:1600}" height="${Number.isInteger(photo.height)?photo.height:1067}"${photoPosition(photo)}><figcaption><strong>${escape(name)}</strong><a href="${escape(photo.source)}" target="_blank" rel="noopener noreferrer" title="${escape(photo.license)}">${escape(photo.author)} · ${tr('图片来源','Photo source')} ↗</a></figcaption></figure>`;
+  return `<figure class="offer-photo${variant==='watch'?' watch-side-photo':''}" data-photo="${escape(offer.outbound.to)}"><img src="${escape(photo.path)}" alt="${escape(name)}${tr('目的地风景',' destination scenery')}" loading="lazy" decoding="async" width="${Number.isInteger(photo.width)?photo.width:1600}" height="${Number.isInteger(photo.height)?photo.height:1067}"${photoPosition(photo)}><figcaption><strong>${escape(name)}</strong><a href="${escape(photo.source)}" target="_blank" rel="noopener noreferrer" title="${escape(photo.license)}"><span class="photo-credit-author">${escape(photo.author)}</span> · <span class="photo-credit-source">${tr('图片来源','Photo source')} ↗</span></a></figcaption></figure>`;
 }
 
 /** Destination cover used only by the boarding-pass result view. */
@@ -76,9 +76,6 @@ export function boardingDestinationPhoto(offer,photos) {
 
 /** Use canonical scope identities; a country's cities are examples, never a replacement scope. */
 export function watchPhotos(places,photos=loadedPhotos) {
-  if(places.length===1 && ['city','airport'].includes(places[0].kind)) {
-    return offerPhoto({outbound:{to:places[0].code},destination_name:places[0].name},photos);
-  }
   const selected=new Map();
   const add=photo=>{if(photo && !selected.has(photo.path))selected.set(photo.path,photo);};
   const pools=[];
@@ -100,11 +97,12 @@ export function watchPhotos(places,photos=loadedPhotos) {
   for(let index=0;index<Math.max(0,...pools.map(pool=>pool.length)) && selected.size<2;index++) {
     for(const pool of pools){add(pool[index]);if(selected.size===2)break;}
   }
-  const examples=[...selected.values()].slice(0,2);
+  const examples=[...selected.values()];
   if(!examples.length)return '';
   const tiles=examples.map(photo=>{
     const name=tr(photo.city_name && photo.city_name!==photo.city_code?photo.city_name:photo.city,photo.city);
     return `<figure class="watch-photo-tile"><img src="${escape(photo.path)}" alt="${escape(name)}${tr('目的地风景',' destination scenery')}" loading="lazy" decoding="async" width="${Number.isInteger(photo.width)?photo.width:1600}" height="${Number.isInteger(photo.height)?photo.height:1067}" data-destination-photo="${escape(photo.id)}"><figcaption><strong>${escape(name)}</strong><a href="${escape(photo.source)}" target="_blank" rel="noopener noreferrer" title="${escape(photo.author)} · ${escape(photo.license)}">${escape(photo.author)} <span class="watch-photo-source">· ${tr('图片来源','Photo source')} ↗</span></a></figcaption></figure>`;
   }).join('');
-  return `<section class="offer-photo watch-photo-strip" aria-label="${tr('范围内的部分目的地风景','Selected scenery within this scope')}"><div class="watch-photo-grid">${tiles}</div><p class="watch-photo-note">${tr('范围内的部分目的地风景','Selected scenery within this scope')}</p></section>`;
+  const partial=places.some(place=>['country','group'].includes(place.kind)) || examples.length<places.length;
+  return `<section class="offer-photo watch-photo-strip" data-photo="${tr('范围内的部分目的地风景','Selected destination examples')}" aria-label="${partial?tr('范围内的部分目的地风景','Selected destination examples'):tr('目的地风景','Destination scenery')}"><div class="watch-photo-grid">${tiles}</div></section>`;
 }
